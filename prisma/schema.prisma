@@ -1,0 +1,294 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  name          String?
+  username      String?   @unique
+  image         String?
+  bio           String?
+  verified      Boolean   @default(false)
+  transparencyScore Float  @default(0)
+  reputation    Int       @default(0)
+  badges        Badge[]
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
+  posts         Post[]
+  reviews       Review[]
+  reports       TransparencyReport[]
+  subscriptions Subscription[]
+  analytics     UserAnalytics?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@map("badges")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Forum {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  slug        String   @unique
+  category    String
+  color       String?  // For visual identity
+  posts       Post[]
+  verifiedFacts VerifiedFact[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("forums")
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  forumId     String
+  forum       Forum    @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  comments    Comment[]
+  tags        String[]
+  pinned      Boolean  @default(false)
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  votes     Vote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  value     Int      // 1 for up, -1 for down
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@map("votes")
+}
+
+model VerifiedFact {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  source      String?
+  forumId     String
+  forum       Forum    @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  verifiedBy  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("verified_facts")
+}
+
+model Business {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  website       String?
+  verified      Boolean  @default(false)
+  transparencyScore Float @default(0)
+  reviews       Review[]
+  reports       TransparencyReport[]
+  ads           Ad[]
+  affiliates    Affiliate[]
+  analytics     BusinessAnalytics?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("businesses")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  rating      Int
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reviews")
+}
+
+model TransparencyReport {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  type        String   // e.g., price_discrepancy, misleading_promotion
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id])
+  verified    Boolean  @default(false)
+  evidence    String[] // URLs to evidence
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("transparency_reports")
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  image       String?
+  link        String
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type        String   // banner, sponsored, native
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ads")
+}
+
+model Affiliate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  link        String
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("affiliates")
+}
+
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  summary     String?
+  source      String
+  url         String   @unique
+  publishedAt DateTime
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("news")
+}
+
+model ModerationLog {
+  id          String   @id @default(cuid())
+  action      String
+  reason      String?
+  moderatorId String
+  targetId    String   // ID of post, comment, user, etc.
+  targetType  String   // post, comment, user
+  createdAt   DateTime @default(now())
+
+  @@map("moderation_logs")
+}
+
+model Subscription {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier        String   // free, premium, verified, business_basic, etc.
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+model UserAnalytics {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postsCount  Int      @default(0)
+  commentsCount Int    @default(0)
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  engagement  Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("user_analytics")
+}
+
+model BusinessAnalytics {
+  id            String   @id @default(cuid())
+  businessId    String   @unique
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  mentions      Int      @default(0)
+  sentiment     Float    @default(0)
+  clicks        Int      @default(0)
+  impressions   Int      @default(0)
+  conversions   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("business_analytics")
+}
