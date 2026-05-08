@@ -1,0 +1,44 @@
+{
+  "name": "theblacklist",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^4.29.9",
+    "@prisma/client": "^5.10.2",
+    "@supabase/supabase-js": "^2.39.3",
+    "@tanstack/react-query": "^5.17.15",
+    "framer-motion": "^11.0.24",
+    "next": "14.2.25",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.5.0",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
+    "tailwindcss": "^3.3.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-syntax-highlighter": "^15.5.11",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.25",
+    "postcss": "^8",
+    "prisma": "^5.10.2",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}

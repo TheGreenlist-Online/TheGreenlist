@@ -1,0 +1,25 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install --legacy-peer-deps",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_SITE_URL": "@next_public_site_url",
+    "NEXT_PUBLIC_DOMAIN": "@next_public_domain",
+    "DATABASE_URL": "@database_url",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@clerk_public_key",
+    "CLERK_SECRET_KEY": "@clerk_secret_key"
+  },
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "regions": ["sfo1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}

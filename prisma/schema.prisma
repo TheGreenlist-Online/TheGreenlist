@@ -1,0 +1,291 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  username  String?  @unique
+  firstName String?
+  lastName  String?
+  avatar    String?
+  role      Role     @default(USER)
+  isAnonymous Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  posts       Post[]
+  comments    Comment[]
+  reports     Report[]
+  businesses  Business[]
+  ads         Ad[]
+  affiliates  Affiliate[]
+  trustScores TrustScore[]
+  moderationLogs ModerationLog[]
+  analytics   Analytics[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+  JOURNALIST
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  category    String
+  tags        String[] // JSON array of tags
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isAnonymous Boolean  @default(false)
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  status      PostStatus @default(PUBLISHED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  comments Comment[]
+
+  @@map("posts")
+}
+
+enum PostStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+  DELETED
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  content     String
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+  isAnonymous Boolean  @default(false)
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  status      CommentStatus @default(PUBLISHED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("comments")
+}
+
+enum CommentStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+  DELETED
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  evidence    String[] // URLs or file paths
+  status      ReportStatus @default(PENDING)
+  reporterId  String?
+  reporter    User?    @relation(fields: [reporterId], references: [id])
+  isAnonymous Boolean  @default(true)
+  assignedTo  String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  moderationLogs ModerationLog[]
+
+  @@map("reports")
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  VERIFIED
+  UNVERIFIED
+  ESCALATED
+  RESOLVED
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  name        String
+  type        BusinessType
+  description String?
+  website     String?
+  address     String?
+  phone       String?
+  email       String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  transparencyScore Float? @default(0)
+  reviews     Int      @default(0)
+  rating      Float?   @default(0)
+  badges      String[] // JSON array of badges
+  status      BusinessStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("businesses")
+}
+
+enum BusinessType {
+  DISPENSARY
+  GROWER
+  LAB
+  CONSULTANT
+  EQUIPMENT_SUPPLIER
+  ADVOCACY_GROUP
+  MEDIA
+  LEGAL_COMPLIANCE
+}
+
+enum BusinessStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  BANNED
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  imageUrl    String?
+  linkUrl     String
+  advertiserId String
+  advertiser  User     @relation(fields: [advertiserId], references: [id])
+  placement   AdPlacement
+  status      AdStatus @default(PENDING)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  budget      Float?
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ads")
+}
+
+enum AdPlacement {
+  BANNER
+  SIDEBAR
+  SPONSORED_POST
+  NEWSLETTER
+}
+
+enum AdStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  PAUSED
+  REJECTED
+}
+
+model Affiliate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  linkUrl     String
+  imageUrl    String?
+  partnerId   String
+  partner     User     @relation(fields: [partnerId], references: [id])
+  category    String
+  commission  Float?
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  status      AffiliateStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("affiliates")
+}
+
+enum AffiliateStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  PAUSED
+  REJECTED
+}
+
+model NewsArticle {
+  id          String   @id @default(cuid())
+  title       String
+  summary     String?
+  content     String
+  source      String
+  url         String   @unique
+  publishedAt DateTime
+  tags        String[]
+  sentiment   Float?
+  aiSummary   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("news_articles")
+}
+
+model TrustScore {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Float    @default(0)
+  factors   String   // JSON object of factors
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId])
+  @@map("trust_scores")
+}
+
+model ModerationLog {
+  id         String   @id @default(cuid())
+  action     String
+  targetType String   // post, comment, report, user
+  targetId   String
+  moderatorId String
+  moderator  User     @relation(fields: [moderatorId], references: [id])
+  reason     String?
+  reportId   String?
+  report     Report?  @relation(fields: [reportId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@map("moderation_logs")
+}
+
+model Analytics {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  event       String
+  data        String   // JSON data
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@map("analytics")
+}

@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply antialiased bg-blacklist-dark text-blacklist-text;
+  }
+}
+
+@layer components {
+  .glassmorphism {
+    @apply bg-blacklist-gray/60 backdrop-blur-xl border border-blacklist-gray-light/30 rounded-xl;
+  }
+
+  .card-elevated {
+    @apply bg-blacklist-gray/40 backdrop-blur-md border border-blacklist-gray-light/20 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .accent-glow {
+    @apply shadow-lg shadow-blacklist-green-bright/30 hover:shadow-blacklist-green-bright/50 transition-shadow duration-300;
+  }
+
+  .accent-glow-red {
+    @apply shadow-lg shadow-blacklist-accent-red/30 hover:shadow-blacklist-accent-red/50 transition-shadow duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-blacklist-green-bright text-white font-semibold py-3 px-6 rounded-lg hover:bg-blacklist-accent-red transition-all duration-300 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border-2 border-blacklist-green-bright text-blacklist-green-bright font-semibold py-2 px-4 rounded-lg hover:bg-blacklist-green-bright/10 transition-all duration-300;
+  }
+
+  .btn-accent {
+    @apply bg-blacklist-accent-yellow text-blacklist-dark font-semibold py-2 px-4 rounded-lg hover:bg-blacklist-accent-red hover:text-white transition-all duration-300;
+  }
+
+  .heading-lg {
+    @apply text-4xl md:text-5xl font-bold text-blacklist-green-bright tracking-tight;
+  }
+
+  .heading-md {
+    @apply text-2xl md:text-3xl font-bold text-blacklist-text;
+  }
+
+  .text-muted {
+    @apply text-gray-400;
+  }
+
+  .badge {
+    @apply inline-block px-3 py-1 bg-blacklist-green/20 text-blacklist-green-bright rounded-full text-sm font-medium;
+  }
+
+  .badge-red {
+    @apply inline-block px-3 py-1 bg-blacklist-accent-red/20 text-blacklist-accent-red rounded-full text-sm font-medium;
+  }
+
+  .badge-yellow {
+    @apply inline-block px-3 py-1 bg-blacklist-accent-yellow/20 text-blacklist-accent-yellow rounded-full text-sm font-medium;
+  }
+}
