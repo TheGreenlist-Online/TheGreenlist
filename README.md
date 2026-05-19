@@ -193,3 +193,4 @@ For support, email support@theblacklist.online or join our community forums.
 
 THEBLACKLIST.ONLINE is not affiliated with any cannabis businesses, dispensaries, or sales platforms. All content is user-generated and for informational purposes only. Users should consult local laws regarding cannabis use and purchase.
 TheBlacklist
+Redeploy trigger
