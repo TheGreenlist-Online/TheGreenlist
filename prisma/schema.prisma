@@ -24,6 +24,8 @@ model User {
   followers     Follow[]  @relation("UserFollowers")
   following     Follow[]  @relation("UserFollowing")
   posts         Post[]
+  comments      Comment[]
+  votes         Vote[]
   reviews       Review[]
   reports       TransparencyReport[]
   subscriptions Subscription[]
