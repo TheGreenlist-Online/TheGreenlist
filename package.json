@@ -38,15 +38,14 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.55.0",
-    "eslint-config-next": "14.2.35",
-    "postcss": "^8.4.32",
-    "prisma": "^5.22.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+  "@types/node": "^20.10.0",
+  "@types/react": "^19.0.0",
+  "@types/react-dom": "^19.0.0",
+  "autoprefixer": "^10.4.16",
+  "eslint": "^9.0.0",
+  "eslint-config-next": "16.2.6",
+  "postcss": "^8.5.10",
+  "prisma": "^5.22.0",
+  "ts-node": "^10.9.2",
+  "typescript": "^5.3.3"
   }
-}
