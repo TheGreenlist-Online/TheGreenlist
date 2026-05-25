@@ -29,27 +29,30 @@
     "dotenv": "^16.3.1",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.294.0",
-    "next": "14.2.35",
+    "next": "16.2.6",
     "next-auth": "^4.24.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "tailwind-merge": "^2.6.1",
     "tailwindcss": "^3.3.6",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.55.0",
-    "eslint-config-next": "14.2.35",
-    "postcss": "^8.4.32",
+    "eslint-config-next": "16.2.6",
+    "postcss": "^8.5.10",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "overrides": {
-    "mime": "^3.0.0"
+    "glob": "^10.5.0",
+    "mime": "^3.0.0",
+    "postcss": "^8.5.10",
+    "uuid": "^11.1.1"
   }
 }
