@@ -3,6 +3,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import AppleProvider from 'next-auth/providers/apple'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { UserRole } from '@prisma/client'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
@@ -29,10 +30,19 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email.toLowerCase().trim() },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            password: true,
+            role: true,
+            businessId: true,
+          },
         })
 
-        if (!user || !user.password) {
+        if (!user?.password) {
           return null
         }
 
@@ -50,6 +60,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           username: user.username,
+          role: user.role,
+          businessId: user.businessId,
         }
       },
     }),
@@ -61,13 +73,17 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.username = user.username
+        token.role = user.role ?? UserRole.USER
+        token.businessId = user.businessId ?? null
       }
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (session.user && token) {
         session.user.id = token.sub!
-        session.user.username = token.username as string
+        session.user.username = token.username as string | null
+        session.user.role = (token.role as UserRole) ?? UserRole.USER
+        session.user.businessId = token.businessId as string | null
       }
       return session
     },
