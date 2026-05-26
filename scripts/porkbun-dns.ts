@@ -13,6 +13,7 @@ const API_SECRET = process.env.PORKBUN_API_SECRET
 const DOMAIN = process.env.PORKBUN_DOMAIN
 
 interface DNSRecord {
+  id?: string
   type: string
   name: string
   content: string
@@ -41,7 +42,7 @@ async function apiCall(endpoint: string, data: any) {
   return result
 }
 
-async function getDNSRecords() {
+async function getDNSRecords(): Promise<DNSRecord[]> {
   console.log(`📋 Fetching DNS records for ${DOMAIN}...`)
   const result = await apiCall('/dns/retrieve', { domain: DOMAIN })
   return result.records || []
@@ -120,7 +121,9 @@ async function setupVercelDNS() {
       (record.type === 'A' && (record.name === '@' || record.name === 'www')) ||
       (record.type === 'CNAME' && record.name === 'api')
     ) {
-      await deleteDNSRecord(record.id)
+      if (record.id) {
+        await deleteDNSRecord(record.id)
+      }
     }
   }
 
@@ -151,8 +154,8 @@ async function listDNSRecords() {
     return
   }
 
-  records.forEach((r) => {
-    console.log(`  [${r.id}] ${r.type.padEnd(6)} ${(r.name || '@').padEnd(20)} -> ${r.content}`)
+  records.forEach((r: DNSRecord) => {
+    console.log(`  [${r.id ?? 'unknown'}] ${r.type.padEnd(6)} ${(r.name || '@').padEnd(20)} -> ${r.content}`)
   })
 
   console.log(`\nTotal: ${records.length} records`)

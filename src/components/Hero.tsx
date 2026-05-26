@@ -10,27 +10,31 @@ export function Hero() {
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
       <div className="container relative mx-auto px-4">
         <div className="mx-auto max-w-4xl text-center">
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
+            className="mx-auto max-w-3xl"
           >
-            THEBLACKLIST.
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ONLINE
-            </span>
-          </motion.h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              THEBLACKLIST.
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                ONLINE
+              </span>
+            </h1>
+          </motion.div>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl"
+            className="mt-6"
           >
-            A cannabis industry transparency network. Public accountability, consumer verification,
-            and community-driven oversight for the cannabis marketplace.
-          </motion.p>
+            <p className="text-lg leading-8 text-muted-foreground sm:text-xl">
+              A cannabis industry transparency network. Public accountability, consumer verification,
+              and community-driven oversight for the cannabis marketplace.
+            </p>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
