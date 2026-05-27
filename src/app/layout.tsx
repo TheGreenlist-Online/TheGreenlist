@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     images: ['/og-image.jpg'],
   },
   // metadataBase used to resolve relative social image URLs during build
-  metadataBase: process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000',
+  metadataBase: process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://theblacklist.online',
 }
 
 export default function RootLayout({
