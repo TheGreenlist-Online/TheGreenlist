@@ -32,6 +32,8 @@ export const metadata: Metadata = {
     description: 'Cannabis Industry Transparency Network',
     images: ['/og-image.jpg'],
   },
+  // metadataBase used to resolve relative social image URLs during build
+  metadataBase: process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000',
 }
 
 export default function RootLayout({
