@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { AntiCommerceWarning } from '@/components/AntiCommerceWarning'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <AntiCommerceWarning />
           {children}
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   )
