@@ -54,5 +54,13 @@
     "prisma": "5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "glob": "^10.5.0",
+    "mime": "^3.0.0",
+    "postcss": "^8.5.10",
+    "uuid": "^11.1.1",
+    "prisma": "5.22.0",
+    "@prisma/client": "5.22.0"
   }
 }
