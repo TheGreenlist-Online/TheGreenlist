@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Twitter, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
 
 const footerLinks = {
   platform: [
@@ -42,13 +42,13 @@ export function Footer() {
                 href="https://twitter.com/theblacklist"
                 className="text-muted-foreground hover:text-accent transition-colors"
               >
-                <Twitter className="h-5 w-5" />
+                <span className="text-sm font-bold">X</span>
               </Link>
               <Link
                 href="https://github.com/theblacklist"
                 className="text-muted-foreground hover:text-accent transition-colors"
               >
-                <Github className="h-5 w-5" />
+                <span className="text-sm font-bold">GH</span>
               </Link>
               <Link
                 href="mailto:support@theblacklist.online"

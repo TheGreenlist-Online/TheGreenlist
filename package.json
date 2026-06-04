@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build --webpack",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "test": "prisma validate",
@@ -53,7 +53,7 @@
     "postcss": "^8.5.10",
     "prisma": "5.22.0",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "glob": "^10.5.0",
