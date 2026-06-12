@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { Search, Menu, User, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,18 +28,10 @@ export function Header() {
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/forums" className="transition-colors hover:text-accent">
-              Forums
-            </Link>
-            <Link href="/businesses" className="transition-colors hover:text-accent">
-              Businesses
-            </Link>
-            <Link href="/news" className="transition-colors hover:text-accent">
-              News
-            </Link>
-            <Link href="/reports" className="transition-colors hover:text-accent">
-              Reports
-            </Link>
+            <Link href="/forums" className="transition-colors hover:text-accent">Forums</Link>
+            <Link href="/businesses" className="transition-colors hover:text-accent">Businesses</Link>
+            <Link href="/news" className="transition-colors hover:text-accent">News</Link>
+            <Link href="/reports" className="transition-colors hover:text-accent">Reports</Link>
           </nav>
         </div>
 
@@ -47,11 +39,7 @@ export function Header() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search forums, businesses, reports..."
-                className="pl-8 md:w-[300px] lg:w-[400px]"
-              />
+              <Input type="search" placeholder="Search forums, businesses, reports..." className="pl-8 md:w-[300px] lg:w-[400px]" />
             </div>
           </div>
 
@@ -67,42 +55,30 @@ export function Header() {
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       {session.user?.name && <p className="font-medium">{session.user.name}</p>}
-                      {session.user?.email && (
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">
-                          {session.user.email}
-                        </p>
-                      )}
+                      {session.user?.email && <p className="w-[200px] truncate text-sm text-muted-foreground">{session.user.email}</p>}
                     </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
+                    <Link href="/dashboard"><User className="mr-2 h-4 w-4" />Dashboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
+                    <Link href="/profile"><User className="mr-2 h-4 w-4" />Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings"><Settings className="mr-2 h-4 w-4" />Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    <LogOut className="mr-2 h-4 w-4" />Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => signIn()}>Sign In</Button>
+              <Button asChild><Link href="/login">Sign In</Link></Button>
             )}
 
-            <Button
-              variant="ghost"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            <Button variant="ghost" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <Menu className="h-4 w-4" />
             </Button>
           </nav>
@@ -112,18 +88,11 @@ export function Header() {
       {isMenuOpen && (
         <div className="md:hidden">
           <nav className="flex flex-col space-y-2 p-4 border-t">
-            <Link href="/forums" className="transition-colors hover:text-accent">
-              Forums
-            </Link>
-            <Link href="/businesses" className="transition-colors hover:text-accent">
-              Businesses
-            </Link>
-            <Link href="/news" className="transition-colors hover:text-accent">
-              News
-            </Link>
-            <Link href="/reports" className="transition-colors hover:text-accent">
-              Reports
-            </Link>
+            <Link href="/forums" className="transition-colors hover:text-accent">Forums</Link>
+            <Link href="/businesses" className="transition-colors hover:text-accent">Businesses</Link>
+            <Link href="/news" className="transition-colors hover:text-accent">News</Link>
+            <Link href="/reports" className="transition-colors hover:text-accent">Reports</Link>
+            {!session && <Link href="/login" className="transition-colors hover:text-accent">Sign In</Link>}
           </nav>
         </div>
       )}
