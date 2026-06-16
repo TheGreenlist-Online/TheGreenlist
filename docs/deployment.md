@@ -1,35 +1,42 @@
 # Deployment Guide
 
-This guide covers deploying THEBLACKLIST.ONLINE to production.
+This guide covers deploying The Green List to production.
 
-## Vercel Deployment (Recommended)
+Primary domain: `https://thegreenlist.online`
+Secondary domain: `https://greenlist.online`
+
+## Vercel Deployment
 
 ### Prerequisites
 - Vercel account
-- Domain purchased from Porkbun
-- Supabase project set up
+- Porkbun access for `thegreenlist.online` and `greenlist.online`
+- Supabase/PostgreSQL project set up
+- Production environment variables ready
 
 ### Steps
 
 1. **Connect Repository**
-   - Import your GitHub repository to Vercel
-   - Configure project settings
+   - Import the GitHub repository to Vercel
+   - Configure the project as a Next.js app
 
 2. **Environment Variables**
    - Add all variables from `.env.example`
-   - Use Vercel secrets for sensitive data
+   - Use Vercel environment variables for sensitive data
+   - Set `NEXT_PUBLIC_SITE_URL=https://thegreenlist.online`
+   - Set `NEXTAUTH_URL=https://thegreenlist.online` if NextAuth is used
 
 3. **Database**
-   - Use Supabase or Vercel Postgres
-   - Run Prisma migrations: `npx prisma db push`
+   - Use Supabase/PostgreSQL
+   - Run Prisma migrations or schema push according to the release plan
 
 4. **Domain Configuration**
-   - Add custom domain in Vercel dashboard
-   - Configure DNS records (see dns-setup.md)
+   - Add `thegreenlist.online` as the primary production domain in Vercel
+   - Add `greenlist.online` as the secondary/backup domain
+   - Configure Porkbun DNS records as described in `docs/dns-setup.md`
 
 5. **SSL & Security**
    - Vercel provides automatic SSL
-   - Configure security headers if needed
+   - Configure CSP and other security headers before production launch
 
 ## Docker Deployment
 
@@ -37,14 +44,11 @@ This guide covers deploying THEBLACKLIST.ONLINE to production.
 
 ```bash
 # Clone repository
-git clone https://github.com/That1andOnly/TheBlacklist.git
+git clone https://github.com/TheBlacklistOnline/TheBlacklist.git
 cd TheBlacklist
 
 # Copy environment file
 cp .env.example .env.local
-
-# Edit environment variables
-nano .env.local
 
 # Start services
 docker-compose -f docker/docker-compose.yml up -d
@@ -53,23 +57,9 @@ docker-compose -f docker/docker-compose.yml up -d
 ### Manual Docker Build
 
 ```bash
-# Build image
-docker build -t theblacklist .
-
-# Run container
-docker run -p 3000:3000 --env-file .env.local theblacklist
+docker build -t thegreenlist .
+docker run -p 3000:3000 --env-file .env.local thegreenlist
 ```
-
-## Cloudflare Configuration
-
-### DNS Setup
-- Point domain to Vercel nameservers
-- Configure Cloudflare for additional protection
-
-### Security
-- Enable DDoS protection
-- Set up WAF rules
-- Configure rate limiting
 
 ## Environment Variables Checklist
 
@@ -77,6 +67,7 @@ docker run -p 3000:3000 --env-file .env.local theblacklist
 - [ ] `DATABASE_URL`
 - [ ] `NEXTAUTH_URL`
 - [ ] `NEXTAUTH_SECRET`
+- [ ] `NEXT_PUBLIC_SITE_URL`
 - [ ] `SUPABASE_URL`
 - [ ] `SUPABASE_ANON_KEY`
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`
@@ -84,14 +75,28 @@ docker run -p 3000:3000 --env-file .env.local theblacklist
 ### Optional
 - [ ] `OPENAI_API_KEY`
 - [ ] `RESEND_API_KEY` or `SENDGRID_API_KEY`
-- [ ] `CLOUDFLARE_API_TOKEN`
 - [ ] `REDIS_URL`
+
+## Auth and Supabase Redirects
+
+Allow these URLs in auth provider and Supabase redirect settings where applicable:
+
+```text
+https://thegreenlist.online
+https://greenlist.online
+https://thegreenlist.online/auth/callback
+https://greenlist.online/auth/callback
+http://localhost:3000
+http://localhost:3000/auth/callback
+```
+
+Only include callback paths that are actually used by the app.
 
 ## Post-Deployment Tasks
 
 1. **Database Migration**
    ```bash
-   npx prisma db push
+   npx prisma migrate deploy
    ```
 
 2. **Seed Data** (optional)
@@ -101,45 +106,20 @@ docker run -p 3000:3000 --env-file .env.local theblacklist
 
 3. **Test Functionality**
    - User registration/login
-   - Forum creation/posting
-   - File uploads
+   - Forum navigation
+   - Report pages
+   - News pages
+   - Public legal/support pages
 
 4. **Monitoring Setup**
    - Configure Vercel Analytics
-   - Set up error tracking (Sentry)
+   - Set up error tracking such as Sentry
    - Monitor database performance
 
 5. **Backup Configuration**
    - Set up automated database backups
    - Configure backup retention
 
-## Scaling Considerations
+## Scope Guardrails
 
-- **Database**: Monitor query performance, consider read replicas
-- **Storage**: Use Supabase Storage for file uploads
-- **Caching**: Implement Redis for session and data caching
-- **CDN**: Use Cloudflare for global content delivery
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Build Failures**
-   - Check Node.js version compatibility
-   - Verify all dependencies are installed
-   - Check for TypeScript errors
-
-2. **Database Connection**
-   - Verify DATABASE_URL format
-   - Check firewall settings
-   - Ensure database is accessible
-
-3. **Authentication Issues**
-   - Verify OAuth provider configuration
-   - Check NEXTAUTH_URL matches domain
-   - Ensure secrets are properly set
-
-4. **File Upload Issues**
-   - Check Supabase Storage configuration
-   - Verify bucket permissions
-   - Check file size limits
+The Green List is not a cannabis marketplace. Production deployments must not add cannabis sales, ordering, delivery, checkout, payment processing, inventory, or dispensary transaction features.
