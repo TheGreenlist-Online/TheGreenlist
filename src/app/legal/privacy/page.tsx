@@ -4,7 +4,7 @@ export default function PrivacyPage() {
   return (
     <SimplePage
       title="Privacy Policy"
-      subtitle="A plain-language privacy placeholder for TheBlacklist.online. Final policy should match the actual data collected by the app."
+      subtitle="A plain-language privacy placeholder for The Green List. Final policy should match the actual data collected by the app."
       sections={[
         {
           heading: 'Information collected',
