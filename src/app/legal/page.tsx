@@ -4,81 +4,78 @@ import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 
 export const metadata = {
-  title: 'Legal & Compliance - THEBLACKLIST.ONLINE',
-  description: 'Legal information, policies, and compliance documentation for THEBLACKLIST.ONLINE',
+  title: 'Legal & Compliance - The Green List',
+  description: 'Legal information, policies, and compliance documentation for The Green List',
 }
 
 export default function LegalHub() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-blacklist-dark pt-8 pb-20">
+      <main className="min-h-screen bg-background pt-8 pb-20 text-foreground">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="mb-12">
-              <h1 className="text-4xl font-bold text-white mb-4">Legal & Compliance</h1>
+              <h1 className="text-4xl font-bold mb-4">Legal & Compliance</h1>
               <p className="text-xl text-muted-foreground">
-                Important information about THEBLACKLIST.ONLINE and our platform.
+                Important information about The Green List and our platform.
               </p>
             </div>
 
-            {/* Critical Notice */}
-            <Card className="mb-8 border-blacklist-accent-red/50 bg-blacklist-accent-red/5">
+            <Card className="mb-8 border-destructive/50 bg-destructive/5">
               <CardHeader>
-                <CardTitle className="text-blacklist-accent-red">⚠️ Critical Notice</CardTitle>
+                <CardTitle className="text-destructive">Critical Notice</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <p>
-                  <strong>THEBLACKLIST.ONLINE is NOT a cannabis marketplace, dispensary, or e-commerce platform.</strong>
+                  <strong>The Green List is not a cannabis marketplace, dispensary, or e-commerce platform.</strong>
                 </p>
                 <p>
-                  We do NOT sell, distribute, ship, arrange deliveries for, or facilitate the sale of cannabis products in any form.
+                  We do not sell, distribute, ship, arrange deliveries for, order, or facilitate the sale of cannabis products in any form.
                   Our platform is solely for:
                 </p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Educational content and industry transparency</li>
                   <li>Community forums and user discussions</li>
-                  <li>Public reviews and feedback (user-generated)</li>
-                  <li>Dispensary information and business profiles</li>
+                  <li>Public reports and user-generated feedback</li>
+                  <li>Business information and accountability records</li>
                   <li>News and industry reporting</li>
                   <li>Accountability and public oversight</li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Legal Documents Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               <Link href="/legal/terms">
-                <Card className="h-full hover:bg-blacklist-green/10 transition-colors cursor-pointer border-blacklist-green">
+                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
                   <CardHeader>
                     <CardTitle>Terms of Service</CardTitle>
                     <CardDescription>Platform usage terms and conditions</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Read our terms governing your use of THEBLACKLIST.ONLINE, including user responsibilities and limitations.
+                      Read our terms governing your use of The Green List, including user responsibilities and limitations.
                     </p>
                   </CardContent>
                 </Card>
               </Link>
 
               <Link href="/legal/privacy">
-                <Card className="h-full hover:bg-blacklist-green/10 transition-colors cursor-pointer border-blacklist-green">
+                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
                   <CardHeader>
                     <CardTitle>Privacy Policy</CardTitle>
                     <CardDescription>How we collect and use your data</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Learn how THEBLACKLIST.ONLINE collects, processes, and protects your personal information.
+                      Learn how The Green List collects, processes, and protects your personal information.
                     </p>
                   </CardContent>
                 </Card>
               </Link>
 
               <Link href="/legal/ftc">
-                <Card className="h-full hover:bg-blacklist-green/10 transition-colors cursor-pointer border-blacklist-green">
+                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
                   <CardHeader>
                     <CardTitle>FTC Disclosures</CardTitle>
                     <CardDescription>Sponsored content and affiliate links</CardDescription>
@@ -92,22 +89,21 @@ export default function LegalHub() {
               </Link>
 
               <Link href="/legal/dmca">
-                <Card className="h-full hover:bg-blacklist-green/10 transition-colors cursor-pointer border-blacklist-green">
+                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
                   <CardHeader>
                     <CardTitle>DMCA Policy</CardTitle>
                     <CardDescription>Copyright and intellectual property</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Our Digital Millennium Copyright Act (DMCA) policy and copyright takedown procedures.
+                      Our Digital Millennium Copyright Act policy and copyright takedown procedures.
                     </p>
                   </CardContent>
                 </Card>
               </Link>
             </div>
 
-            {/* Compliance Info */}
-            <Card className="border-blacklist-green/50 bg-blacklist-green/5 mb-8">
+            <Card className="border-primary/40 bg-primary/5 mb-8">
               <CardHeader>
                 <CardTitle>Compliance & Governance</CardTitle>
               </CardHeader>
@@ -115,19 +111,19 @@ export default function LegalHub() {
                 <div>
                   <h3 className="font-semibold mb-2">Age Verification</h3>
                   <p className="text-sm text-muted-foreground">
-                    By using THEBLACKLIST.ONLINE, you confirm that you are at least 21 years of age or meet the minimum legal age in your jurisdiction. Content is for adults only.
+                    By using The Green List, you confirm that you are at least 21 years of age or meet the minimum legal age in your jurisdiction. Content is for adults only.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Legal Compliance</h3>
                   <p className="text-sm text-muted-foreground">
-                    THEBLACKLIST.ONLINE complies with all applicable federal, state, and local laws. We do not facilitate any illegal activities. Cannabis regulations vary by jurisdiction—consult local authorities.
+                    The Green List complies with applicable federal, state, and local laws. We do not facilitate illegal activities. Cannabis regulations vary by jurisdiction, so consult local authorities.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">User-Generated Content</h3>
                   <p className="text-sm text-muted-foreground">
-                    All reviews, forum posts, and community submissions are user-generated. THEBLACKLIST.ONLINE does not verify claims and is not responsible for accuracy. Content is published as-is for community discussion.
+                    All reviews, forum posts, reports, and community submissions are user-generated. Content is published for community discussion and accountability review.
                   </p>
                 </div>
                 <div>
@@ -139,7 +135,6 @@ export default function LegalHub() {
               </CardContent>
             </Card>
 
-            {/* Contact */}
             <Card>
               <CardHeader>
                 <CardTitle>Legal & Compliance Contact</CardTitle>
@@ -147,7 +142,7 @@ export default function LegalHub() {
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold">Send legal notices, takedown requests, or compliance questions to:</p>
-                  <p className="text-sm text-muted-foreground mt-2">legal@theblacklist.online</p>
+                  <p className="text-sm text-muted-foreground mt-2">legal@thegreenlist.online</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
