@@ -4,7 +4,7 @@ export default function ApiDocsPage() {
   return (
     <SimplePage
       title="API Docs"
-      subtitle="Developer documentation placeholder for future TheBlacklist.online data, reporting, moderation, and verification APIs."
+      subtitle="Developer documentation placeholder for future The Green List data, reporting, moderation, and verification APIs."
       sections={[
         {
           heading: 'Future API access',
