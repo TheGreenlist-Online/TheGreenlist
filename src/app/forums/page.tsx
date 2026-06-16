@@ -12,7 +12,7 @@ export default function ForumsPage() {
         },
         {
           heading: 'Structured topics',
-          body: 'Future forum categories can include dispensaries, brands, labs, delivery services, product safety, pricing, legal updates, and verified consumer feedback.',
+          body: 'Future forum categories can include dispensaries, brands, labs, product safety, pricing transparency, legal updates, and verified consumer feedback.',
         },
       ]}
     />
