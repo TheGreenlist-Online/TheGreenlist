@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Purpose
-This file defines the architecture, security, development, and compliance standards for THEBLACKLIST.ONLINE. It is intended for maintainers, contributors, reviewers, and autonomous agents working in this repository.
+This file defines the architecture, security, development, and compliance standards for The Green List. It is intended for maintainers, contributors, reviewers, and autonomous agents working in this repository.
 
 ## Architecture Standards
 - Use a modern, scalable, modular architecture.
@@ -39,7 +39,7 @@ This file defines the architecture, security, development, and compliance standa
 - Avoid over-policing honest public discussion while preventing harassment, hate, doxxing, and defamatory content.
 
 ## Legal Compliance Boundaries
-- The platform must not implement or imply direct cannabis sales, payments, shipping, or product checkout.
+- The platform must not implement or imply direct cannabis sales, payments, shipping, ordering, delivery, inventory, or product checkout.
 - Do not store inventory, arrange transactions, schedule deliveries, or coordinate peer-to-peer commerce.
 - Do not build features that facilitate illegal interstate commerce.
 - Do not allow marketplace listings or product listings that resemble storefront commerce.
@@ -48,18 +48,18 @@ This file defines the architecture, security, development, and compliance standa
 - Ensure disclaimers and policies are visible across reporting, advertising, and review workflows.
 
 ## Folder Structure Conventions
-- `src/app/` — Next.js routes, page components, layouts, and route-level metadata.
-- `src/hooks/` — reusable React hooks and stateful data utilities.
-- `src/utils/` — utility functions, validators, formatters, and helpers.
-- `src/components/` — shared UI components and design system pieces.
-- `src/lib/` — shared libraries, API clients, Prisma helpers, and business logic.
-- `src/types/` — custom TypeScript types, enums, and domain models.
-- `src/admin/` — admin dashboard, moderation tools, and legal review interfaces.
-- `src/features/` — domain-specific feature modules such as forum, reports, news, business directory, ads.
-- `public/` — static assets, icons, images, sitemap, robots.
-- `prisma/` — schema and migrations.
-- `docker/` — Docker files, compose configs, deployment helpers.
-- `scripts/` — automation scripts for ingestion, maintenance, and CI utilities.
+- `src/app/` - Next.js routes, page components, layouts, and route-level metadata.
+- `src/hooks/` - reusable React hooks and stateful data utilities.
+- `src/utils/` - utility functions, validators, formatters, and helpers.
+- `src/components/` - shared UI components and design system pieces.
+- `src/lib/` - shared libraries, API clients, Prisma helpers, and business logic.
+- `src/types/` - custom TypeScript types, enums, and domain models.
+- `src/admin/` - admin dashboard, moderation tools, and legal review interfaces.
+- `src/features/` - domain-specific feature modules such as forum, reports, news, business directory, ads.
+- `public/` - static assets, icons, images, sitemap, robots.
+- `prisma/` - schema and migrations.
+- `docker/` - Docker files, compose configs, deployment helpers.
+- `scripts/` - automation scripts for ingestion, maintenance, and CI utilities.
 
 ## TypeScript Standards
 - Prefer strong typing everywhere; avoid `any` unless there is a clear, documented exception.
@@ -71,7 +71,7 @@ This file defines the architecture, security, development, and compliance standa
 - Use `zod` or similar schema validation for incoming API payloads and persisted content.
 
 ## UI Consistency Rules
-- Follow a dark investigative newsroom aesthetic with black glassmorphism, neon green accents, and premium modern UI.
+- Follow a dark investigative newsroom aesthetic with green accents and premium modern UI.
 - Make interfaces mobile-first and responsive by default.
 - Use consistent spacing, typography scales, and color contrast across all pages.
 - Keep navigation clear: homepage, forum, reports, news, directory, admin, legal, and policy pages.
@@ -93,11 +93,11 @@ This file defines the architecture, security, development, and compliance standa
 - Treat AI results as signals, not final decisions. Human moderators must review high-risk or ambiguous cases.
 - Log AI moderation decisions and confidence scores for transparency.
 - Use AI summarization for news, reports, and moderation notes with explicit citations where available.
-- Build an “explainability” layer so reviewers can understand why AI flagged content.
+- Build an explainability layer so reviewers can understand why AI flagged content.
 - Do not use AI to automatically ban users without human review of the evidence.
 
 ## Deployment Workflow
-- Use Docker for local development and production parity.
+- Use Docker for local development and production parity where helpful.
 - Support Vercel deployment for frontend and API routes.
 - Use GitHub Actions for CI/CD, linting, tests, and deployment checks.
 - Include environment variable templates and secure secrets management.
@@ -110,13 +110,6 @@ This file defines the architecture, security, development, and compliance standa
 - Rebase or squash merge to keep history readable.
 - Use branch names that describe the work cleanly: `feature/forum-scaffold`, `fix/admin-access-control`, `docs/legal-pages`.
 - Avoid committing secrets, API keys, or locally generated environment values.
-
-## Commit Message Standards
-- Use a structured prefix: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`, `ci:`.
-- Keep subject lines under 72 characters.
-- Use imperative mood, e.g. `feat: add anonymous report submission flow`.
-- Include a short body if additional context is needed.
-- Reference issues, tickets, or relevant documentation when applicable.
 
 ## Testing Requirements
 - Add unit tests for utility functions, business logic, and API handlers.
@@ -134,7 +127,7 @@ This file defines the architecture, security, development, and compliance standa
 
 ## FTC Disclosure Rules
 - All sponsored articles, business promotions, and affiliate links must display an explicit disclosure.
-- Use plain language such as: “Sponsored content”, “Paid partnership”, “Affiliate link”, or “This article contains affiliate links.”
+- Use plain language such as: "Sponsored content", "Paid partnership", "Affiliate link", or "This article contains affiliate links."
 - Keep disclosures visible near the content, not buried in footers or small print.
 - Do not make medical, health, or efficacy claims without clearly cited sources and legal review.
 
