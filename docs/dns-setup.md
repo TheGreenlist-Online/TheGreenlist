@@ -1,22 +1,25 @@
-# DNS Configuration for THEBLACKLIST.ONLINE
+# DNS Configuration for The Green List
 
 ## Domain Registrar: Porkbun
 
 ### Prerequisites
-- Domain: theblacklist.online
+- Primary domain: thegreenlist.online
+- Secondary domain: greenlist.online
 - Porkbun account with domain ownership
 - Vercel account for deployment
-- Cloudflare account for CDN/protection
 
 ## DNS Records Setup
 
 ### Porkbun DNS Configuration
 
 1. Log in to your Porkbun account
-2. Go to Domain Management → theblacklist.online
-3. Access DNS settings
+2. Go to Domain Management for `thegreenlist.online`
+3. Repeat the same production setup for `greenlist.online` if it should resolve as a backup domain
+4. Access DNS settings
 
 #### Required Records for Vercel Deployment
+
+For each domain connected directly to Vercel:
 
 ```
 Type: A
@@ -30,7 +33,11 @@ Value: cname.vercel-dns.com
 TTL: 300
 ```
 
+If Vercel gives project-specific DNS instructions in the dashboard, follow Vercel's current instructions over this static example.
+
 #### Additional Records
+
+Use your email provider's exact values. Example placeholders:
 
 ```
 Type: MX
@@ -56,10 +63,24 @@ Value: "v=spf1 include:_spf.protonmail.ch ~all"
 TTL: 3600
 ```
 
-### Cloudflare Setup (Optional but Recommended)
+### Vercel Domain Setup
 
-1. Sign up for Cloudflare
-2. Add theblacklist.online as a site
+1. Add `thegreenlist.online` as the primary production domain
+2. Add `greenlist.online` as a secondary/backup production domain
+3. Add `www` variants only if you want them to resolve publicly
+4. Set the canonical production URL in environment variables:
+
+```
+NEXT_PUBLIC_SITE_URL=https://thegreenlist.online
+NEXTAUTH_URL=https://thegreenlist.online
+```
+
+### Optional Cloudflare Setup
+
+If Cloudflare is used later for CDN/protection:
+
+1. Add `thegreenlist.online` as a site
+2. Add `greenlist.online` if it needs separate Cloudflare management
 3. Update Porkbun nameservers to Cloudflare's nameservers
 4. Configure Cloudflare settings:
 
@@ -78,31 +99,48 @@ TTL: 3600
 - Browser Integrity Check: On
 
 #### Page Rules (if using Cloudflare)
-- URL: `https://theblacklist.online/*`
+- URL: `https://thegreenlist.online/*`
 - Setting: Always Use HTTPS
 
 ### Email Configuration
 
-Using ProtonMail for support@theblacklist.online:
+Using ProtonMail for support@thegreenlist.online:
 
 1. Set up ProtonMail account
-2. Configure DNS records as shown above
+2. Configure DNS records as shown by ProtonMail
 3. Verify domain ownership
+
+### Auth and Supabase Redirects
+
+When configuring auth providers or Supabase redirect allowlists, include:
+
+```
+https://thegreenlist.online
+https://greenlist.online
+https://thegreenlist.online/auth/callback
+https://greenlist.online/auth/callback
+http://localhost:3000
+http://localhost:3000/auth/callback
+```
+
+Only include callback paths that the app actually uses.
 
 ### Verification Steps
 
 1. **DNS Propagation Check**
    ```bash
-   nslookup theblacklist.online
-   dig theblacklist.online
+   nslookup thegreenlist.online
+   nslookup greenlist.online
+   dig thegreenlist.online
+   dig greenlist.online
    ```
 
 2. **SSL Certificate**
    - Vercel automatically provisions SSL
-   - Check with: `openssl s_client -connect theblacklist.online:443`
+   - Check with: `openssl s_client -connect thegreenlist.online:443`
 
 3. **Email Verification**
-   - Send test email to support@theblacklist.online
+   - Send test email to support@thegreenlist.online
    - Verify DKIM/SPF records
 
 ### Troubleshooting
@@ -115,7 +153,7 @@ Using ProtonMail for support@theblacklist.online:
 #### SSL Issues
 - Ensure Vercel deployment is successful
 - Check Cloudflare SSL settings if using Cloudflare
-- Verify domain is properly configured in Vercel
+- Verify both domains are properly configured in Vercel
 
 #### Email Delivery Issues
 - Verify all MX/TXT records are correct
@@ -124,7 +162,7 @@ Using ProtonMail for support@theblacklist.online:
 
 ### Monitoring
 
-- Set up uptime monitoring (e.g., UptimeRobot)
+- Set up uptime monitoring
 - Monitor DNS changes
 - Regularly check SSL certificate expiration
 - Monitor email deliverability
