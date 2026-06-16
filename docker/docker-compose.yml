@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/theblacklist
+      - DATABASE_URL=postgresql://postgres:password@db:5432/thegreenlist
       - NEXTAUTH_URL=http://localhost:3000
       - NEXTAUTH_SECRET=your-secret-key
     depends_on:
@@ -18,7 +18,7 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=theblacklist
+      - POSTGRES_DB=thegreenlist
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     ports:
