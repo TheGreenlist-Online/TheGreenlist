@@ -16,9 +16,9 @@ export function Hero() {
             transition={{ duration: 0.6 }}
             className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
           >
-            THEBLACKLIST.
+            The Green{' '}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ONLINE
+              List
             </span>
           </motion.h1>
 
@@ -28,8 +28,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl"
           >
-            A cannabis industry transparency network. Public accountability, consumer verification,
-            and community-driven oversight for the cannabis marketplace.
+            The Green List is a cannabis transparency and accountability platform for reports,
+            forums, news, and community trust.
           </motion.p>
 
           <motion.div
@@ -58,11 +58,11 @@ export function Hero() {
           >
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">10K+</div>
-              <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="text-sm text-muted-foreground">Community Members</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">500+</div>
-              <div className="text-sm text-muted-foreground">Verified Businesses</div>
+              <div className="text-sm text-muted-foreground">Listed Businesses</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">25K+</div>
