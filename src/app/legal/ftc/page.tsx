@@ -12,7 +12,7 @@ export default function FTCPage() {
         },
         {
           heading: 'Transparency standard',
-          body: 'TheBlacklist.online should separate editorial/community accountability content from paid visibility or promotional placements.',
+          body: 'The Green List should separate editorial/community accountability content from paid visibility or promotional placements.',
         },
       ]}
     />
