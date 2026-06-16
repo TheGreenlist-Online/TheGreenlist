@@ -1,14 +1,19 @@
-# Deployment Guide for THEBLACKLIST.ONLINE
+# Deployment Guide for The Green List
 
-This guide walks through deploying the platform to production at `theblacklist.online`.
+This guide walks through deploying the platform to production.
+
+Primary domain: `https://thegreenlist.online`
+Secondary domain: `https://greenlist.online`
+Registrar: Porkbun
+Hosting: Vercel
 
 ## Prerequisites
 
-- [ ] Porkbun account with API credentials configured in `.env.local`
-- [ ] Vercel account (deploy frontend)
-- [ ] PostgreSQL database (Supabase recommended for ease)
-- [ ] Clerk authentication account with keys in `.env.local`
-- [ ] Domain `theblacklist.online` registered and pointing to Porkbun nameservers
+- [ ] Porkbun access for `thegreenlist.online` and `greenlist.online`
+- [ ] Vercel account connected to the GitHub repository
+- [ ] Supabase/PostgreSQL database
+- [ ] Auth provider credentials configured where used
+- [ ] Required environment variables ready
 
 ## Step 1: Configure Environment Variables
 
@@ -18,359 +23,112 @@ Copy `.env.example` to `.env.local` and fill in all values:
 cp .env.example .env.local
 ```
 
-Update `.env.local` with:
+Minimum production values:
 
 ```env
-# Clerk
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk1_...
-CLERK_SECRET_KEY=sk1_...
-
-# Porkbun Domain Management
-PORKBUN_API_KEY=pk1_...
-PORKBUN_API_SECRET=sk1_...
-PORKBUN_DOMAIN=theblacklist.online
-
-# Database (use Supabase for production)
+NEXT_PUBLIC_SITE_URL=https://thegreenlist.online
+NEXT_PUBLIC_DOMAIN=thegreenlist.online
+NEXT_PUBLIC_SECONDARY_DOMAIN=greenlist.online
+NEXTAUTH_URL=https://thegreenlist.online
+NEXTAUTH_SECRET=replace-with-production-secret
+PORKBUN_DOMAIN=thegreenlist.online
 DATABASE_URL="postgresql://user:password@db.supabase.co:5432/postgres"
-
-# Optional services
-OPENAI_API_KEY=sk-...
-REDIS_URL=redis://...
+SUPABASE_URL=your-supabase-project-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 ```
 
-**⚠️ Security Note:** Never commit `.env.local` to Git. The file is protected in `.gitignore`.
+Never commit `.env.local` or real secrets.
 
-## Step 2: Setup DNS Records via Porkbun
+## Step 2: Configure Domains
 
-The platform includes automated DNS configuration scripts. Install dependencies first:
+In Vercel:
+
+1. Add `thegreenlist.online` as the primary production domain
+2. Add `greenlist.online` as the secondary/backup domain
+3. Add `www` variants only if needed
+4. Confirm SSL is active for all public domains
+
+In Porkbun, configure DNS according to `docs/dns-setup.md` or Vercel's current dashboard instructions.
+
+## Step 3: Configure Auth and Supabase Redirects
+
+Allow these URLs in auth provider and Supabase redirect settings where applicable:
+
+```text
+https://thegreenlist.online
+https://greenlist.online
+https://thegreenlist.online/auth/callback
+https://greenlist.online/auth/callback
+http://localhost:3000
+http://localhost:3000/auth/callback
+```
+
+Only include callback paths that the app actually uses.
+
+## Step 4: Setup Database
+
+Use Supabase/PostgreSQL for production.
 
 ```bash
-npm install
-```
-
-### List Current DNS Records
-
-```bash
-npm run dns:list
-```
-
-### Setup for Vercel Deployment
-
-```bash
-npm run dns:setup-vercel
-```
-
-This will:
-- Configure A records pointing to Vercel's infrastructure
-- Setup CNAME records for subdomains (e.g., `api.theblacklist.online`)
-- Set TTL to 3600 seconds for quick propagation
-
-### Verify DNS Propagation
-
-After running the script, verify DNS is propagating:
-
-```bash
-# Check A record
-dig theblacklist.online A
-
-# Check www subdomain
-dig www.theblacklist.online A
-
-# Check api subdomain
-dig api.theblacklist.online CNAME
-```
-
-DNS typically propagates within 5-30 minutes. Wait for all records to show correct values before deploying.
-
-## Step 3: Setup Database
-
-### Option A: Supabase (Recommended)
-
-1. Go to [supabase.com](https://supabase.com)
-2. Create a new project
-3. Copy the PostgreSQL connection string
-4. Add to `.env.local`:
-
-```env
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_ID].supabase.co:5432/postgres"
-```
-
-5. Initialize database schema:
-
-```bash
+npx prisma validate
+npx prisma generate
 npx prisma migrate deploy
-# or for development:
+```
+
+For development-only schema sync, use:
+
+```bash
 npx prisma db push
 ```
 
-### Option B: Self-Hosted PostgreSQL
+## Step 5: Deploy to Vercel
 
-If using a self-hosted PostgreSQL instance, ensure:
-- Database is accessible from Vercel
-- Connection pool is configured (PgBouncer recommended)
+1. Import the repository in Vercel
+2. Set framework to Next.js
+3. Use `npm install` as the install command
+4. Use `npm run build` as the build command
+5. Add all production environment variables
+6. Deploy and review build logs
+
+## Step 6: Verify Production
+
+```bash
+curl -I https://thegreenlist.online
+curl -I https://greenlist.online
+curl -I https://thegreenlist.online/api/health
+```
+
+Also verify:
+
+- Homepage loads with The Green List branding
+- Sign-in/sign-up routes work
+- Forums, news, reports, report, businesses, contact, and legal pages load
+- No public page suggests cannabis sales, ordering, delivery, checkout, payments, inventory, or dispensary transactions
 - SSL certificates are valid
-- Backups are automated
-
-## Step 4: Deploy to Vercel
-
-### Connect GitHub Repository
-
-1. Push code to GitHub:
-
-```bash
-git push origin main
-```
-
-2. Go to [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import the GitHub repository
-5. Configure build settings:
-   - Framework: Next.js
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
-   - Install Command: `npm install`
-
-### Configure Environment Variables in Vercel
-
-Go to **Settings → Environment Variables** and add all variables from `.env.local`:
-
-```
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-CLERK_SECRET_KEY
-PORKBUN_API_KEY
-PORKBUN_API_SECRET
-PORKBUN_DOMAIN
-DATABASE_URL
-OPENAI_API_KEY
-```
-
-**✅ IMPORTANT:** Make sure `NEXT_PUBLIC_*` variables are marked as "Public" in Vercel.
-
-### Deploy
-
-Click "Deploy" and monitor the build logs. The deployment should:
-1. Install dependencies
-2. Build Next.js app
-3. Generate Prisma client
-4. Deploy to Vercel CDN
-
-Once complete, your site will be live at `https://theblacklist.online`
-
-## Step 5: Verify Production Setup
-
-### Health Checks
-
-```bash
-# Check homepage loads
-curl -I https://theblacklist.online
-
-# Check API is responding
-curl -I https://theblacklist.online/api/health
-
-# Check Clerk is connected
-curl https://theblacklist.online/auth/sign-in
-```
-
-### DNS Verification
-
-Ensure nameservers point to Vercel:
-
-```bash
-whois theblacklist.online | grep -i "name server"
-```
-
-Should show Vercel nameservers (ns1.vercel-dns.com, etc.)
-
-### SSL Certificate
-
-HTTPS should be automatically provisioned by Vercel. Verify:
-
-```bash
-curl -I https://theblacklist.online
-# Should show: HTTP/2 200 and have valid SSL
-```
-
-## Step 6: Configure Custom Domain in Porkbun
-
-1. Log into Porkbun
-2. Go to **Domains → theblacklist.online**
-3. Click **Nameservers**
-4. Set to Vercel nameservers:
-   - ns1.vercel-dns.com
-   - ns2.vercel-dns.com
-
-5. Save changes
-
-Propagation typically takes 24-48 hours for all nameservers to update globally.
-
-## Step 7: Database Schema and Initial Data
-
-### Initialize Database Schema
-
-```bash
-npx prisma migrate deploy
-```
-
-### Seed Initial Data (Optional)
-
-Create a seed script at `prisma/seed.ts`:
-
-```typescript
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
-
-async function main() {
-  // Add initial data here
-  console.log('Database seeded')
-}
-
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
-```
-
-Run seed:
-
-```bash
-npx prisma db seed
-```
-
-## Step 8: Enable Features
-
-### Clerk Configuration
-
-1. Go to [clerk.com](https://clerk.com)
-2. Select your application
-3. Go to **Instances → Clerk API**
-4. Verify keys are in `.env.local` and Vercel
-
-### Content Moderation (Optional)
-
-If using OpenAI for content moderation:
-
-1. Go to [platform.openai.com](https://platform.openai.com)
-2. Create an API key
-3. Add to `.env.local` and Vercel: `OPENAI_API_KEY=sk-...`
-
-## Step 9: Monitoring and Maintenance
-
-### Vercel Dashboard
-
-Monitor deployment health at [vercel.com/dashboard](https://vercel.com/dashboard):
-- Real-time logs
-- Performance metrics
-- Build history
-- Deployments
-
-### Database Backups
-
-Use Supabase's automated backups or set up AWS RDS backups for self-hosted PostgreSQL.
-
-### SSL Certificate Renewal
-
-Vercel automatically renews SSL certificates. No action needed.
 
 ## Troubleshooting
 
 ### DNS Not Resolving
 
-**Problem:** `dig theblacklist.online` shows wrong IP
+1. Wait for propagation
+2. Verify Porkbun DNS records
+3. Confirm Vercel domain status
+4. Check both primary and secondary domains
 
-**Solution:**
-1. Wait 24-48 hours for propagation
-2. Log into Porkbun and verify nameservers
-3. Run `npm run dns:list` to verify DNS records were created
-4. Check Vercel's nameserver configuration
+### Authentication Not Working
 
-### 502 Bad Gateway
-
-**Problem:** Requests to theblacklist.online return 502
-
-**Solution:**
-1. Check Vercel build logs for compilation errors
-2. Verify `DATABASE_URL` is correct and accessible
-3. Check Clerk keys are valid
-4. Look at Vercel function logs in dashboard
-
-### Clerk Authentication Not Working
-
-**Problem:** Sign-in page not loading or authentication fails
-
-**Solution:**
-1. Verify `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set correctly
-2. Verify `CLERK_SECRET_KEY` is set on backend
-3. Check Clerk dashboard for domain whitelist
-4. Ensure redirect URIs include `https://theblacklist.online`
+1. Verify `NEXTAUTH_URL` uses `https://thegreenlist.online`
+2. Verify provider redirect URLs include the new domains
+3. Confirm secrets and OAuth credentials are set in Vercel
 
 ### Database Connection Errors
 
-**Problem:** "Cannot reach database" errors in logs
+1. Verify `DATABASE_URL`
+2. Run `npx prisma validate`
+3. Confirm Supabase project status
+4. Check Vercel runtime logs
 
-**Solution:**
-1. Verify `DATABASE_URL` in `.env.local` is correct
-2. Test connection locally: `npx prisma db execute --stdin < /dev/null`
-3. Check Supabase network settings allow Vercel IPs
-4. Verify SSL certificates if using self-hosted PostgreSQL
+## Scope Guardrails
 
-## Rollback Procedure
-
-### Rollback to Previous Deployment
-
-1. Go to [vercel.com/deployments](https://vercel.com/deployments)
-2. Find the previous successful deployment
-3. Click the three dots menu
-4. Select "Redeploy"
-
-### Rollback Database
-
-Supabase provides point-in-time recovery:
-
-1. Go to Supabase Dashboard
-2. Go to **Database → Backups**
-3. Select restore point
-4. Follow restore instructions
-
-## Production Checklist
-
-- [ ] DNS records configured and propagating
-- [ ] Vercel deployment successful with no build errors
-- [ ] Database initialized and accessible
-- [ ] Clerk authentication working on production domain
-- [ ] HTTPS certificate valid
-- [ ] Homepage loads with correct styling
-- [ ] Forums and product galleries render
-- [ ] Authentication flows work end-to-end
-- [ ] Admin panel accessible to authorized users
-- [ ] Environment variables secure in Vercel (not in Git)
-- [ ] Monitoring/logging configured
-- [ ] Backups automated
-- [ ] Privacy policy and legal pages updated
-- [ ] Error pages (404, 500) properly styled
-
-## Next Steps
-
-Once deployed:
-
-1. **Content Moderation Setup** — Configure AI moderation rules in admin panel
-2. **Affiliate Links** — Set up affiliate tracking for sponsored content
-3. **Analytics** — Connect Vercel Analytics and error tracking
-4. **Email Service** — Configure Resend or SendGrid for notifications
-5. **Forum Moderation** — Train moderators on community guidelines
-6. **SEO Optimization** — Submit sitemap to Google Search Console
-
-## Support
-
-For issues or questions:
-
-- Vercel Docs: https://vercel.com/docs
-- Next.js Docs: https://nextjs.org/docs
-- Clerk Docs: https://clerk.com/docs
-- Prisma Docs: https://www.prisma.io/docs
-- Porkbun API: https://porkbun.com/api/json/v3/documentation
+The Green List is a cannabis transparency, accountability, education, reporting, news, forum, and community trust platform. It is not a cannabis marketplace and must not add cannabis sales, ordering, delivery, checkout, payment processing, inventory, or dispensary transaction features.
