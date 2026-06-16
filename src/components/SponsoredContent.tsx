@@ -7,8 +7,8 @@ import { ExternalLink } from 'lucide-react'
 const sponsoredContent = [
   {
     id: '1',
-    title: 'Premium Cannabis Testing Lab',
-    description: 'Independent lab testing for purity and potency',
+    title: 'Independent Cannabis Testing Lab',
+    description: 'Independent lab testing education and public safety resources',
     image: '/sponsored/lab.jpg',
     link: 'https://example.com/lab',
     type: 'affiliate',
@@ -16,7 +16,7 @@ const sponsoredContent = [
   {
     id: '2',
     title: 'Legal Aid Services',
-    description: 'Expert cannabis law consultation',
+    description: 'Cannabis law education and consultation resources',
     image: '/sponsored/legal.jpg',
     link: 'https://example.com/legal',
     type: 'sponsored',
@@ -85,7 +85,7 @@ export function SponsoredContent() {
             We may earn a commission at no extra cost to you.
           </p>
           <p>
-            THEBLACKLIST.ONLINE does not sell or facilitate the sale of cannabis products.
+            The Green List does not sell or facilitate the sale of cannabis products.
           </p>
         </div>
       </div>
