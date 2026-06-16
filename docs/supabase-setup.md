@@ -2,17 +2,17 @@
 
 ## Overview
 
-THEBLACKLIST.ONLINE uses Supabase for:
+The Green List uses Supabase for:
 - PostgreSQL database hosting
-- Real-time subscriptions
-- File storage for uploads
-- Authentication (optional, using NextAuth instead)
+- Realtime features where needed
+- File storage for uploads and evidence
+- Auth support where configured alongside or instead of NextAuth
 
 ## Setup Steps
 
 ### 1. Create Supabase Project
 
-1. Go to [supabase.com](https://supabase.com)
+1. Go to Supabase
 2. Sign up or log in
 3. Create a new project
 4. Choose your organization and project name
@@ -23,97 +23,95 @@ THEBLACKLIST.ONLINE uses Supabase for:
 
 After project creation:
 
-1. Go to Settings → API
+1. Go to Settings > API
 2. Copy the following values:
    - Project URL
-   - Project API Key (anon/public)
-   - Project API Key (service_role) - Keep this secret!
+   - Project API key for browser-safe client usage
+   - Service role key, which must stay server-side only
 
 ### 3. Environment Variables
 
-Add to your `.env.local`:
+Add to `.env.local` and Vercel as needed:
 
 ```env
 SUPABASE_URL=your-project-url
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_ID].supabase.co:5432/postgres"
+NEXT_PUBLIC_SITE_URL=https://thegreenlist.online
+NEXTAUTH_URL=https://thegreenlist.online
 ```
 
-### 4. Database Setup
+### 4. Redirect URL Allowlist
+
+If Supabase Auth or provider callbacks are used, allow:
+
+```text
+https://thegreenlist.online
+https://greenlist.online
+https://thegreenlist.online/auth/callback
+https://greenlist.online/auth/callback
+http://localhost:3000
+http://localhost:3000/auth/callback
+```
+
+Only include callback paths that the app actually uses.
+
+### 5. Database Setup
 
 #### Option A: Use Prisma with Supabase
 
-1. Get your database connection string from Supabase Dashboard → Settings → Database
+1. Get your database connection string from Supabase Dashboard > Settings > Database
 2. Update `DATABASE_URL` in your environment variables
-3. Run Prisma migrations:
+3. Run Prisma validation and migrations:
    ```bash
-   npx prisma db push
+   npx prisma validate
+   npx prisma migrate deploy
    ```
 
 #### Option B: Use Supabase SQL Editor
 
-1. Go to Supabase Dashboard → SQL Editor
-2. Run the SQL schema from `prisma/schema.prisma`
-3. Note: You'll need to convert Prisma schema to raw SQL
+1. Go to Supabase Dashboard > SQL Editor
+2. Apply reviewed SQL migrations if the repo provides them
+3. Keep schema changes tracked in the repository
 
-### 5. Storage Setup (Optional)
+### 6. Storage Setup
 
-For file uploads (evidence, images):
+For uploads such as evidence and images:
 
-1. Go to Supabase Dashboard → Storage
-2. Create a new bucket called `uploads`
-3. Set up RLS (Row Level Security) policies
-4. Configure CORS settings
-
-### 6. Real-time Setup (Optional)
-
-For live forum updates:
-
-1. Enable real-time for relevant tables
-2. Configure subscriptions in your components
+1. Go to Supabase Dashboard > Storage
+2. Create the required buckets
+3. Enable Row Level Security policies
+4. Configure CORS settings only for approved origins
 
 ## Security Considerations
 
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in client-side code
-- Use Row Level Security (RLS) for data access control
-- Implement proper authentication checks
+- Use Row Level Security for data access control
+- Implement authorization checks in server routes
+- Keep sensitive reports and evidence private unless explicitly approved for public display
 - Regularly rotate API keys
-
-## Migration from Local PostgreSQL
-
-If migrating from a local PostgreSQL instance:
-
-1. Export your data:
-   ```bash
-   pg_dump your-local-db > backup.sql
-   ```
-
-2. Import to Supabase:
-   - Use Supabase SQL Editor
-   - Or use `psql` with Supabase connection string
-
-3. Update your environment variables
 
 ## Monitoring
 
-Monitor your Supabase usage:
-- Dashboard → Reports → API Usage
-- Dashboard → Database → Query Performance
-- Set up alerts for usage limits
+Monitor Supabase usage through:
+- Dashboard > Reports > API Usage
+- Dashboard > Database > Query Performance
+- Alerts for usage limits and database errors
 
 ## Troubleshooting
 
 ### Connection Issues
-- Verify DATABASE_URL format
-- Check firewall settings
-- Ensure SSL is enabled
+- Verify `DATABASE_URL` format
+- Ensure SSL is enabled where required
+- Check Supabase project status and connection pool settings
 
 ### Migration Issues
 - Check Prisma version compatibility
-- Verify schema syntax
+- Run `npx prisma validate`
 - Test migrations on a staging environment first
 
 ### Performance Issues
 - Enable connection pooling
 - Use appropriate indexes
-- Monitor query performance
+- Monitor slow queries
