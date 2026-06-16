@@ -18,7 +18,7 @@ export function LegalDisclaimer() {
             <div className="text-sm">
               <p className="font-medium mb-1">Legal Disclaimer</p>
               <p className="text-muted-foreground">
-                THEBLACKLIST.ONLINE does not sell, distribute, or facilitate the sale of cannabis products.
+                The Green List does not sell, distribute, order, deliver, or facilitate the sale of cannabis products.
                 All product references are user-submitted and for informational purposes only.
                 External links may lead to third-party websites. Content is for educational and transparency purposes.
                 Consult local laws regarding cannabis use.
