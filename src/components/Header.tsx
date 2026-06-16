@@ -24,7 +24,7 @@ export function Header() {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent sm:inline-block">
-              THEBLACKLIST.ONLINE
+              The Green List
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -44,7 +44,13 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+          <Link href="/" className="mr-2 flex items-center md:hidden">
+            <span className="whitespace-nowrap font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              The Green List
+            </span>
+          </Link>
+
+          <div className="hidden w-full flex-1 sm:block md:w-auto md:flex-none">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
