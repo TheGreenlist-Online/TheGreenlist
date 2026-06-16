@@ -30,28 +30,28 @@ export function Footer() {
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                THEBLACKLIST.ONLINE
+                The Green List
               </span>
             </Link>
             <p className="text-muted-foreground text-sm mb-4 max-w-md">
-              A cannabis industry transparency network. Public accountability,
-              consumer verification, and community-driven oversight for the cannabis marketplace.
+              A cannabis transparency and accountability platform for reports,
+              forums, news, and community trust.
             </p>
             <div className="flex space-x-4">
               <Link
-                href="https://twitter.com/theblacklist"
+                href="https://twitter.com/thegreenlist"
                 className="text-muted-foreground hover:text-accent transition-colors"
               >
                 <span className="text-sm font-bold">X</span>
               </Link>
               <Link
-                href="https://github.com/theblacklist"
+                href="https://github.com/TheGreenList"
                 className="text-muted-foreground hover:text-accent transition-colors"
               >
                 <span className="text-sm font-bold">GH</span>
               </Link>
               <Link
-                href="mailto:support@theblacklist.online"
+                href="mailto:support@thegreenlist.online"
                 className="text-muted-foreground hover:text-accent transition-colors"
               >
                 <Mail className="h-5 w-5" />
@@ -105,7 +105,7 @@ export function Footer() {
         <div className="border-t mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">
-              © 2024 THEBLACKLIST.ONLINE. All rights reserved.
+              © 2024 The Green List. All rights reserved.
             </p>
             <p className="text-muted-foreground text-sm mt-2 md:mt-0">
               Not affiliated with any cannabis businesses or sales platforms.
