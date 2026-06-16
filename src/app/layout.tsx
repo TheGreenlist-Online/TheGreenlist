@@ -6,16 +6,23 @@ import { AntiCommerceWarning } from '@/components/AntiCommerceWarning'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const siteUrl = 'https://thegreenlist.online'
+
 export const metadata: Metadata = {
-  title: 'THEBLACKLIST.ONLINE - Cannabis Industry Transparency Network',
-  description: 'A public accountability platform for the cannabis industry. Forums, reviews, transparency reports, and community-driven oversight.',
-  keywords: 'cannabis, transparency, reviews, forums, industry watchdog, consumer protection',
-  authors: [{ name: 'THEBLACKLIST.ONLINE Team' }],
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'The Green List - Cannabis Transparency and Accountability',
+    template: '%s | The Green List',
+  },
+  description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
+  keywords: 'cannabis transparency, cannabis reporting, cannabis news, forums, accountability, community trust',
+  authors: [{ name: 'The Green List Team' }],
+  applicationName: 'The Green List',
   openGraph: {
-    title: 'THEBLACKLIST.ONLINE',
-    description: 'Cannabis Industry Transparency Network',
-    url: 'https://theblacklist.online',
-    siteName: 'THEBLACKLIST.ONLINE',
+    title: 'The Green List',
+    description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
+    url: siteUrl,
+    siteName: 'The Green List',
     images: [
       {
         url: '/og-image.jpg',
@@ -28,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'THEBLACKLIST.ONLINE',
-    description: 'Cannabis Industry Transparency Network',
+    title: 'The Green List',
+    description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
     images: ['/og-image.jpg'],
   },
 }
