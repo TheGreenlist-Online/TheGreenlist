@@ -12,7 +12,7 @@ export default function ReportIssuePage() {
         },
         {
           heading: 'Useful evidence',
-          body: 'Strong reports should include dates, names, locations, screenshots, receipts, labels, order numbers, and a clear timeline when available.',
+          body: 'Strong reports should include dates, names, locations, screenshots, receipts, labels, supporting documents, and a clear timeline when available.',
         },
       ]}
     />
