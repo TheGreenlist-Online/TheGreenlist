@@ -8,7 +8,7 @@ export default function SignInPage() {
     <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
       <section className="w-full max-w-md rounded-lg border bg-card p-8">
         <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-accent">
-          THEBLACKLIST.ONLINE
+          The Green List
         </p>
 
         <h1 className="mb-3 text-3xl font-bold">Sign in</h1>
@@ -43,7 +43,7 @@ export default function SignInPage() {
         </p>
 
         <Link href="/" className="mt-6 block text-sm text-accent hover:underline">
-          ← Back to homepage
+          Back to homepage
         </Link>
       </section>
     </main>
