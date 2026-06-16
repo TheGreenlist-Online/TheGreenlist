@@ -1,7 +1,7 @@
 {
-  "name": "theblacklist-online",
+  "name": "thegreenlist-online",
   "version": "1.0.0",
-  "description": "A cannabis industry transparency network and public accountability platform",
+  "description": "A cannabis transparency, accountability, education, reporting, news, forum, and community trust platform",
   "private": true,
   "scripts": {
     "dev": "next dev",
