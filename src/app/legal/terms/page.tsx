@@ -4,7 +4,7 @@ export default function TermsPage() {
   return (
     <SimplePage
       title="Terms of Service"
-      subtitle="Baseline terms for using TheBlacklist.online. This placeholder should be reviewed before final legal publication."
+      subtitle="Baseline terms for using The Green List. This placeholder should be reviewed before final legal publication."
       sections={[
         {
           heading: 'Use of the platform',
