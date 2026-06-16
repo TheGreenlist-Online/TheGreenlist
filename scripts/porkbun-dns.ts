@@ -1,6 +1,7 @@
 /**
  * Porkbun DNS Configuration Script
- * Manages DNS records for theblacklist.online via Porkbun API
+ * Manages DNS records for thegreenlist.online via Porkbun API.
+ * Set PORKBUN_DOMAIN=thegreenlist.online for the primary domain or greenlist.online for the secondary domain.
  */
 
 import * as dotenv from 'dotenv'
@@ -42,13 +43,13 @@ async function apiCall(endpoint: string, data: any) {
 }
 
 async function getDNSRecords() {
-  console.log(`📋 Fetching DNS records for ${DOMAIN}...`)
+  console.log(`Fetching DNS records for ${DOMAIN}...`)
   const result = await apiCall('/dns/retrieve', { domain: DOMAIN })
   return result.records || []
 }
 
 async function createDNSRecord(record: DNSRecord) {
-  console.log(`➕ Creating ${record.type} record: ${record.name} -> ${record.content}`)
+  console.log(`Creating ${record.type} record: ${record.name} -> ${record.content}`)
 
   await apiCall('/dns/create', {
     domain: DOMAIN,
@@ -59,25 +60,25 @@ async function createDNSRecord(record: DNSRecord) {
     ...(record.priority && { prio: record.priority }),
   })
 
-  console.log(`✅ Created ${record.type} record successfully`)
+  console.log(`Created ${record.type} record successfully`)
 }
 
 async function deleteDNSRecord(id: string) {
-  console.log(`🗑️  Deleting DNS record ID: ${id}`)
+  console.log(`Deleting DNS record ID: ${id}`)
 
   await apiCall('/dns/delete', {
     domain: DOMAIN,
     id,
   })
 
-  console.log(`✅ Deleted record successfully`)
+  console.log('Deleted record successfully')
 }
 
 async function setupVercelDNS() {
-  console.log('🚀 Setting up DNS for Vercel deployment...\n')
+  console.log('Setting up DNS for Vercel deployment...\n')
 
   // Vercel nameservers (use these at registrar)
-  console.log('📌 Point nameservers at your registrar to:')
+  console.log('Point nameservers at your registrar to:')
   console.log('   ns1.vercel-dns.com')
   console.log('   ns2.vercel-dns.com')
   console.log('')
@@ -108,7 +109,7 @@ async function setupVercelDNS() {
     },
   ]
 
-  console.log('📝 Desired records:')
+  console.log('Desired records:')
   desiredRecords.forEach((r) => {
     console.log(`   ${r.type}: ${r.name || '@'} -> ${r.content}`)
   })
@@ -129,20 +130,20 @@ async function setupVercelDNS() {
     await createDNSRecord(record)
   }
 
-  console.log('\n✨ DNS configuration complete!')
+  console.log('\nDNS configuration complete!')
 }
 
 async function setupClerkDNS() {
-  console.log('🔐 Setting up DNS records for Clerk...\n')
+  console.log('Setting up DNS records for Clerk...\n')
 
   // You may need specific TXT records for Clerk verification
   // Check your Clerk dashboard for verification records
 
-  console.log('📌 Check Clerk dashboard for any required TXT records')
+  console.log('Check Clerk dashboard for any required TXT records')
 }
 
 async function listDNSRecords() {
-  console.log(`📋 Current DNS records for ${DOMAIN}:\n`)
+  console.log(`Current DNS records for ${DOMAIN}:\n`)
 
   const records = await getDNSRecords()
 
@@ -188,7 +189,7 @@ async function main() {
         console.log('  npx ts-node scripts/porkbun-dns.ts setup-all     - Setup all DNS')
     }
   } catch (error) {
-    console.error('❌ Error:', error instanceof Error ? error.message : String(error))
+    console.error('Error:', error instanceof Error ? error.message : String(error))
     process.exit(1)
   }
 }
