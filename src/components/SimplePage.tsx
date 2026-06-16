@@ -19,7 +19,7 @@ export function SimplePage({ title, subtitle, sections }: SimplePageProps) {
       <main className="container mx-auto px-4 py-12">
         <section className="mb-10 rounded-lg border bg-card p-8">
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-accent">
-            THEBLACKLIST.ONLINE
+            The Green List
           </p>
           <h1 className="mb-4 text-4xl font-bold">{title}</h1>
           <p className="max-w-3xl text-muted-foreground">{subtitle}</p>
@@ -36,7 +36,7 @@ export function SimplePage({ title, subtitle, sections }: SimplePageProps) {
 
         <div className="mt-10">
           <Link href="/" className="text-sm font-semibold text-accent hover:underline">
-            ← Back to homepage
+            Back to homepage
           </Link>
         </div>
       </main>
