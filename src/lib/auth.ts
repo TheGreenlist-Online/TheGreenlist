@@ -9,6 +9,10 @@ import bcrypt from 'bcryptjs'
 
 const providers: NextAuthOptions['providers'] = []
 
+function normalizeRole(role: unknown): UserRole {
+  return Object.values(UserRole).includes(role as UserRole) ? (role as UserRole) : UserRole.USER
+}
+
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     GoogleProvider({
@@ -48,10 +52,8 @@ providers.push(
           id: true,
           email: true,
           name: true,
-          username: true,
           password: true,
           role: true,
-          businessId: true,
           image: true,
         },
       })
@@ -71,9 +73,7 @@ providers.push(
         email: user.email,
         name: user.name,
         image: user.image,
-        username: user.username,
-        role: user.role,
-        businessId: user.businessId,
+        role: normalizeRole(user.role),
       }
     },
   })
@@ -101,23 +101,25 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.username = user.username ?? null
-        token.role = user.role ?? UserRole.USER
-        token.businessId = user.businessId ?? null
+        token.role = normalizeRole(user.role)
       }
+
+      token.role = normalizeRole(token.role)
       return token
     },
     async session({ session, token }) {
       if (session.user && token?.sub) {
         session.user.id = token.sub
-        session.user.username = token.username ?? null
-        session.user.role = token.role ?? UserRole.USER
-        session.user.businessId = token.businessId ?? null
+        session.user.role = normalizeRole(token.role)
       }
       return session
     },
     async redirect({ url, baseUrl }) {
       if (!isSafeInternalUrl(url, baseUrl)) {
+        return `${baseUrl}/dashboard`
+      }
+
+      if (url === baseUrl || url === `${baseUrl}/` || url === '/') {
         return `${baseUrl}/dashboard`
       }
 
@@ -131,6 +133,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/signin',
     signUp: '/auth/register',
+    error: '/auth/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
