@@ -1,19 +1,28 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { FormEvent, useEffect, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+const GENERIC_REGISTER_ERROR = 'Unable to create account with those details.'
+
 export default function RegisterPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard')
+    }
+  }, [router, status])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -26,11 +35,9 @@ export default function RegisterPage() {
       body: JSON.stringify({ name, email, password }),
     })
 
-    const data = await response.json().catch(() => ({}))
-
     if (!response.ok) {
       setIsLoading(false)
-      setError(data.error ?? 'Unable to create account right now.')
+      setError(GENERIC_REGISTER_ERROR)
       return
     }
 
@@ -111,7 +118,7 @@ export default function RegisterPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
