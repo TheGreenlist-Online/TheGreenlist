@@ -24,50 +24,39 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t border-accent/20 bg-background/90">
+      <div className="glow-border h-px w-full opacity-60" />
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <Link href="/" className="mb-4 flex items-center space-x-2">
+              <span className="bg-gradient-to-r from-accent via-primary to-foreground bg-clip-text text-xl font-bold text-transparent">
                 The Green List
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm mb-4 max-w-md">
+            <p className="mb-4 max-w-md text-sm text-muted-foreground">
               A cannabis transparency and accountability platform for reports,
-              forums, news, and community trust.
+              forums, news, education, and community trust.
             </p>
             <div className="flex space-x-4">
-              <Link
-                href="https://twitter.com/thegreenlist"
-                className="text-muted-foreground hover:text-accent transition-colors"
-              >
+              <Link href="https://twitter.com/thegreenlist" className="text-muted-foreground transition-colors hover:text-accent">
                 <span className="text-sm font-bold">X</span>
               </Link>
-              <Link
-                href="https://github.com/TheGreenList"
-                className="text-muted-foreground hover:text-accent transition-colors"
-              >
+              <Link href="https://github.com/TheGreenList" className="text-muted-foreground transition-colors hover:text-accent">
                 <span className="text-sm font-bold">GH</span>
               </Link>
-              <Link
-                href="mailto:support@thegreenlist.online"
-                className="text-muted-foreground hover:text-accent transition-colors"
-              >
+              <Link href="mailto:support@thegreenlist.online" className="text-muted-foreground transition-colors hover:text-accent">
                 <Mail className="h-5 w-5" />
               </Link>
             </div>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Platform</h3>
+            <h3 className="mb-4 font-semibold">Platform</h3>
             <ul className="space-y-2">
               {footerLinks.platform.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-muted-foreground hover:text-accent transition-colors text-sm"
-                  >
+                  <Link href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-accent">
                     {link.name}
                   </Link>
                 </li>
@@ -76,24 +65,11 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Legal & Support</h3>
+            <h3 className="mb-4 font-semibold">Legal & Support</h3>
             <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
+              {[...footerLinks.legal, ...footerLinks.support].map((link) => (
                 <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-muted-foreground hover:text-accent transition-colors text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-muted-foreground hover:text-accent transition-colors text-sm"
-                  >
+                  <Link href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-accent">
                     {link.name}
                   </Link>
                 </li>
@@ -102,13 +78,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground text-sm">
+        <div className="mt-8 border-t border-accent/15 pt-8">
+          <div className="flex flex-col items-center justify-between gap-2 md:flex-row">
+            <p className="text-sm text-muted-foreground">
               © 2024 The Green List. All rights reserved.
             </p>
-            <p className="text-muted-foreground text-sm mt-2 md:mt-0">
-              Not affiliated with any cannabis businesses or sales platforms.
+            <p className="text-sm text-muted-foreground">
+              Not affiliated with cannabis sales, ordering, delivery, checkout, or inventory platforms.
             </p>
           </div>
         </div>
