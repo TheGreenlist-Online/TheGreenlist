@@ -29,18 +29,21 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
 
 providers.push(
   CredentialsProvider({
-    name: 'credentials',
+    name: 'Email and password',
     credentials: {
       email: { label: 'Email', type: 'email' },
       password: { label: 'Password', type: 'password' },
     },
     async authorize(credentials) {
-      if (!credentials?.email || !credentials?.password) {
+      const email = credentials?.email?.toLowerCase().trim()
+      const password = credentials?.password
+
+      if (!email || !password) {
         return null
       }
 
       const user = await prisma.user.findUnique({
-        where: { email: credentials.email.toLowerCase().trim() },
+        where: { email },
         select: {
           id: true,
           email: true,
@@ -49,6 +52,7 @@ providers.push(
           password: true,
           role: true,
           businessId: true,
+          image: true,
         },
       })
 
@@ -56,7 +60,7 @@ providers.push(
         return null
       }
 
-      const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+      const isPasswordValid = await bcrypt.compare(password, user.password)
 
       if (!isPasswordValid) {
         return null
@@ -66,6 +70,7 @@ providers.push(
         id: user.id,
         email: user.email,
         name: user.name,
+        image: user.image,
         username: user.username,
         role: user.role,
         businessId: user.businessId,
@@ -73,6 +78,19 @@ providers.push(
     },
   })
 )
+
+function isSafeInternalUrl(url: string, baseUrl: string) {
+  if (url.startsWith('/')) {
+    return !url.startsWith('//')
+  }
+
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.origin === baseUrl
+  } catch {
+    return false
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -83,24 +101,36 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.username = user.username
+        token.username = user.username ?? null
         token.role = user.role ?? UserRole.USER
         token.businessId = user.businessId ?? null
       }
       return token
     },
     async session({ session, token }) {
-      if (session.user && token) {
-        session.user.id = token.sub!
-        session.user.username = token.username as string | null
-        session.user.role = (token.role as UserRole) ?? UserRole.USER
-        session.user.businessId = token.businessId as string | null
+      if (session.user && token?.sub) {
+        session.user.id = token.sub
+        session.user.username = token.username ?? null
+        session.user.role = token.role ?? UserRole.USER
+        session.user.businessId = token.businessId ?? null
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      if (!isSafeInternalUrl(url, baseUrl)) {
+        return `${baseUrl}/dashboard`
+      }
+
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+
+      return url
     },
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
+    signUp: '/auth/register',
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }
