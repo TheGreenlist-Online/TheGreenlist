@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "prisma generate && next build --webpack",
     "start": "next start -p ${PORT:-3000}",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "prisma validate",
     "dns:list": "npx ts-node scripts/porkbun-dns.ts list",
     "dns:setup-vercel": "npx ts-node scripts/porkbun-dns.ts setup-vercel",
