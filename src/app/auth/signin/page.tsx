@@ -1,9 +1,9 @@
 'use client'
 
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -17,15 +17,20 @@ function getSafeCallbackUrl(callbackUrl: string | null) {
 
 export default function SignInPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const callbackUrl = useMemo(
-    () => getSafeCallbackUrl(searchParams.get('callbackUrl')),
-    [searchParams]
-  )
+  const [callbackUrl, setCallbackUrl] = useState('/dashboard')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(searchParams.get('error') ? 'Sign in failed. Check your details and try again.' : '')
+  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
+
+    if (params.get('error')) {
+      setError('Sign in failed. Check your details and try again.')
+    }
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
