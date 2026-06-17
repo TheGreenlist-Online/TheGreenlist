@@ -3,6 +3,8 @@ import { UserRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
+const GENERIC_REGISTER_ERROR = 'Unable to create account with those details.'
+
 function normalizeEmail(email: unknown) {
   return typeof email === 'string' ? email.toLowerCase().trim() : ''
 }
@@ -14,18 +16,17 @@ export async function POST(request: Request) {
     const password = typeof body.password === 'string' ? body.password : ''
     const name = typeof body.name === 'string' ? body.name.trim() : ''
 
-    if (!email || !email.includes('@')) {
-      return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 })
+    if (!email || !email.includes('@') || password.length < 8) {
+      return NextResponse.json({ error: GENERIC_REGISTER_ERROR }, { status: 400 })
     }
 
-    if (password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
-    }
-
-    const existingUser = await prisma.user.findUnique({ where: { email } })
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    })
 
     if (existingUser) {
-      return NextResponse.json({ error: 'An account already exists for that email.' }, { status: 409 })
+      return NextResponse.json({ error: GENERIC_REGISTER_ERROR }, { status: 400 })
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
@@ -41,6 +42,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true })
   } catch {
-    return NextResponse.json({ error: 'Unable to create account right now.' }, { status: 500 })
+    return NextResponse.json({ error: GENERIC_REGISTER_ERROR }, { status: 500 })
   }
 }
