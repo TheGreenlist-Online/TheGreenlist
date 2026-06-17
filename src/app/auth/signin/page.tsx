@@ -1,11 +1,18 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { getProviders, signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+
+const GENERIC_LOGIN_ERROR = 'Invalid login attempt. Please check your credentials and try again.'
+
+type OAuthProvider = {
+  id: string
+  name: string
+}
 
 function getSafeCallbackUrl(callbackUrl: string | null) {
   if (!callbackUrl || !callbackUrl.startsWith('/') || callbackUrl.startsWith('//')) {
@@ -17,19 +24,40 @@ function getSafeCallbackUrl(callbackUrl: string | null) {
 
 export default function SignInPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [callbackUrl, setCallbackUrl] = useState('/dashboard')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [oauthProviders, setOauthProviders] = useState<OAuthProvider[]>([])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
+    const safeCallbackUrl = getSafeCallbackUrl(params.get('callbackUrl'))
+    setCallbackUrl(safeCallbackUrl)
 
     if (params.get('error')) {
-      setError('Sign in failed. Check your details and try again.')
+      setError(GENERIC_LOGIN_ERROR)
     }
+  }, [])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(callbackUrl)
+    }
+  }, [callbackUrl, router, status])
+
+  useEffect(() => {
+    getProviders()
+      .then((providerMap) => {
+        setOauthProviders(
+          Object.values(providerMap ?? {})
+            .filter((provider) => provider.id !== 'credentials')
+            .map((provider) => ({ id: provider.id, name: provider.name }))
+        )
+      })
+      .catch(() => setOauthProviders([]))
   }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -47,7 +75,7 @@ export default function SignInPage() {
     setIsLoading(false)
 
     if (!result || result.error) {
-      setError('Invalid email or password.')
+      setError(GENERIC_LOGIN_ERROR)
       return
     }
 
@@ -101,29 +129,26 @@ export default function SignInPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
 
-            <div className="mt-6 grid gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn('google', { callbackUrl })}
-                className="w-full"
-              >
-                Continue with Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn('apple', { callbackUrl })}
-                className="w-full"
-              >
-                Continue with Apple
-              </Button>
-            </div>
+            {oauthProviders.length > 0 ? (
+              <div className="mt-6 grid gap-3">
+                {oauthProviders.map((provider) => (
+                  <Button
+                    key={provider.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() => signIn(provider.id, { callbackUrl })}
+                    className="w-full"
+                  >
+                    Continue with {provider.name}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
 
             <p className="mt-6 text-sm text-muted-foreground">
               New here?{' '}
