@@ -1,11 +1,28 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
 export async function GET() {
-  return Response.json({
-    status: 'healthy',
+  const requiredAuthEnv = ['NEXTAUTH_URL', 'NEXTAUTH_SECRET']
+  const missingAuthEnv = requiredAuthEnv.filter((key) => !process.env[key])
+  let database: 'ok' | 'unconfigured' | 'error' = process.env.DATABASE_URL ? 'ok' : 'unconfigured'
+
+  if (process.env.DATABASE_URL) {
+    try {
+      await prisma.$queryRaw`SELECT 1`
+      database = 'ok'
+    } catch {
+      database = 'error'
+    }
+  }
+
+  return NextResponse.json({
+    ok: missingAuthEnv.length === 0 && database !== 'error',
+    app: 'The Green List',
+    auth: {
+      provider: 'next-auth',
+      missingEnv: missingAuthEnv,
+    },
+    database,
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: process.env.NODE_ENV,
-    uptime: process.uptime(),
-    database: process.env.DATABASE_URL ? 'configured' : 'not-configured',
-    auth: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? 'configured' : 'not-configured',
   })
 }
