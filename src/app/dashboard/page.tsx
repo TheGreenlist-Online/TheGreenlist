@@ -7,9 +7,14 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 
 const userCards = [
-  { title: 'Transparency reports', body: 'Submit and track reports with evidence, context, and review status.', href: '/reports' },
+  { title: 'Account overview', body: 'Review your profile status, saved topics, and account activity.', href: '/profile' },
+  { title: 'Submitted reports', body: 'Submit and track transparency reports with evidence, context, and review status.', href: '/reports' },
   { title: 'Community forums', body: 'Join topic-based discussions around education, safety, accountability, and news.', href: '/forums' },
   { title: 'News watch', body: 'Follow source-linked updates and briefings without sales or marketplace noise.', href: '/news' },
+]
+
+const businessCards = [
+  { title: 'Organization dashboard', body: 'View transparency, reputation, and accountability placeholders for authorized organization roles.', href: '/business/dashboard' },
 ]
 
 const adminCards = [
@@ -18,6 +23,10 @@ const adminCards = [
   { title: 'System logs', body: 'Review automation and platform health events.', href: '/admin/logs' },
 ]
 
+function normalizeRole(role: unknown): UserRole {
+  return Object.values(UserRole).includes(role as UserRole) ? (role as UserRole) : UserRole.USER
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
 
@@ -25,8 +34,14 @@ export default async function DashboardPage() {
     redirect('/auth/signin?callbackUrl=/dashboard')
   }
 
-  const isAdmin = session.user.role === UserRole.ADMIN
-  const cards = isAdmin ? [...userCards, ...adminCards] : userCards
+  const role = normalizeRole(session.user.role)
+  const isAdmin = role === UserRole.ADMIN
+  const canUseBusinessDashboard = [UserRole.BUSINESS, UserRole.DISTRIBUTOR, UserRole.CULTIVATOR].includes(role)
+  const cards = [
+    ...userCards,
+    ...(canUseBusinessDashboard ? businessCards : []),
+    ...(isAdmin ? [...businessCards, ...adminCards] : []),
+  ]
 
   return (
     <div className="min-h-screen smoke-surface text-foreground">
@@ -40,7 +55,7 @@ export default async function DashboardPage() {
               Your Green List control center for transparency reports, education, community trust, and accountability tools.
             </p>
             <div className="mt-5 flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent">Role: {session.user.role}</span>
+              <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent">Role: {role}</span>
               {session.user.email ? <span>{session.user.email}</span> : null}
             </div>
           </div>
