@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import { Search, Menu, User, LogOut, Settings } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
+import { Search, Menu, User, LogOut, ShieldCheck, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,15 +19,16 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-accent/20 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="glow-border h-px w-full opacity-70" />
       <div className="container mx-auto flex h-16 items-center px-4">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent sm:inline-block">
+            <span className="hidden bg-gradient-to-r from-accent via-primary to-foreground bg-clip-text text-xl font-bold text-transparent sm:inline-block">
               The Green List
             </span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center space-x-6 text-sm font-medium text-muted-foreground">
             <Link href="/forums" className="transition-colors hover:text-accent">
               Forums
             </Link>
@@ -45,7 +46,7 @@ export function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <Link href="/" className="mr-2 flex items-center md:hidden">
-            <span className="whitespace-nowrap font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="whitespace-nowrap bg-gradient-to-r from-accent via-primary to-foreground bg-clip-text text-lg font-bold text-transparent">
               The Green List
             </span>
           </Link>
@@ -65,11 +66,11 @@ export function Header() {
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-accent/25">
                     <User className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56 border-accent/20 bg-card text-foreground" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       {session.user?.name && <p className="font-medium">{session.user.name}</p>}
@@ -82,32 +83,37 @@ export function Header() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
+                    <Link href="/dashboard">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
+                  {session.user?.role === 'ADMIN' ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => signIn()}>Sign In</Button>
+              <Button asChild>
+                <Link href="/auth/signin">Sign in</Link>
+              </Button>
             )}
 
             <Button
               variant="ghost"
               className="md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Open navigation"
             >
               <Menu className="h-4 w-4" />
             </Button>
@@ -116,8 +122,8 @@ export function Header() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden">
-          <nav className="flex flex-col space-y-2 p-4 border-t">
+        <div className="border-t border-accent/20 bg-background/95 md:hidden">
+          <nav className="flex flex-col space-y-2 p-4 text-sm text-muted-foreground">
             <Link href="/forums" className="transition-colors hover:text-accent">
               Forums
             </Link>
@@ -129,6 +135,9 @@ export function Header() {
             </Link>
             <Link href="/reports" className="transition-colors hover:text-accent">
               Reports
+            </Link>
+            <Link href="/trending" className="transition-colors hover:text-accent">
+              Trending
             </Link>
           </nav>
         </div>
