@@ -35,7 +35,7 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 
 - **Frontend**: Next.js App Router, React, TypeScript, TailwindCSS, Framer Motion
 - **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL
-- **Auth**: NextAuth.js with OAuth providers
+- **Auth**: NextAuth.js with credentials and optional OAuth providers
 - **Database**: Supabase/PostgreSQL with Prisma
 - **Storage**: Supabase
 - **AI**: OpenAI API for moderation and summarization
@@ -89,6 +89,21 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+### Auth Routes
+
+- Sign in: `/auth/signin`
+- Register: `/auth/register`
+- Dashboard: `/dashboard`
+
+Legacy routes redirect to the canonical auth pages:
+
+- `/sign-in`, `/signin`, `/login` -> `/auth/signin`
+- `/sign-up`, `/signup`, `/register` -> `/auth/register`
+
+Protected routes redirect logged-out users to `/auth/signin`. Admin routes also enforce the `ADMIN` role server-side.
+
+See `docs/AUTH.md` for local setup, production setup, provider callbacks, and common login failure checks.
+
 ### Database Schema
 
 The platform uses Prisma ORM with PostgreSQL. Key models include:
@@ -112,6 +127,8 @@ The platform uses Prisma ORM with PostgreSQL. Key models include:
 3. **Set up PostgreSQL database** (recommended: Supabase)
 4. **Add production domains**: `thegreenlist.online` and `greenlist.online`
 5. **Deploy**
+
+Auth deployment notes live in `docs/DEPLOYMENT.md`.
 
 ### Docker Deployment
 
@@ -140,9 +157,25 @@ When configuring auth providers or Supabase redirect allowlists, include:
 
 - `https://thegreenlist.online`
 - `https://greenlist.online`
-- `https://thegreenlist.online/auth/callback` if callback routes are used
-- `https://greenlist.online/auth/callback` if callback routes are used
+- `https://thegreenlist.online/api/auth/callback/google` if Google OAuth is used
+- `https://greenlist.online/api/auth/callback/google` if Google OAuth is used
 - `http://localhost:3000` and local callback URLs already used in development
+
+## Validation
+
+Run these checks before deploying auth changes:
+
+```bash
+npm install
+npx prisma validate
+npx prisma generate
+npm run typecheck
+npm run lint
+npm run build
+npm run smoke:auth
+```
+
+`npm run smoke:auth` expects a running app and defaults to `http://localhost:3000`. Use `BASE_URL` to test another environment.
 
 ## Development Phases
 
@@ -174,7 +207,8 @@ When configuring auth providers or Supabase redirect allowlists, include:
 
 API routes are available under `/api/`:
 
-- `POST /api/auth/[...nextauth]` - Authentication
+- `GET/POST /api/auth/[...nextauth]` - Authentication
+- `POST /api/register` - Credentials registration
 - `GET/POST /api/posts` - Forum posts
 - `GET/POST /api/businesses` - Business management
 - `POST /api/reports` - Transparency reports
@@ -191,6 +225,8 @@ API routes are available under `/api/`:
 ## Security
 
 - Server-side authorization on all protected routes
+- Generic client-facing auth errors
+- Password hashing for credentials registration
 - Input validation with Zod schemas
 - Rate limiting on public endpoints
 - Encrypted file uploads
