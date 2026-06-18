@@ -36,7 +36,7 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl"
           >
-            A serious community trust platform for reports, education, source-linked news, forums, and accountability. No marketplace, no ordering, no dispensary transactions.
+            The Green List is a cannabis transparency and accountability platform for reports, forums, news, and community trust. No marketplace, no ordering, no dispensary transactions.
           </motion.p>
 
           <motion.div
