@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { UserRole } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
@@ -14,7 +14,7 @@ export async function AdminSectionPage({ title, description }: { title: string; 
   }
 
   if (session.user.role !== UserRole.ADMIN) {
-    redirect('/dashboard')
+    notFound()
   }
 
   return (
