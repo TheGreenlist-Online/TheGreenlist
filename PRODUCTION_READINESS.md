@@ -106,7 +106,7 @@ Before deploying The Green List to production, verify all items below are comple
 - [ ] Verify all external links work
 - [ ] Check for broken images or missing assets
 - [ ] Confirm DNS propagation globally
-- [ ] Confirm production pages do not show old TheBlacklist branding
+- [ ] Confirm production pages do not show legacy branding
 
 ## Sign-Off
 
