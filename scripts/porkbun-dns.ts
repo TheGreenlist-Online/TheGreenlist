@@ -88,26 +88,57 @@ async function setupVercelDNS() {
   console.log(`Found ${records.length} existing DNS records\n`)
 
   // Define desired records for Vercel
-  const desiredRecords: DNSRecord[] = [
+  const VERCEL_APEX_A_RECORD = process.env.VERCEL_APEX_A_RECORD
+  const VERCEL_WWW_CNAME_RECORD = process.env.VERCEL_WWW_CNAME_RECORD
+  const VERCEL_API_CNAME_RECORD = process.env.VERCEL_API_CNAME_RECORD
+  const INCLUDE_API_SUBDOMAIN = process.env.INCLUDE_API_SUBDOMAIN === 'true'
+
+function requireVercelDnsValues() {
+  const missing: string[] = []
+
+  if (!VERCEL_APEX_A_RECORD) missing.push('VERCEL_APEX_A_RECORD')
+  if (!VERCEL_WWW_CNAME_RECORD) missing.push('VERCEL_WWW_CNAME_RECORD')
+
+  if (INCLUDE_API_SUBDOMAIN && !VERCEL_API_CNAME_RECORD) {
+    missing.push('VERCEL_API_CNAME_RECORD')
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing Vercel DNS value(s): ${missing.join(', ')}. Copy the exact values from your Vercel domain settings.`,
+    )
+  }
+}
+
+function getDesiredVercelRecords(): DNSRecord[] {
+  requireVercelDnsValues()
+
+  const records: DNSRecord[] = [
     {
       type: 'A',
       name: '@',
-      content: '76.76.19.165', // Vercel IP
-      ttl: 3600,
-    },
-    {
-      type: 'A',
-      name: 'www',
-      content: '76.76.19.165',
+      content: VERCEL_APEX_A_RECORD!,
       ttl: 3600,
     },
     {
       type: 'CNAME',
-      name: 'api',
-      content: 'cname.vercel-dns.com',
+      name: 'www',
+      content: VERCEL_WWW_CNAME_RECORD!,
       ttl: 3600,
     },
   ]
+
+  if (INCLUDE_API_SUBDOMAIN) {
+    records.push({
+      type: 'CNAME',
+      name: 'api',
+      content: VERCEL_API_CNAME_RECORD!,
+      ttl: 3600,
+    })
+  }
+
+  return records
+}
 
   console.log('Desired records:')
   desiredRecords.forEach((r) => {
