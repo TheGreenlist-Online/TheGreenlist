@@ -13,6 +13,26 @@ const API_KEY = process.env.PORKBUN_API_KEY
 const API_SECRET = process.env.PORKBUN_API_SECRET
 const DOMAIN = process.env.PORKBUN_DOMAIN
 
+type PorkbunDnsRecord = {
+  id: string
+  type: string
+  name: string
+  content: string
+  ttl?: string
+  prio?: string
+  notes?: string
+}
+
+type PorkbunRetrieveResponse = {
+  status: string
+  records?: PorkbunDnsRecord[]
+  message?: string
+}
+
+type PorkbunApiResponse = PorkbunRetrieveResponse & {
+  id?: string
+}
+
 interface DNSRecord {
   type: string
   name: string
@@ -26,14 +46,14 @@ const authPayload = {
   secretapikey: API_SECRET,
 }
 
-async function apiCall(endpoint: string, data: any) {
+async function apiCall(endpoint: string, data: Record<string, unknown>): Promise<PorkbunApiResponse> {
   const response = await fetch(`${PORKBUN_API_URL}${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...authPayload, ...data }),
   })
 
-  const result = await response.json()
+  const result = (await response.json()) as PorkbunApiResponse
 
   if (result.status !== 'success') {
     throw new Error(`Porkbun API Error: ${result.message}`)
@@ -42,10 +62,11 @@ async function apiCall(endpoint: string, data: any) {
   return result
 }
 
-async function getDNSRecords() {
+async function getDNSRecords(): Promise<PorkbunDnsRecord[]> {
   console.log(`Fetching DNS records for ${DOMAIN}...`)
-  const result = await apiCall('/dns/retrieve', { domain: DOMAIN })
-  return result.records || []
+  const data = await apiCall('/dns/retrieve', { domain: DOMAIN })
+  const records: PorkbunDnsRecord[] = data.records ?? []
+  return records
 }
 
 async function createDNSRecord(record: DNSRecord) {
@@ -84,7 +105,7 @@ async function setupVercelDNS() {
   console.log('')
 
   // Get existing records
-  const records = await getDNSRecords()
+  const records: PorkbunDnsRecord[] = await getDNSRecords()
   console.log(`Found ${records.length} existing DNS records\n`)
 
   // Define desired records for Vercel
@@ -110,7 +131,7 @@ async function setupVercelDNS() {
   ]
 
   console.log('Desired records:')
-  desiredRecords.forEach((r) => {
+  desiredRecords.forEach((r: DNSRecord) => {
     console.log(`   ${r.type}: ${r.name || '@'} -> ${r.content}`)
   })
   console.log('')
@@ -145,14 +166,14 @@ async function setupClerkDNS() {
 async function listDNSRecords() {
   console.log(`Current DNS records for ${DOMAIN}:\n`)
 
-  const records = await getDNSRecords()
+  const records: PorkbunDnsRecord[] = await getDNSRecords()
 
   if (records.length === 0) {
     console.log('No DNS records found')
     return
   }
 
-  records.forEach((r) => {
+  records.forEach((r: PorkbunDnsRecord) => {
     console.log(`  [${r.id}] ${r.type.padEnd(6)} ${(r.name || '@').padEnd(20)} -> ${r.content}`)
   })
 
