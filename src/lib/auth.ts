@@ -130,7 +130,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/register',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
