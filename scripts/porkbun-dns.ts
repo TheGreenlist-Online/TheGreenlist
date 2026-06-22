@@ -9,7 +9,7 @@
  * Secondary / backup domain:
  *   greenlist.online
  *
- * This script does NOT hardcode Vercel DNS values.
+ * This script defaults to the current required Vercel DNS values and lets .env.local override them.
  * Copy the exact A/CNAME values from your Vercel domain settings into .env.local.
  *
  * Required .env.local:
@@ -47,12 +47,14 @@ const API_KEY = process.env.PORKBUN_API_KEY
 const API_SECRET = process.env.PORKBUN_API_SECRET
 const DOMAIN = process.env.PORKBUN_DOMAIN
 
-const VERCEL_APEX_A_RECORD = process.env.VERCEL_APEX_A_RECORD
-const VERCEL_WWW_CNAME_RECORD = process.env.VERCEL_WWW_CNAME_RECORD
+const VERCEL_APEX_A_RECORD = process.env.VERCEL_APEX_A_RECORD ?? '216.198.79.1'
+const VERCEL_WWW_CNAME_RECORD =
+  process.env.VERCEL_WWW_CNAME_RECORD ?? '917519468536e383.vercel-dns-017.com.'
 const VERCEL_API_CNAME_RECORD = process.env.VERCEL_API_CNAME_RECORD
 
 const INCLUDE_API_SUBDOMAIN = process.env.INCLUDE_API_SUBDOMAIN === 'true'
 const APPLY_CHANGES = process.argv.includes('--apply')
+const DEFAULT_TTL = Number.parseInt(process.env.PORKBUN_DNS_TTL ?? '600', 10)
 
 const VALID_DOMAINS = new Set(['thegreenlist.online', 'greenlist.online'])
 
@@ -110,7 +112,7 @@ function requireBaseEnv(): void {
     throw new Error(`Missing required environment variable(s): ${missing.join(', ')}`)
   }
 
-  if (!VALID_DOMAINS.has(DOMAIN)) {
+  if (!VALID_DOMAINS.has(DOMAIN as string)) {
     throw new Error(
       `Invalid PORKBUN_DOMAIN="${DOMAIN}". Expected one of: ${Array.from(VALID_DOMAINS).join(', ')}`,
     )
@@ -206,13 +208,13 @@ function getDesiredVercelRecords(): DesiredDNSRecord[] {
       type: 'A',
       name: '@',
       content: VERCEL_APEX_A_RECORD as string,
-      ttl: 3600,
+      ttl: DEFAULT_TTL,
     },
     {
       type: 'CNAME',
       name: 'www',
       content: VERCEL_WWW_CNAME_RECORD as string,
-      ttl: 3600,
+      ttl: DEFAULT_TTL,
     },
   ]
 
@@ -221,7 +223,7 @@ function getDesiredVercelRecords(): DesiredDNSRecord[] {
       type: 'CNAME',
       name: 'api',
       content: VERCEL_API_CNAME_RECORD as string,
-      ttl: 3600,
+      ttl: DEFAULT_TTL,
     })
   }
 
@@ -282,7 +284,7 @@ async function createDNSRecord(record: DesiredDNSRecord): Promise<void> {
     name,
     type: record.type,
     content: record.content,
-    ttl: record.ttl ?? 3600,
+    ttl: record.ttl ?? DEFAULT_TTL,
     prio: record.priority,
   })
 
@@ -446,6 +448,7 @@ function printUsage(): void {
   console.log('  PORKBUN_DOMAIN=thegreenlist.online')
   console.log('  VERCEL_APEX_A_RECORD=')
   console.log('  VERCEL_WWW_CNAME_RECORD=')
+  console.log('  Optional PORKBUN_DNS_TTL=600')
   console.log('')
   console.log('Optional .env.local:')
   console.log('  INCLUDE_API_SUBDOMAIN=false')

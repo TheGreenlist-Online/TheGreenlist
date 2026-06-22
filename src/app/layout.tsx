@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { AntiCommerceWarning } from '@/components/AntiCommerceWarning'
 
-const inter = Inter({ subsets: ['latin'] })
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -48,7 +46,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <Providers>
           <AntiCommerceWarning />
           {children}

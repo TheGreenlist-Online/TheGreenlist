@@ -13,9 +13,26 @@ datasource db {
 enum UserRole {
   USER
   BUSINESS
-  DISTRIBUTOR
   CULTIVATOR
+  DISTRIBUTOR
   ADMIN
+  MODERATOR
+  REPORTER
+  EDUCATOR
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  PRIVATE
+  BUSINESS_VISIBLE
+  ADMIN_ONLY
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
 }
 
 model User {
@@ -26,7 +43,11 @@ model User {
   name              String?
   username          String?   @unique
   role              UserRole  @default(USER)
+  requestedAccountType UserRole?
   image             String?
+  profileVisibility ProfileVisibility @default(PRIVATE)
+  allowAnonymousReports Boolean @default(true)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
   bio               String?
   verified          Boolean   @default(false)
   transparencyScore Float     @default(0)

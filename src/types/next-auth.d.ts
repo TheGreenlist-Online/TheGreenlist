@@ -1,5 +1,5 @@
 import { DefaultSession } from 'next-auth'
-import { UserRole } from '@prisma/client'
+import { ProfileVisibility, UserRole, VerificationStatus } from '@prisma/client'
 
 declare module 'next-auth' {
   interface Session {
@@ -8,6 +8,9 @@ declare module 'next-auth' {
       username?: string | null
       role: UserRole
       businessId?: string | null
+      profileVisibility?: ProfileVisibility
+      allowAnonymousReports?: boolean
+      verificationStatus?: VerificationStatus
     } & DefaultSession['user']
   }
 
@@ -15,6 +18,9 @@ declare module 'next-auth' {
     username?: string | null
     role?: UserRole
     businessId?: string | null
+    profileVisibility?: ProfileVisibility
+    allowAnonymousReports?: boolean
+    verificationStatus?: VerificationStatus
   }
 }
 
@@ -23,5 +29,8 @@ declare module 'next-auth/jwt' {
     username?: string | null
     role?: UserRole
     businessId?: string | null
+    profileVisibility?: ProfileVisibility
+    allowAnonymousReports?: boolean
+    verificationStatus?: VerificationStatus
   }
 }

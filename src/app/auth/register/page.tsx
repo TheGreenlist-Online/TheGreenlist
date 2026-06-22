@@ -12,6 +12,9 @@ export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [profileVisibility, setProfileVisibility] = useState('PRIVATE')
+  const [requestedAccountType, setRequestedAccountType] = useState('USER')
+  const [allowAnonymousReports, setAllowAnonymousReports] = useState(true)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -23,7 +26,14 @@ export default function RegisterPage() {
     const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        profileVisibility,
+        requestedAccountType: requestedAccountType === 'USER' ? null : requestedAccountType,
+        allowAnonymousReports,
+      }),
     })
 
     const data = await response.json().catch(() => ({}))
@@ -104,6 +114,51 @@ export default function RegisterPage() {
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 8 characters"
               />
+
+
+              <label className="block text-sm font-medium text-foreground" htmlFor="requestedAccountType">
+                Account type
+              </label>
+              <select
+                id="requestedAccountType"
+                value={requestedAccountType}
+                onChange={(event) => setRequestedAccountType(event.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="USER">Community member</option>
+                <option value="BUSINESS">Request business profile review</option>
+                <option value="CULTIVATOR">Request cultivator profile review</option>
+                <option value="DISTRIBUTOR">Request distributor profile review</option>
+              </select>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Organization roles are request-only and remain community accounts until admin approval.
+              </p>
+
+              <label className="block text-sm font-medium text-foreground" htmlFor="profileVisibility">
+                Profile visibility
+              </label>
+              <select
+                id="profileVisibility"
+                value={profileVisibility}
+                onChange={(event) => setProfileVisibility(event.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="PUBLIC">Public profile</option>
+                <option value="PRIVATE">Private profile</option>
+                <option value="BUSINESS_VISIBLE">Business-visible profile</option>
+                <option value="ADMIN_ONLY">Admin-only/internal profile</option>
+              </select>
+
+              <label className="flex items-start gap-3 rounded-md border border-accent/20 bg-accent/5 p-3 text-sm text-muted-foreground" htmlFor="allowAnonymousReports">
+                <input
+                  id="allowAnonymousReports"
+                  type="checkbox"
+                  checked={allowAnonymousReports}
+                  onChange={(event) => setAllowAnonymousReports(event.target.checked)}
+                  className="mt-1"
+                />
+                <span>Allow anonymous reporting preferences for sensitive submissions where appropriate.</span>
+              </label>
 
               {error ? (
                 <div className="rounded-md border border-red-400/40 bg-red-950/40 px-3 py-2 text-sm text-red-100">

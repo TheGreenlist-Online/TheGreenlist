@@ -3,7 +3,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import AppleProvider from 'next-auth/providers/apple'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { UserRole } from '@prisma/client'
+import { ProfileVisibility, UserRole, VerificationStatus } from '@prisma/client'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
@@ -53,6 +53,9 @@ providers.push(
           role: true,
           businessId: true,
           image: true,
+          profileVisibility: true,
+          allowAnonymousReports: true,
+          verificationStatus: true,
         },
       })
 
@@ -74,6 +77,9 @@ providers.push(
         username: user.username,
         role: user.role,
         businessId: user.businessId,
+        profileVisibility: user.profileVisibility,
+        allowAnonymousReports: user.allowAnonymousReports,
+        verificationStatus: user.verificationStatus,
       }
     },
   })
@@ -104,6 +110,9 @@ export const authOptions: NextAuthOptions = {
         token.username = user.username ?? null
         token.role = user.role ?? UserRole.USER
         token.businessId = user.businessId ?? null
+        token.profileVisibility = user.profileVisibility ?? ProfileVisibility.PRIVATE
+        token.allowAnonymousReports = user.allowAnonymousReports ?? true
+        token.verificationStatus = user.verificationStatus ?? VerificationStatus.UNVERIFIED
       }
       return token
     },
@@ -113,6 +122,9 @@ export const authOptions: NextAuthOptions = {
         session.user.username = token.username ?? null
         session.user.role = token.role ?? UserRole.USER
         session.user.businessId = token.businessId ?? null
+        session.user.profileVisibility = token.profileVisibility ?? ProfileVisibility.PRIVATE
+        session.user.allowAnonymousReports = token.allowAnonymousReports ?? true
+        session.user.verificationStatus = token.verificationStatus ?? VerificationStatus.UNVERIFIED
       }
       return session
     },
@@ -130,7 +142,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/register',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
