@@ -1,7 +1,7 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { FormEvent, useEffect, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,47 +9,60 @@ import { Input } from '@/components/ui/input'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard')
+      router.refresh()
+    }
+  }, [router, status])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
     setIsLoading(true)
 
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    })
+    const normalizedEmail = email.toLowerCase().trim()
 
-    const data = await response.json().catch(() => ({}))
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: normalizedEmail, password }),
+      })
 
-    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setError(data.error ?? 'Unable to create account right now.')
+        return
+      }
+
+      const result = await signIn('credentials', {
+        email: normalizedEmail,
+        password,
+        redirect: false,
+        callbackUrl: '/dashboard',
+      })
+
+      if (!result || result.error) {
+        router.push('/auth/signin?registered=1')
+        return
+      }
+
+      router.push(result.url ?? '/dashboard')
+      router.refresh()
+    } catch {
+      setError('Unable to reach registration service. Try again in a moment.')
+    } finally {
       setIsLoading(false)
-      setError(data.error ?? 'Unable to create account right now.')
-      return
     }
-
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: '/dashboard',
-    })
-
-    setIsLoading(false)
-
-    if (!result || result.error) {
-      router.push('/auth/signin')
-      return
-    }
-
-    router.push(result.url ?? '/dashboard')
-    router.refresh()
   }
 
   return (
@@ -111,7 +124,7 @@ export default function RegisterPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
