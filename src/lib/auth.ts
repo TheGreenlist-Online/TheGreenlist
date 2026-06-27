@@ -7,22 +7,38 @@ import { UserRole } from '@prisma/client'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
+function getConfiguredSecret(name: string) {
+  const value = process.env[name]?.trim()
+
+  if (!value || value.startsWith('your-') || value.startsWith('replace-with-')) {
+    return null
+  }
+
+  return value
+}
+
 const providers: NextAuthOptions['providers'] = []
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+const googleClientId = getConfiguredSecret('GOOGLE_CLIENT_ID')
+const googleClientSecret = getConfiguredSecret('GOOGLE_CLIENT_SECRET')
+
+if (googleClientId && googleClientSecret) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
     })
   )
 }
 
-if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
+const appleId = getConfiguredSecret('APPLE_ID')
+const appleSecret = getConfiguredSecret('APPLE_SECRET')
+
+if (appleId && appleSecret) {
   providers.push(
     AppleProvider({
-      clientId: process.env.APPLE_ID,
-      clientSecret: process.env.APPLE_SECRET,
+      clientId: appleId,
+      clientSecret: appleSecret,
     })
   )
 }
