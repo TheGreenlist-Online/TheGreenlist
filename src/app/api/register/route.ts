@@ -3,8 +3,14 @@ import { UserRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 function normalizeEmail(email: unknown) {
   return typeof email === 'string' ? email.toLowerCase().trim() : ''
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 export async function POST(request: Request) {
@@ -14,7 +20,14 @@ export async function POST(request: Request) {
     const password = typeof body.password === 'string' ? body.password : ''
     const name = typeof body.name === 'string' ? body.name.trim() : ''
 
-    if (!email || !email.includes('@')) {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database is not configured. Set DATABASE_URL and run Prisma migrations.' },
+        { status: 503 }
+      )
+    }
+
+    if (!isValidEmail(email)) {
       return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 })
     }
 
@@ -40,7 +53,12 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ ok: true })
-  } catch {
-    return NextResponse.json({ error: 'Unable to create account right now.' }, { status: 500 })
+  } catch (error) {
+    console.error('Registration failed', error)
+
+    return NextResponse.json(
+      { error: 'Unable to create account right now. Confirm DATABASE_URL is set and migrations have been deployed.' },
+      { status: 500 }
+    )
   }
 }
