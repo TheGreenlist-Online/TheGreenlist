@@ -19,5 +19,8 @@ RUN npm run build
 # Expose the port the app runs on
 EXPOSE 3000
 
+RUN chown -R 1000:1000 /app
+USER 1000
+
 # Start the application
 CMD ["npm", "start"]
