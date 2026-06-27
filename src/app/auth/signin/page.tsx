@@ -1,11 +1,16 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { getProviders, signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+
+type AuthProvider = {
+  id: string
+  name: string
+}
 
 function getSafeCallbackUrl(callbackUrl: string | null) {
   if (!callbackUrl || !callbackUrl.startsWith('/') || callbackUrl.startsWith('//')) {
@@ -17,7 +22,9 @@ function getSafeCallbackUrl(callbackUrl: string | null) {
 
 export default function SignInPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [callbackUrl, setCallbackUrl] = useState('/dashboard')
+  const [providers, setProviders] = useState<Record<string, AuthProvider> | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -30,7 +37,18 @@ export default function SignInPage() {
     if (params.get('error')) {
       setError('Sign in failed. Check your details and try again.')
     }
+
+    getProviders().then((availableProviders) => {
+      setProviders(availableProviders)
+    })
   }, [])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(callbackUrl)
+      router.refresh()
+    }
+  }, [callbackUrl, router, status])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -38,7 +56,7 @@ export default function SignInPage() {
     setIsLoading(true)
 
     const result = await signIn('credentials', {
-      email,
+      email: email.toLowerCase().trim(),
       password,
       redirect: false,
       callbackUrl,
@@ -54,6 +72,10 @@ export default function SignInPage() {
     router.push(result.url ?? callbackUrl)
     router.refresh()
   }
+
+  const socialProviders = Object.values(providers ?? {}).filter(
+    (provider) => provider.id !== 'credentials'
+  )
 
   return (
     <main className="min-h-screen px-4 py-16 text-foreground smoke-surface">
@@ -101,29 +123,26 @@ export default function SignInPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
 
-            <div className="mt-6 grid gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn('google', { callbackUrl })}
-                className="w-full"
-              >
-                Continue with Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => signIn('apple', { callbackUrl })}
-                className="w-full"
-              >
-                Continue with Apple
-              </Button>
-            </div>
+            {socialProviders.length > 0 ? (
+              <div className="mt-6 grid gap-3">
+                {socialProviders.map((provider) => (
+                  <Button
+                    key={provider.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() => signIn(provider.id, { callbackUrl })}
+                    className="w-full"
+                  >
+                    Continue with {provider.name}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
 
             <p className="mt-6 text-sm text-muted-foreground">
               New here?{' '}
