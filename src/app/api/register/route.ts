@@ -5,12 +5,19 @@ import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
 
+const DEFAULT_MASTER_ADMIN_EMAIL = 'mcarter136988@gmail.com'
+const MASTER_ADMIN_EMAIL = (process.env.MASTER_ADMIN_EMAIL ?? DEFAULT_MASTER_ADMIN_EMAIL).toLowerCase().trim()
+
 function normalizeEmail(email: unknown) {
   return typeof email === 'string' ? email.toLowerCase().trim() : ''
 }
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function getRegistrationRole(email: string) {
+  return email === MASTER_ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER
 }
 
 export async function POST(request: Request) {
@@ -48,7 +55,7 @@ export async function POST(request: Request) {
         email,
         name: name || null,
         password: hashedPassword,
-        role: UserRole.USER,
+        role: getRegistrationRole(email),
       },
     })
 
