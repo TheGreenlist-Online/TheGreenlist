@@ -1,68 +1,81 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { status } = useSession()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace('/dashboard')
-      router.refresh()
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) {
+        return
+      }
+
+      if (data.session) {
+        router.replace('/dashboard')
+        router.refresh()
+        return
+      }
+
+      setIsCheckingSession(false)
+    })
+
+    return () => {
+      isMounted = false
     }
-  }, [router, status])
+  }, [router, supabase])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    setSuccess('')
     setIsLoading(true)
 
+    const trimmedName = name.trim()
     const normalizedEmail = email.toLowerCase().trim()
+    const emailRedirectTo = `${window.location.origin}/auth/confirm`
 
-    try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: normalizedEmail, password }),
-      })
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: {
+        emailRedirectTo,
+        data: {
+          display_name: trimmedName || normalizedEmail,
+          full_name: trimmedName || normalizedEmail,
+        },
+      },
+    })
 
-      const data = await response.json().catch(() => ({}))
+    setIsLoading(false)
 
-      if (!response.ok) {
-        setError(data.error ?? 'Unable to create account right now.')
-        return
-      }
-
-      const result = await signIn('credentials', {
-        email: normalizedEmail,
-        password,
-        redirect: false,
-        callbackUrl: '/dashboard',
-      })
-
-      if (!result || result.error) {
-        router.push('/auth/signin?registered=1')
-        return
-      }
-
-      router.push(result.url ?? '/dashboard')
-      router.refresh()
-    } catch {
-      setError('Unable to reach registration service. Try again in a moment.')
-    } finally {
-      setIsLoading(false)
+    if (signUpError) {
+      setError(signUpError.message || 'Unable to create account right now.')
+      return
     }
+
+    if (data.session) {
+      router.push('/dashboard')
+      router.refresh()
+      return
+    }
+
+    setSuccess('Account created. Check your email to confirm your account, then sign in.')
   }
 
   return (
@@ -124,7 +137,13 @@ export default function RegisterPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
+              {success ? (
+                <div className="rounded-md border border-emerald-400/40 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-100">
+                  {success}
+                </div>
+              ) : null}
+
+              <Button type="submit" className="w-full" disabled={isLoading || isCheckingSession}>
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
