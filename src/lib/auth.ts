@@ -7,6 +7,9 @@ import { UserRole } from '@prisma/client'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
+const DEFAULT_MASTER_ADMIN_EMAIL = 'mcarter136988@gmail.com'
+const MASTER_ADMIN_EMAIL = (process.env.MASTER_ADMIN_EMAIL ?? DEFAULT_MASTER_ADMIN_EMAIL).toLowerCase().trim()
+
 function getConfiguredSecret(name: string) {
   const value = process.env[name]?.trim()
 
@@ -15,6 +18,10 @@ function getConfiguredSecret(name: string) {
   }
 
   return value
+}
+
+function getEffectiveUserRole(email?: string | null, role?: UserRole | null) {
+  return email?.toLowerCase().trim() === MASTER_ADMIN_EMAIL ? UserRole.ADMIN : role ?? UserRole.USER
 }
 
 const providers: NextAuthOptions['providers'] = []
@@ -88,7 +95,7 @@ providers.push(
         name: user.name,
         image: user.image,
         username: user.username,
-        role: user.role,
+        role: getEffectiveUserRole(user.email, user.role),
         businessId: user.businessId,
       }
     },
@@ -118,7 +125,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.username = user.username ?? null
-        token.role = user.role ?? UserRole.USER
+        token.role = getEffectiveUserRole(user.email, user.role)
         token.businessId = user.businessId ?? null
       }
       return token
@@ -127,7 +134,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token?.sub) {
         session.user.id = token.sub
         session.user.username = token.username ?? null
-        session.user.role = token.role ?? UserRole.USER
+        session.user.role = getEffectiveUserRole(session.user.email, token.role)
         session.user.businessId = token.businessId ?? null
       }
       return session
