@@ -2,20 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
-import { Search, Menu, User, LogOut, ShieldCheck, LayoutDashboard } from 'lucide-react'
+import { Search, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 export function Header() {
-  const { data: session } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -63,51 +54,15 @@ export function Header() {
           </div>
 
           <nav className="flex items-center space-x-2">
-            {session ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-accent/25">
-                    <User className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 border-accent/20 bg-card text-foreground" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      {session.user?.name && <p className="font-medium">{session.user.name}</p>}
-                      {session.user?.email && (
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">
-                          {session.user.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  {session.user?.role === 'ADMIN' ? (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        Admin
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : null}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button asChild>
-                <Link href="/auth/signin">Sign in</Link>
-              </Button>
-            )}
+            <Button asChild variant="ghost">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/auth/signin">Sign in</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/auth/signout">Sign out</Link>
+            </Button>
 
             <Button
               variant="ghost"
