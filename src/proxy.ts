@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { NextResponse, type NextRequest } from 'next/server'
+import { updateSupabaseSession } from '@/lib/supabase/proxy'
 
 function loginUrl(request: NextRequest) {
   const url = request.nextUrl.clone()
@@ -9,22 +8,34 @@ function loginUrl(request: NextRequest) {
   return url
 }
 
-export async function proxy(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
-  const pathname = request.nextUrl.pathname
+function dashboardUrl(request: NextRequest) {
+  const url = request.nextUrl.clone()
+  url.pathname = '/dashboard'
+  url.search = ''
+  return url
+}
 
-  if (!token) {
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const { response, supabase, user } = await updateSupabaseSession(request)
+
+  if (!user) {
     return NextResponse.redirect(loginUrl(request))
   }
 
-  if (pathname.startsWith('/admin') && token.role !== 'ADMIN') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    url.search = ''
-    return NextResponse.redirect(url)
+  if (pathname.startsWith('/admin')) {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (error || profile?.role !== 'ADMIN') {
+      return NextResponse.redirect(dashboardUrl(request))
+    }
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
