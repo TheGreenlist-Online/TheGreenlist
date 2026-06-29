@@ -1,16 +1,11 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
-import { getProviders, signIn, useSession } from 'next-auth/react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-
-type AuthProvider = {
-  id: string
-  name: string
-}
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 function getSafeCallbackUrl(callbackUrl: string | null) {
   if (!callbackUrl || !callbackUrl.startsWith('/') || callbackUrl.startsWith('//')) {
@@ -20,62 +15,81 @@ function getSafeCallbackUrl(callbackUrl: string | null) {
   return callbackUrl
 }
 
+function getErrorMessage(errorParam: string | null) {
+  if (errorParam === 'confirm_failed') {
+    return 'Email confirmation failed. Try signing in or request a new confirmation email.'
+  }
+
+  if (errorParam) {
+    return 'Sign in failed. Check your details and try again.'
+  }
+
+  return ''
+}
+
 export default function SignInPage() {
   const router = useRouter()
-  const { status } = useSession()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [callbackUrl, setCallbackUrl] = useState('/dashboard')
-  const [providers, setProviders] = useState<Record<string, AuthProvider> | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
+    const safeCallbackUrl = getSafeCallbackUrl(params.get('callbackUrl'))
+    setCallbackUrl(safeCallbackUrl)
+    setError(getErrorMessage(params.get('error')))
 
-    if (params.get('error')) {
-      setError('Sign in failed. Check your details and try again.')
+    if (params.get('registered')) {
+      setNotice('Account created. Sign in after confirming your email.')
     }
 
-    getProviders().then((availableProviders) => {
-      setProviders(availableProviders)
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) {
+        return
+      }
+
+      if (data.session) {
+        router.replace(safeCallbackUrl)
+        router.refresh()
+        return
+      }
+
+      setIsCheckingSession(false)
     })
-  }, [])
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace(callbackUrl)
-      router.refresh()
+    return () => {
+      isMounted = false
     }
-  }, [callbackUrl, router, status])
+  }, [router, supabase])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    setNotice('')
     setIsLoading(true)
 
-    const result = await signIn('credentials', {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
       password,
-      redirect: false,
-      callbackUrl,
     })
 
     setIsLoading(false)
 
-    if (!result || result.error) {
+    if (signInError) {
       setError('Invalid email or password.')
       return
     }
 
-    router.push(result.url ?? callbackUrl)
+    router.push(callbackUrl)
     router.refresh()
   }
-
-  const socialProviders = Object.values(providers ?? {}).filter(
-    (provider) => provider.id !== 'credentials'
-  )
 
   return (
     <main className="min-h-screen px-4 py-16 text-foreground smoke-surface">
@@ -123,26 +137,16 @@ export default function SignInPage() {
                 </div>
               ) : null}
 
-              <Button type="submit" className="w-full" disabled={isLoading || status === 'loading'}>
+              {notice ? (
+                <div className="rounded-md border border-emerald-400/40 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-100">
+                  {notice}
+                </div>
+              ) : null}
+
+              <Button type="submit" className="w-full" disabled={isLoading || isCheckingSession}>
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
-
-            {socialProviders.length > 0 ? (
-              <div className="mt-6 grid gap-3">
-                {socialProviders.map((provider) => (
-                  <Button
-                    key={provider.id}
-                    type="button"
-                    variant="outline"
-                    onClick={() => signIn(provider.id, { callbackUrl })}
-                    className="w-full"
-                  >
-                    Continue with {provider.name}
-                  </Button>
-                ))}
-              </div>
-            ) : null}
 
             <p className="mt-6 text-sm text-muted-foreground">
               New here?{' '}
