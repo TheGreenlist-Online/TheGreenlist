@@ -1,50 +1,62 @@
 import { NextResponse } from 'next/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
 
 export async function GET() {
   const checks = {
+    supabaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    supabaseKeyConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
     databaseUrlConfigured: Boolean(process.env.DATABASE_URL),
-    nextAuthUrlConfigured: Boolean(process.env.NEXTAUTH_URL),
-    nextAuthSecretConfigured: Boolean(process.env.NEXTAUTH_SECRET),
+    supabaseReachable: false,
     databaseReachable: false,
     usersTableReachable: false,
   }
 
-  if (!checks.databaseUrlConfigured) {
+  // Supabase auth is primary system
+  if (!checks.supabaseUrlConfigured || !checks.supabaseKeyConfigured) {
     return NextResponse.json(
       {
         ok: false,
         checks,
-        message: 'DATABASE_URL is missing. Add it in Vercel, run Prisma migrations, then redeploy.',
+        message: 'Supabase Auth configuration missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in Vercel and redeploy.',
       },
       { status: 503 }
     )
   }
 
+  // Check Supabase connection
   try {
-    await prisma.$queryRaw`SELECT 1`
-    checks.databaseReachable = true
-
-    await prisma.user.count()
-    checks.usersTableReachable = true
-
-    return NextResponse.json({
-      ok: true,
-      checks,
-      message: 'Auth database checks passed.',
-    })
+    const supabase = await createSupabaseServerClient()
+    const { data, error } = await supabase.auth.getUser()
+    if (!error) {
+      checks.supabaseReachable = true
+    }
   } catch (error) {
-    console.error('Auth health check failed', error)
-
-    return NextResponse.json(
-      {
-        ok: false,
-        checks,
-        message: 'Database is configured but auth tables are not reachable. Run prisma migrate deploy and prisma generate.',
-      },
-      { status: 503 }
-    )
+    console.warn('Supabase auth check warning (non-fatal):', error)
   }
+
+  // Check database if configured (optional)
+  if (checks.databaseUrlConfigured) {
+    try {
+      await prisma.$queryRaw`SELECT 1`
+      checks.databaseReachable = true
+
+      try {
+        await prisma.user.count()
+        checks.usersTableReachable = true
+      } catch {
+        // Prisma tables might not exist, which is OK for Supabase-only setup
+      }
+    } catch (error) {
+      console.warn('Database check warning (non-fatal):', error)
+    }
+  }
+
+  return NextResponse.json({
+    ok: checks.supabaseReachable,
+    checks,
+    message: checks.supabaseReachable ? 'Supabase Auth is reachable.' : 'Unable to reach Supabase Auth.',
+  })
 }
