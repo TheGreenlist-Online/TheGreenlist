@@ -65,14 +65,26 @@ export default async function DashboardPage() {
       <main className="container mx-auto px-4 py-10">
         <section className="glow-border rounded-lg p-px">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Dashboard</p>
-            <h1 className="mt-3 text-3xl font-bold">Welcome back{userName ? `, ${userName}` : ''}</h1>
-            <p className="mt-3 max-w-3xl text-muted-foreground">
-              Your Green List control center for transparency reports, education, community trust, and accountability tools.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent">Role: {role}</span>
-              {user.email ? <span>{user.email}</span> : null}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Dashboard</p>
+                <h1 className="mt-3 text-3xl font-bold">Welcome back{userName ? `, ${userName}` : ''}</h1>
+                <p className="mt-3 max-w-3xl text-muted-foreground">
+                  Your Green List control center for transparency reports, education, community trust, and accountability tools.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                  <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent">Role: {role}</span>
+                  {user.email ? <span>{user.email}</span> : null}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href="/dashboard/settings" className="px-3 py-2 text-xs font-medium rounded-lg border border-primary/40 text-foreground hover:bg-accent/10 transition-colors">
+                  Settings
+                </Link>
+                <Link href="/dashboard/preferences" className="px-3 py-2 text-xs font-medium rounded-lg border border-primary/40 text-foreground hover:bg-accent/10 transition-colors">
+                  Preferences
+                </Link>
+              </div>
             </div>
           </div>
         </section>

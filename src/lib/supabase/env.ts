@@ -2,10 +2,19 @@ function cleanEnv(value: string | undefined) {
   return value?.trim() ?? ''
 }
 
+function isBuildTime() {
+  return process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV
+}
+
 export function getSupabaseUrl() {
   const supabaseUrl = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL)
 
   if (!supabaseUrl) {
+    // During static build, provide a placeholder that won't be used at runtime
+    if (isBuildTime()) {
+      console.warn('[Build] Supabase URL not configured. Auth will fail at runtime if not set.')
+      return 'https://placeholder.supabase.co'
+    }
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL for Supabase Auth.')
   }
 
@@ -18,6 +27,11 @@ export function getSupabasePublishableKey() {
   const key = publishableKey || anonKey
 
   if (!key) {
+    // During static build, provide a placeholder
+    if (isBuildTime()) {
+      console.warn('[Build] Supabase key not configured. Auth will fail at runtime if not set.')
+      return 'placeholder_key'
+    }
     throw new Error(
       'Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY for Supabase Auth.'
     )

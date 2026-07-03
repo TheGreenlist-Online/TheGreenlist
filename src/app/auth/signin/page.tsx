@@ -39,24 +39,30 @@ export default function SignInPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const safeCallbackUrl = getSafeCallbackUrl(params.get('callbackUrl'))
-    setCallbackUrl(safeCallbackUrl)
-    setError(getErrorMessage(params.get('error')))
-
-    if (params.get('registered')) {
-      setNotice('Account created. Sign in after confirming your email.')
-    }
-
     let isMounted = true
+
+    const initializeFromUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      const safeCallbackUrl = getSafeCallbackUrl(params.get('callbackUrl'))
+      setCallbackUrl(safeCallbackUrl)
+      setError(getErrorMessage(params.get('error')))
+
+      if (params.get('registered')) {
+        setNotice('Account created. Sign in after confirming your email.')
+      }
+
+      return safeCallbackUrl
+    }
 
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) {
         return
       }
 
+      const callbackUrl = initializeFromUrl()
+
       if (data.session) {
-        router.replace(safeCallbackUrl)
+        router.replace(callbackUrl)
         router.refresh()
         return
       }
