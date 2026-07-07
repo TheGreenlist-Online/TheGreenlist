@@ -1,10 +1,7 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { AntiCommerceWarning } from '@/components/AntiCommerceWarning'
-
-const inter = Inter({ subsets: ['latin'] })
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -48,7 +45,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <head>
+        {/* Google Fonts — loaded client-side to avoid build-time network dependency */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Inter:wght@400;500;600;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
         <Providers>
           <AntiCommerceWarning />
           {children}
