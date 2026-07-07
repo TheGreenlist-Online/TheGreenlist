@@ -64,8 +64,16 @@ module.exports = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        neon: '#39ff88',
         surface: '#1a1a1a',
         text: '#ffffff',
+        smoke: {
+          100: '#c8d4cc',
+          200: '#9daaa3',
+          300: '#72807a',
+          400: '#4a5450',
+          500: '#2c3330',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -74,6 +82,33 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['"Barlow Condensed"', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      animation: {
+        'shimmer-glow': 'shimmer-glow 6s ease-in-out infinite',
+        'neon-pulse': 'neon-pulse 3.5s ease-in-out infinite',
+        'smoke-drift': 'smoke-drift 12s ease-in-out infinite',
+        'card-border-glow': 'card-border-glow 4s ease-in-out infinite',
+      },
+      keyframes: {
+        'shimmer-glow': {
+          '0%, 100%': { opacity: '0.55', transform: 'scale(1)' },
+          '50%':       { opacity: '0.85', transform: 'scale(1.06)' },
+        },
+        'neon-pulse': {
+          '0%, 100%': { textShadow: '0 0 8px rgba(57,255,136,0.45), 0 0 18px rgba(57,255,136,0.25)' },
+          '50%':       { textShadow: '0 0 18px rgba(57,255,136,0.85), 0 0 38px rgba(57,255,136,0.5), 0 0 60px rgba(57,255,136,0.2)' },
+        },
+        'smoke-drift': {
+          '0%':   { transform: 'translateY(0) translateX(0) rotate(0deg)',    opacity: '0.3' },
+          '33%':  { transform: 'translateY(-14px) translateX(8px) rotate(2deg)',  opacity: '0.5' },
+          '66%':  { transform: 'translateY(-8px) translateX(-6px) rotate(-1.5deg)', opacity: '0.4' },
+          '100%': { transform: 'translateY(0) translateX(0) rotate(0deg)',    opacity: '0.3' },
+        },
+        'card-border-glow': {
+          '0%, 100%': { boxShadow: '0 0 12px rgba(57,255,136,0.06)' },
+          '50%':       { boxShadow: '0 0 24px rgba(57,255,136,0.16)' },
+        },
       },
     },
   },
