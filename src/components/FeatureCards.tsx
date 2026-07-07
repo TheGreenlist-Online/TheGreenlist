@@ -16,7 +16,11 @@ interface FeatureCard {
   title: string
   description: string
   href: string
-  accentColor: string
+  iconColor: string
+  iconBg: string
+  iconBorder: string
+  iconShadow: string
+  accentGradient: string
 }
 
 const features: FeatureCard[] = [
@@ -26,7 +30,11 @@ const features: FeatureCard[] = [
     description:
       'Submit and browse transparency reports on cannabis businesses, products, and practices. Evidence-backed accountability.',
     href: '/reports',
-    accentColor: 'rgba(57,255,136,0.75)',
+    iconColor: '#39ff88',
+    iconBg: 'rgba(57,255,136,0.07)',
+    iconBorder: 'rgba(57,255,136,0.30)',
+    iconShadow: '0 0 16px rgba(57,255,136,0.15)',
+    accentGradient: 'rgba(57,255,136,0.8)',
   },
   {
     icon: <ShieldCheck className="h-6 w-6" />,
@@ -34,7 +42,11 @@ const features: FeatureCard[] = [
     description:
       'Find cannabis businesses vetted through our trust verification process. Transparency scores, not star ratings.',
     href: '/businesses',
-    accentColor: 'rgba(34,197,94,0.8)',
+    iconColor: '#4ade80',
+    iconBg: 'rgba(74,222,128,0.07)',
+    iconBorder: 'rgba(74,222,128,0.28)',
+    iconShadow: '0 0 16px rgba(74,222,128,0.15)',
+    accentGradient: 'rgba(74,222,128,0.8)',
   },
   {
     icon: <BookOpen className="h-6 w-6" />,
@@ -42,7 +54,11 @@ const features: FeatureCard[] = [
     description:
       'Guides, legal resources, and harm-reduction content written for real people — not dispensary marketing.',
     href: '/education',
-    accentColor: 'rgba(74,222,128,0.75)',
+    iconColor: '#86efac',
+    iconBg: 'rgba(134,239,172,0.07)',
+    iconBorder: 'rgba(134,239,172,0.25)',
+    iconShadow: '0 0 16px rgba(134,239,172,0.12)',
+    accentGradient: 'rgba(134,239,172,0.8)',
   },
   {
     icon: <MessageSquare className="h-6 w-6" />,
@@ -50,7 +66,11 @@ const features: FeatureCard[] = [
     description:
       'Open community forums for cultivation, consumer safety, worker rights, legal aid, and cannabis culture.',
     href: '/forums',
-    accentColor: 'rgba(57,255,136,0.7)',
+    iconColor: '#60a5fa',
+    iconBg: 'rgba(96,165,250,0.07)',
+    iconBorder: 'rgba(96,165,250,0.28)',
+    iconShadow: '0 0 16px rgba(96,165,250,0.15)',
+    accentGradient: 'rgba(96,165,250,0.8)',
   },
   {
     icon: <Paperclip className="h-6 w-6" />,
@@ -58,7 +78,11 @@ const features: FeatureCard[] = [
     description:
       'Securely submit documentation, photos, and whistleblower reports. Metadata-scrubbed and privacy-protected.',
     href: '/evidence',
-    accentColor: 'rgba(250,204,21,0.7)',
+    iconColor: '#facc15',
+    iconBg: 'rgba(250,204,21,0.07)',
+    iconBorder: 'rgba(250,204,21,0.28)',
+    iconShadow: '0 0 16px rgba(250,204,21,0.15)',
+    accentGradient: 'rgba(250,204,21,0.8)',
   },
   {
     icon: <Eye className="h-6 w-6" />,
@@ -66,7 +90,11 @@ const features: FeatureCard[] = [
     description:
       'Human-reviewed moderation queues, transparent decision logs, and a due-process appeals workflow.',
     href: '/reports',
-    accentColor: 'rgba(249,115,22,0.7)',
+    iconColor: '#fb923c',
+    iconBg: 'rgba(251,146,60,0.07)',
+    iconBorder: 'rgba(251,146,60,0.28)',
+    iconShadow: '0 0 16px rgba(251,146,60,0.15)',
+    accentGradient: 'rgba(251,146,60,0.8)',
   },
 ]
 
@@ -99,10 +127,10 @@ export function FeatureCards() {
                 <div
                   className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-md border"
                   style={{
-                    color: feature.accentColor,
-                    borderColor: feature.accentColor.replace(')', ', 0.3)').replace('rgba(', 'rgba('),
-                    background: feature.accentColor.replace('0.7', '0.07').replace('0.75', '0.07').replace('0.8', '0.07'),
-                    boxShadow: `0 0 16px ${feature.accentColor.replace('0.7', '0.15').replace('0.75', '0.15').replace('0.8', '0.15')}`,
+                    color: feature.iconColor,
+                    borderColor: feature.iconBorder,
+                    background: feature.iconBg,
+                    boxShadow: feature.iconShadow,
                   }}
                 >
                   {feature.icon}
@@ -125,7 +153,7 @@ export function FeatureCards() {
                 <div
                   className="mt-5 h-px w-0 transition-all duration-300 group-hover:w-full"
                   style={{
-                    background: `linear-gradient(90deg, ${feature.accentColor}, transparent)`,
+                    background: `linear-gradient(90deg, ${feature.accentGradient}, transparent)`,
                   }}
                 />
               </div>

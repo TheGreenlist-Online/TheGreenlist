@@ -238,7 +238,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65 }}
-            className="font-display text-[clamp(3.5rem,11vw,8.5rem)] font-black uppercase leading-[0.92] tracking-tight text-foreground"
+            className="font-display text-[clamp(3.5rem,11vw,8.5rem)] font-black uppercase leading-tight tracking-tight text-foreground"
           >
             THE{' '}
             <span className="neon-text relative inline-block">
