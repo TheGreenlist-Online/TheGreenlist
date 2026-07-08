@@ -28,5 +28,12 @@ export function FeatureCard({ title, description, href, icon }: FeatureCardProps
     return content
   }
 
-  return <Link href={href} className="block transition hover:-translate-y-0.5">{content}</Link>
+  return (
+    <Link
+      href={href}
+      className="block rounded-2xl transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060b08]"
+    >
+      {content}
+    </Link>
+  )
 }

@@ -27,7 +27,7 @@ const features = [
   },
   {
     title: 'Education',
-    description: 'Policy context, consumer safety guidance, and transparent public-interest cannabis learning resources.',
+    description: 'Submit and review policy context, consumer safety guidance, and transparent public-interest education resources.',
     href: '/education/new',
     icon: <BookOpen className="h-5 w-5" />,
   },

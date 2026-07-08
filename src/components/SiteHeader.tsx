@@ -18,7 +18,7 @@ export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <header className="sticky top-12 z-50 border-b border-amber-300/20 bg-[#080e0b]/90 backdrop-blur">
+    <header className="sticky top-[var(--compliance-banner-height)] z-50 border-b border-amber-300/20 bg-[#080e0b]/90 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="font-display text-2xl text-amber-100">

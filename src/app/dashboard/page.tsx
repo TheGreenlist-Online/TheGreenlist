@@ -8,16 +8,16 @@ import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
 
 const userCards = [
-  { title: 'Reports submitted', description: 'Track filed reports, evidence updates, and accountability status changes.', href: '/reports' },
-  { title: 'Saved businesses', description: 'Monitor verified businesses and reputation shifts over time.', href: '/businesses' },
-  { title: 'Forum activity', description: 'Review your recent forum threads, replies, and community interactions.', href: '/forums' },
-  { title: 'Evidence uploads', description: 'Access and organize submitted documents and supporting material.', href: '/evidence/upload' },
-  { title: 'Profile visibility', description: 'Manage privacy posture, trust signals, and public account details.', href: '/dashboard/settings' },
-  { title: 'Verification status', description: 'Check profile verification progress and next required steps.', href: '/profile' },
+  { title: 'My Reports', body: 'Track filed reports, evidence updates, and accountability status changes.', href: '/reports' },
+  { title: 'My Businesses', body: 'Monitor verified businesses and reputation shifts over time.', href: '/businesses' },
+  { title: 'My Forums', body: 'Review your recent forum threads, replies, and community interactions.', href: '/forums' },
+  { title: 'My Evidence', body: 'Access and organize submitted documents and supporting material.', href: '/evidence/upload' },
+  { title: 'My Settings', body: 'Manage privacy posture, trust signals, and account-level controls.', href: '/dashboard/settings' },
+  { title: 'My Profile', body: 'Review your profile visibility and verification status.', href: '/profile' },
 ]
 
 const adminCards = [
-  { title: 'Admin tools', description: 'Access moderation queues, legal escalation paths, and platform controls.', href: '/admin' },
+  { title: 'Admin tools', body: 'Access moderation queues, legal escalation paths, and platform controls.', href: '/admin' },
 ]
 
 type DashboardProfile = {
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
 
       <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
-          <FeatureCard key={card.href} title={card.title} description={card.description} href={card.href} />
+          <FeatureCard key={card.href} title={card.title} description={card.body} href={card.href} />
         ))}
       </section>
 

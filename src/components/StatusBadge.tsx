@@ -13,7 +13,7 @@ const toneClass: Record<StatusTone, string> = {
 export function StatusBadge({ status, className }: { status: StatusTone; className?: string }) {
   return (
     <span className={cn('inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]', toneClass[status], className)}>
-      {status.replace('-', ' ')}
+      {status.replace(/-/g, ' ')}
     </span>
   )
 }
