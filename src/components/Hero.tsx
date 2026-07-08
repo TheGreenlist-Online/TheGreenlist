@@ -302,7 +302,7 @@ export function Hero() {
               size="lg"
               className="min-w-[160px] text-muted-foreground hover:text-accent hover:bg-accent/5"
             >
-              <Link href="/education/new">Learn How It Works</Link>
+              <Link href="/education/new">Education Resources</Link>
             </Button>
           </motion.div>
 
