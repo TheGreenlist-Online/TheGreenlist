@@ -23,11 +23,9 @@
     --border: 150 25% 13%;
     --input: 150 25% 13%;
     --ring: 146 100% 61%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -40,9 +38,20 @@
     @apply bg-background text-foreground;
     min-height: 100vh;
     background:
-      radial-gradient(circle at 20% 0%, rgba(57, 255, 136, 0.12), transparent 30rem),
-      radial-gradient(circle at 80% 20%, rgba(22, 163, 74, 0.1), transparent 28rem),
-      linear-gradient(135deg, #050807 0%, #080d0a 42%, #0d1410 100%);
+      radial-gradient(circle at 15% 0%, rgba(110, 231, 183, 0.1), transparent 34rem),
+      radial-gradient(circle at 85% 10%, rgba(167, 139, 250, 0.08), transparent 30rem),
+      radial-gradient(circle at 50% 100%, rgba(18, 26, 21, 0.92), transparent 35rem),
+      linear-gradient(145deg, #050807 0%, #0a100d 52%, #0d1611 100%);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+    letter-spacing: 0.01em;
   }
 
   ::selection {
@@ -54,24 +63,18 @@
 @layer components {
   .smoke-surface {
     background:
-      radial-gradient(circle at 12% 8%, rgba(57, 255, 136, 0.12), transparent 24rem),
-      radial-gradient(circle at 88% 12%, rgba(57, 255, 136, 0.08), transparent 26rem),
-      radial-gradient(circle at 50% 100%, rgba(12, 20, 16, 0.92), transparent 30rem),
-      linear-gradient(135deg, #050807 0%, #080d0a 46%, #0d1410 100%);
+      radial-gradient(circle at 12% 8%, rgba(57, 255, 136, 0.09), transparent 24rem),
+      radial-gradient(circle at 88% 12%, rgba(215, 180, 96, 0.06), transparent 26rem),
+      radial-gradient(circle at 40% 100%, rgba(28, 20, 10, 0.25), transparent 32rem),
+      linear-gradient(145deg, #050807 0%, #0a100d 52%, #0f1913 100%);
   }
 
   .glow-border {
-    background: linear-gradient(
-      135deg,
-      rgba(57, 255, 136, 0.95),
-      rgba(57, 255, 136, 0.24),
-      rgba(5, 8, 7, 0.9),
-      rgba(12, 20, 16, 1)
-    );
+    background: linear-gradient(120deg, rgba(215, 180, 96, 0.8), rgba(57, 255, 136, 0.25), rgba(9, 15, 12, 0.95));
   }
 
   .smoke-panel {
-    background: rgba(10, 18, 14, 0.82);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    background: rgba(10, 18, 14, 0.84);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
   }
 }

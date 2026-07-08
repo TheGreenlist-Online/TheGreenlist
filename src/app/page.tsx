@@ -1,40 +1,75 @@
-import { Suspense } from 'react'
-import { Header } from '@/components/Header'
-import { Hero } from '@/components/Hero'
-import { FeaturedForums } from '@/components/FeaturedForums'
-import { RecentPosts } from '@/components/RecentPosts'
-import { TrendingTopics } from '@/components/TrendingTopics'
-import { SponsoredContent } from '@/components/SponsoredContent'
-import { Footer } from '@/components/Footer'
-import { LegalDisclaimer } from '@/components/LegalDisclaimer'
+import Link from 'next/link'
+import { FileText, ShieldCheck, Users, BookOpen, FolderSearch } from 'lucide-react'
+import { PageShell } from '@/components/PageShell'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { FeatureCard } from '@/components/FeatureCard'
+import { TrustBadge } from '@/components/TrustBadge'
+import { Button } from '@/components/ui/button'
+
+const features = [
+  {
+    title: 'Reports',
+    description: 'Document incidents, upload supporting evidence, and track status through accountable review workflows.',
+    href: '/reports',
+    icon: <FileText className="h-5 w-5" />,
+  },
+  {
+    title: 'Verified Businesses',
+    description: 'Trust-first business profiles centered on verification, transparency history, and community reputation.',
+    href: '/businesses',
+    icon: <ShieldCheck className="h-5 w-5" />,
+  },
+  {
+    title: 'Forums',
+    description: 'Serious community discussions on safety, accountability, education, and lived cannabis experiences.',
+    href: '/forums',
+    icon: <Users className="h-5 w-5" />,
+  },
+  {
+    title: 'Education',
+    description: 'Policy context, consumer safety guidance, and transparent public-interest cannabis learning resources.',
+    href: '/education/new',
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    title: 'Evidence Submission',
+    description: 'Structured upload and documentation pathways for records, screenshots, and supporting materials.',
+    href: '/evidence/upload',
+    icon: <FolderSearch className="h-5 w-5" />,
+  },
+]
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <Hero />
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-3">
-              <Suspense fallback={<div>Loading forums...</div>}>
-                <FeaturedForums />
-              </Suspense>
-              <Suspense fallback={<div>Loading posts...</div>}>
-                <RecentPosts />
-              </Suspense>
-            </div>
-            <div className="lg:col-span-1">
-              <Suspense fallback={<div>Loading topics...</div>}>
-                <TrendingTopics />
-              </Suspense>
-              <SponsoredContent />
-            </div>
+    <PageShell>
+      <section>
+        <OrnatePanel>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">Cannabis Transparency and Accountability</p>
+          <h1 className="mt-3 text-4xl text-amber-100 sm:text-6xl">The Green List</h1>
+          <p className="mt-4 max-w-3xl text-zinc-300 sm:text-lg">
+            A trust-focused platform for reports, verified business reputation, community forums, and evidence-led public oversight.
+            No marketplace. No ordering. No cannabis sales.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/forums">Explore Forums</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/reports">View Reports</Link>
+            </Button>
           </div>
-        </div>
-      </main>
-      <Footer />
-      <LegalDisclaimer />
-    </div>
+        </OrnatePanel>
+      </section>
+
+      <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {features.map((feature) => (
+          <FeatureCard key={feature.title} {...feature} />
+        ))}
+      </section>
+
+      <section className="mt-10 flex justify-center">
+        <TrustBadge />
+      </section>
+    </PageShell>
   )
 }
