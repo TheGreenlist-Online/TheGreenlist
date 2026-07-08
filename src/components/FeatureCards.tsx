@@ -53,7 +53,7 @@ const features: FeatureCard[] = [
     title: 'Cannabis Education',
     description:
       'Guides, legal resources, and harm-reduction content written for real people — not dispensary marketing.',
-    href: '/education',
+    href: '/education/new',
     iconColor: '#86efac',
     iconBg: 'rgba(134,239,172,0.07)',
     iconBorder: 'rgba(134,239,172,0.25)',
@@ -77,7 +77,7 @@ const features: FeatureCard[] = [
     title: 'Evidence Submission',
     description:
       'Securely submit documentation, photos, and whistleblower reports. Metadata-scrubbed and privacy-protected.',
-    href: '/evidence',
+    href: '/evidence/upload',
     iconColor: '#facc15',
     iconBg: 'rgba(250,204,21,0.07)',
     iconBorder: 'rgba(250,204,21,0.28)',

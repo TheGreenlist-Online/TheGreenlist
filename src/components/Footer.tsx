@@ -7,7 +7,7 @@ const footerLinks = {
     { name: 'Businesses', href: '/businesses' },
     { name: 'News', href: '/news' },
     { name: 'Reports', href: '/reports' },
-    { name: 'Education', href: '/education' },
+    { name: 'Education', href: '/education/new' },
   ],
   legal: [
     { name: 'Terms of Service', href: '/legal/terms' },

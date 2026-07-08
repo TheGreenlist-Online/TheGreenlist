@@ -11,7 +11,7 @@ const navLinks = [
   { href: '/businesses', label: 'Businesses' },
   { href: '/news',       label: 'News' },
   { href: '/reports',    label: 'Reports' },
-  { href: '/education',  label: 'Education' },
+  { href: '/education/new', label: 'Education' },
 ]
 
 export function Header() {
@@ -69,7 +69,6 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className="px-3 py-1.5 rounded text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-accent hover:bg-accent/6"
-                style={{ outline: 'none' }}
               >
                 {link.label}
               </Link>
@@ -94,6 +93,7 @@ export function Header() {
               className="md:hidden text-muted-foreground hover:text-accent"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               aria-label="Toggle search"
+              aria-expanded={isSearchOpen}
             >
               <Search className="h-4 w-4" />
             </Button>
@@ -185,4 +185,3 @@ export function Header() {
     </header>
   )
 }
-
