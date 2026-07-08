@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 const navLinks = [
-  { href: '/forums',     label: 'Forums' },
+  { href: '/forums', label: 'Forums' },
   { href: '/businesses', label: 'Businesses' },
-  { href: '/news',       label: 'News' },
-  { href: '/reports',    label: 'Reports' },
+  { href: '/news', label: 'News' },
+  { href: '/reports', label: 'Reports' },
   { href: '/education/new', label: 'Education' },
 ]
 
@@ -20,10 +20,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
-      {/* Top shimmer line */}
       <div className="glow-border h-px w-full" />
 
-      {/* Main nav bar */}
       <div
         className="w-full"
         style={{
@@ -35,13 +33,7 @@ export function Header() {
         }}
       >
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 shrink-0 group"
-            aria-label="The Green List home"
-          >
+          <Link href="/" className="group flex shrink-0 items-center gap-2" aria-label="The Green List home">
             <div
               className="flex h-8 w-8 items-center justify-center rounded-sm border border-accent/30 bg-accent/8"
               style={{ boxShadow: '0 0 12px rgba(57,255,136,0.18)' }}
@@ -49,7 +41,7 @@ export function Header() {
               <Shield className="h-4 w-4 text-accent" />
             </div>
             <span
-              className="hidden font-display font-black uppercase tracking-tight text-lg sm:inline-block"
+              className="hidden font-display text-lg font-black uppercase tracking-tight sm:inline-block"
               style={{
                 background: 'linear-gradient(120deg, #39ff88 0%, #22c55e 55%, #f0fdf4 100%)',
                 WebkitBackgroundClip: 'text',
@@ -62,13 +54,12 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop nav links */}
-          <nav className="hidden md:flex items-center gap-1 ml-2" aria-label="Main navigation">
+          <nav className="ml-2 hidden items-center gap-1 md:flex" aria-label="Main navigation">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-1.5 rounded text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-accent hover:bg-accent/6"
+                className="rounded px-3 py-1.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-accent/6 hover:text-accent"
               >
                 {link.label}
               </Link>
@@ -76,21 +67,19 @@ export function Header() {
           </nav>
 
           <div className="flex flex-1 items-center justify-end gap-2">
-            {/* Search — desktop inline */}
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search reports, forums, businesses…"
-                className="pl-9 w-[280px] lg:w-[360px] h-9 bg-white/4 border-accent/15 text-sm placeholder:text-muted-foreground/60 focus:border-accent/40 focus:ring-0 transition-colors"
+                className="h-9 w-[280px] border-accent/15 bg-white/4 pl-9 text-sm placeholder:text-muted-foreground/60 focus:border-accent/40 focus:ring-0 transition-colors lg:w-[360px]"
               />
             </div>
 
-            {/* Mobile search toggle */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-muted-foreground hover:text-accent"
+              className="text-muted-foreground hover:text-accent md:hidden"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               aria-label="Toggle search"
               aria-expanded={isSearchOpen}
@@ -98,31 +87,29 @@ export function Header() {
               <Search className="h-4 w-4" />
             </Button>
 
-            {/* Auth buttons */}
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden items-center gap-2 sm:flex">
               <Button
                 asChild
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-accent hover:bg-accent/6 text-sm"
+                className="text-sm text-muted-foreground hover:bg-accent/6 hover:text-accent"
               >
                 <Link href="/auth/signin">Sign in</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
-                className="text-sm bg-accent text-black font-semibold hover:bg-accent/90 transition-all"
+                className="bg-accent text-sm font-semibold text-black transition-all hover:bg-accent/90"
                 style={{ boxShadow: '0 0 14px rgba(57,255,136,0.25)' }}
               >
                 <Link href="/auth/signup">Join</Link>
               </Button>
             </div>
 
-            {/* Hamburger */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-muted-foreground hover:text-accent"
+              className="text-muted-foreground hover:text-accent md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? 'Close navigation' : 'Open navigation'}
               aria-expanded={isMenuOpen}
@@ -132,49 +119,38 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile search bar */}
         {isSearchOpen && (
           <div className="border-t border-accent/10 px-4 py-3 md:hidden">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search reports, forums, businesses…"
-                className="pl-9 w-full bg-white/4 border-accent/15 text-sm"
+                className="w-full border-accent/15 bg-white/4 pl-9 text-sm"
                 autoFocus
               />
             </div>
           </div>
         )}
 
-        {/* Mobile nav menu */}
         {isMenuOpen && (
           <div className="border-t border-accent/10 md:hidden">
-            <nav className="flex flex-col px-4 py-3 gap-1" aria-label="Mobile navigation">
+            <nav className="flex flex-col gap-1 px-4 py-3" aria-label="Mobile navigation">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-2.5 rounded text-sm font-medium text-muted-foreground hover:text-accent hover:bg-accent/6 transition-colors"
+                  className="rounded px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/6 hover:text-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="flex gap-2 pt-3 border-t border-accent/10 mt-1">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 border-accent/25 text-foreground hover:border-accent/50"
-                >
+              <div className="mt-1 flex gap-2 border-t border-accent/10 pt-3">
+                <Button asChild variant="outline" size="sm" className="flex-1 border-accent/25 text-foreground hover:border-accent/50">
                   <Link href="/auth/signin">Sign in</Link>
                 </Button>
-                <Button
-                  asChild
-                  size="sm"
-                  className="flex-1 bg-accent text-black font-semibold hover:bg-accent/90"
-                >
+                <Button asChild size="sm" className="flex-1 bg-accent font-semibold text-black hover:bg-accent/90">
                   <Link href="/auth/signup">Join</Link>
                 </Button>
               </div>

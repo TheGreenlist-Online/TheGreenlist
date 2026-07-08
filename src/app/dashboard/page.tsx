@@ -1,19 +1,23 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { PageShell } from '@/components/PageShell'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { FeatureCard } from '@/components/FeatureCard'
+import { RoleBadge } from '@/components/RoleBadge'
+import { TrustBadge } from '@/components/TrustBadge'
 
 const userCards = [
-  { title: 'Transparency reports', body: 'Submit and track reports with evidence, context, and review status.', href: '/reports' },
-  { title: 'Community forums', body: 'Join topic-based discussions around education, safety, accountability, and news.', href: '/forums' },
-  { title: 'News watch', body: 'Follow source-linked updates and briefings without sales or marketplace noise.', href: '/news' },
+  { title: 'My Reports', body: 'Track filed reports, evidence updates, and accountability status changes.', href: '/reports' },
+  { title: 'My Businesses', body: 'Monitor verified businesses and reputation shifts over time.', href: '/businesses' },
+  { title: 'My Forums', body: 'Review your recent forum threads, replies, and community interactions.', href: '/forums' },
+  { title: 'My Evidence', body: 'Access and organize submitted documents and supporting material.', href: '/evidence/upload' },
+  { title: 'My Settings', body: 'Manage privacy posture, trust signals, and account-level controls.', href: '/dashboard/settings' },
+  { title: 'My Profile', body: 'Review your profile visibility and verification status.', href: '/profile' },
 ]
 
 const adminCards = [
-  { title: 'Review queue', body: 'Check pending reports, moderation flags, and source reviews.', href: '/admin/review' },
-  { title: 'Moderation', body: 'Inspect community safety signals and admin-only moderation actions.', href: '/admin/moderation' },
-  { title: 'System logs', body: 'Review automation and platform health events.', href: '/admin/logs' },
+  { title: 'Admin tools', body: 'Access moderation queues, legal escalation paths, and platform controls.', href: '/admin' },
 ]
 
 type DashboardProfile = {
@@ -60,47 +64,36 @@ export default async function DashboardPage() {
   const userName = getUserName(profile ?? null, user.user_metadata?.full_name)
 
   return (
-    <div className="min-h-screen smoke-surface text-foreground">
-      <Header />
-      <main className="container mx-auto px-4 py-10">
-        <section className="glow-border rounded-lg p-px">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Dashboard</p>
-                <h1 className="mt-3 text-3xl font-bold">Welcome back{userName ? `, ${userName}` : ''}</h1>
-                <p className="mt-3 max-w-3xl text-muted-foreground">
-                  Your Green List control center for transparency reports, education, community trust, and accountability tools.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                  <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent">Role: {role}</span>
-                  {user.email ? <span>{user.email}</span> : null}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Link href="/dashboard/settings" className="px-3 py-2 text-xs font-medium rounded-lg border border-primary/40 text-foreground hover:bg-accent/10 transition-colors">
-                  Settings
-                </Link>
-                <Link href="/dashboard/preferences" className="px-3 py-2 text-xs font-medium rounded-lg border border-primary/40 text-foreground hover:bg-accent/10 transition-colors">
-                  Preferences
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+    <PageShell>
+      <OrnatePanel>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Dashboard</p>
+        <h1 className="mt-3 text-4xl text-amber-100">Welcome back{userName ? `, ${userName}` : ''}</h1>
+        <p className="mt-4 max-w-3xl text-zinc-300">
+          Your premium control-room for transparency reports, business reputation tracking, and community trust activity.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <RoleBadge role={role} />
+          {user.email ? <span className="text-sm text-zinc-400">{user.email}</span> : null}
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/dashboard/settings" className="rounded-lg border border-amber-300/35 px-4 py-2 text-sm text-amber-100 transition hover:border-emerald-300 hover:text-emerald-200">
+            Settings
+          </Link>
+          <Link href="/dashboard/preferences" className="rounded-lg border border-amber-300/35 px-4 py-2 text-sm text-amber-100 transition hover:border-emerald-300 hover:text-emerald-200">
+            Preferences
+          </Link>
+        </div>
+      </OrnatePanel>
 
-        <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {cards.map((card) => (
-            <Link key={card.href} href={card.href} className="glow-border rounded-lg p-px transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/10">
-              <article className="h-full rounded-lg bg-card/85 p-5 backdrop-blur">
-                <h2 className="text-lg font-semibold text-foreground">{card.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{card.body}</p>
-              </article>
-            </Link>
-          ))}
-        </section>
-      </main>
-      <Footer />
-    </div>
+      <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {cards.map((card) => (
+          <FeatureCard key={card.href} title={card.title} description={card.body} href={card.href} />
+        ))}
+      </section>
+
+      <section className="mt-8 flex justify-center">
+        <TrustBadge />
+      </section>
+    </PageShell>
   )
 }

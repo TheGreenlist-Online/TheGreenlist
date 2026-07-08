@@ -16,27 +16,24 @@ export default function HomePage() {
       <main>
         <Hero />
 
-        {/* Feature cards section */}
         <div className="container mx-auto px-4">
           <FeatureCards />
         </div>
 
-        {/* Divider */}
         <div className="glow-border h-px w-full opacity-30" />
 
-        {/* Forums + sidebar */}
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             <div className="lg:col-span-3">
-              <Suspense fallback={<div className="text-muted-foreground text-sm py-8">Loading forums…</div>}>
+              <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading forums…</div>}>
                 <FeaturedForums />
               </Suspense>
-              <Suspense fallback={<div className="text-muted-foreground text-sm py-8">Loading posts…</div>}>
+              <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading posts…</div>}>
                 <RecentPosts />
               </Suspense>
             </div>
-            <div className="lg:col-span-1 space-y-6">
-              <Suspense fallback={<div className="text-muted-foreground text-sm py-4">Loading topics…</div>}>
+            <div className="space-y-6 lg:col-span-1">
+              <Suspense fallback={<div className="py-4 text-sm text-muted-foreground">Loading topics…</div>}>
                 <TrendingTopics />
               </Suspense>
               <SponsoredContent />
