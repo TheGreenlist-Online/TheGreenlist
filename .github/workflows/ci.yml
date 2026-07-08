@@ -17,6 +17,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test
         ports:
@@ -46,15 +47,22 @@ jobs:
     - name: Generate Prisma client
       run: npx prisma generate
 
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 1
+        done
+
     - name: Run database migrations
-      run: npx prisma db push
+      run: npx prisma db push --accept-data-loss
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+        DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/test
 
     - name: Run tests
       run: npm test
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+        DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/test
 
   build:
     runs-on: ubuntu-latest
