@@ -39,12 +39,44 @@
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
     background:
       radial-gradient(circle at 15% 0%, rgba(110, 231, 183, 0.1), transparent 34rem),
       radial-gradient(circle at 85% 10%, rgba(167, 139, 250, 0.08), transparent 30rem),
       radial-gradient(circle at 50% 100%, rgba(18, 26, 21, 0.92), transparent 35rem),
       linear-gradient(145deg, #050807 0%, #0a100d 52%, #0d1611 100%);
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image:
+      linear-gradient(180deg, rgba(1, 4, 3, 0.42), rgba(1, 4, 3, 0.9)),
+      radial-gradient(circle at 50% 20%, rgba(57, 255, 136, 0.16), transparent 30rem),
+      url('/assets/greenlist-bg-primary.svg');
+    background-position: center top, center, center top;
+    background-size: cover, cover, min(100vw, 980px) auto;
+    background-repeat: no-repeat;
+    opacity: 0.78;
+    filter: saturate(1.08) contrast(1.08);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(57, 255, 136, 0.15), transparent 22rem),
+      radial-gradient(circle at 82% 12%, rgba(94, 58, 153, 0.1), transparent 24rem),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.68), rgba(2, 8, 5, 0.2) 50%, rgba(0, 0, 0, 0.72));
+    backdrop-filter: blur(1px);
   }
 
   h1,
@@ -68,7 +100,7 @@
       radial-gradient(circle at 12% 8%, rgba(57, 255, 136, 0.09), transparent 24rem),
       radial-gradient(circle at 88% 12%, rgba(215, 180, 96, 0.06), transparent 26rem),
       radial-gradient(circle at 40% 100%, rgba(28, 20, 10, 0.25), transparent 32rem),
-      linear-gradient(145deg, #050807 0%, #0a100d 52%, #0f1913 100%);
+      linear-gradient(145deg, rgba(5, 8, 7, 0.96) 0%, rgba(10, 16, 13, 0.92) 52%, rgba(15, 25, 19, 0.94) 100%);
   }
 
   .glow-border {
@@ -78,5 +110,34 @@
   .smoke-panel {
     background: rgba(10, 18, 14, 0.84);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  }
+
+  .greenlist-template-bg {
+    position: relative;
+    isolation: isolate;
+    background:
+      linear-gradient(180deg, rgba(1, 4, 3, 0.22), rgba(1, 4, 3, 0.84)),
+      url('/assets/greenlist-bg-primary.svg') center top / cover no-repeat;
+  }
+
+  .greenlist-template-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(57, 255, 136, 0.2), transparent 26rem),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.76), rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.78));
+  }
+
+  .ornate-greenlist-panel {
+    border: 1px solid rgba(215, 180, 96, 0.42);
+    background:
+      linear-gradient(145deg, rgba(8, 14, 11, 0.88), rgba(12, 23, 17, 0.78)),
+      radial-gradient(circle at 50% 0%, rgba(57, 255, 136, 0.08), transparent 22rem);
+    box-shadow:
+      0 0 0 1px rgba(57, 255, 136, 0.08),
+      0 28px 90px rgba(0, 0, 0, 0.5);
   }
 }
