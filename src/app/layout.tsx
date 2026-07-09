@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -50,6 +51,7 @@ export default function RootLayout({
           <ComplianceBanner />
           {children}
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   )
