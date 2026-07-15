@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FileText, ShieldCheck, Users, BookOpen, FolderSearch } from 'lucide-react'
+import { FileText, ShieldCheck, Users, BookOpen, FolderSearch, Map } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { FeatureCard } from '@/components/FeatureCard'
@@ -7,6 +7,12 @@ import { TrustBadge } from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 
 const features = [
+  {
+    title: 'Enter Green List Town',
+    description: 'Explore the same trusted platform as a living digital town where every building opens a real community feature.',
+    href: '/town',
+    icon: <Map className="h-5 w-5" />,
+  },
   {
     title: 'Reports',
     description: 'Document incidents, upload supporting evidence, and track status through accountable review workflows.',
@@ -48,11 +54,14 @@ export default function HomePage() {
           <h1 className="mt-3 text-4xl text-amber-100 sm:text-6xl">The Green List</h1>
           <p className="mt-4 max-w-3xl text-zinc-300 sm:text-lg">
             A trust-focused platform for reports, verified business reputation, community forums, and evidence-led public oversight.
-            No marketplace. No ordering. No cannabis sales.
+            One source of truth, available through both the standard site and an immersive digital town. No marketplace. No ordering. No cannabis sales.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href="/forums">Explore Forums</Link>
+              <Link href="/town">Enter Green List Town</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/forums">Explore Standard Site</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/reports">View Reports</Link>
