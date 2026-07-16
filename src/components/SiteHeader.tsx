@@ -1,21 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { LogOut, Menu, UserRound, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 const navItems = [
   { label: 'Forums', href: '/forums' },
   { label: 'Businesses', href: '/businesses' },
   { label: 'News', href: '/news' },
   { label: 'Reports', href: '/reports' },
+  { label: 'Education', href: '/education/new' },
   { label: 'Dashboard', href: '/dashboard' },
 ]
 
 export function SiteHeader() {
+  const router = useRouter()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isOpen, setIsOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthenticated(Boolean(data.session))
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setIsAuthenticated(Boolean(session))
+    })
+
+    return () => {
+      mounted = false
+      listener.subscription.unsubscribe()
+    }
+  }, [supabase])
+
+  async function handleSignOut() {
+    setIsSigningOut(true)
+    await supabase.auth.signOut()
+    setIsAuthenticated(false)
+    setIsOpen(false)
+    setIsSigningOut(false)
+    router.replace('/')
+    router.refresh()
+  }
 
   return (
     <header className="sticky top-[var(--compliance-banner-height)] z-50 border-b border-amber-300/20 bg-[#080e0b]/90 backdrop-blur">
@@ -31,9 +65,19 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Button asChild size="sm">
-              <Link href="/auth/signin">Sign in</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                {isSigningOut ? 'Signing out...' : 'Sign out'}
+              </Button>
+            ) : (
+              <Button asChild size="sm">
+                <Link href="/auth/signin">
+                  <UserRound className="mr-2 h-4 w-4" />
+                  Sign in
+                </Link>
+              </Button>
+            )}
           </nav>
 
           <button
@@ -51,13 +95,34 @@ export function SiteHeader() {
         {isOpen ? (
           <nav className="mt-4 grid gap-2 rounded-xl border border-amber-300/20 bg-[#0f1512] p-4 text-sm lg:hidden">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-md px-2 py-1 text-zinc-200 transition hover:bg-emerald-300/10 hover:text-emerald-200">
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-emerald-300/10 hover:text-emerald-200"
+              >
                 {item.label}
               </Link>
             ))}
-            <Link href="/auth/signin" className="rounded-md border border-emerald-300/35 px-2 py-1 text-emerald-200">
-              Sign in
-            </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {isSigningOut ? 'Signing out...' : 'Sign out'}
+              </button>
+            ) : (
+              <Link
+                href="/auth/signin"
+                onClick={() => setIsOpen(false)}
+                className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+              >
+                Sign in
+              </Link>
+            )}
           </nav>
         ) : null}
       </div>
