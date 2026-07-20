@@ -1,34 +1,32 @@
 #!/usr/bin/env node
 
 /**
- * Safe build script that conditionally runs Prisma generation.
+ * Safe build script that generates Prisma Client before building Next.js.
  * 
  * Supabase Auth is the primary auth system and does not require DATABASE_URL.
- * Prisma generation is skipped if DATABASE_URL is not configured.
- * This allows Vercel builds to succeed with Supabase-only configuration.
+ * Generating Prisma Client does not connect to the database, so it must run
+ * even when DATABASE_URL is intentionally omitted for Supabase-only builds.
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const hasDatabase = !!process.env.DATABASE_URL;
 const isPrismaConfigured = fs.existsSync(path.join(__dirname, '..', 'prisma', 'schema.prisma'));
 
 console.log('[Build] Green List - Supabase Auth + Optional Prisma');
 
-// Only run prisma generate if DATABASE_URL is set and schema exists
-if (hasDatabase && isPrismaConfigured) {
+// Vercel caches dependencies, so always regenerate the client when a schema exists.
+if (isPrismaConfigured) {
   try {
     console.log('[Build] Generating Prisma client...');
     execSync('prisma generate', { stdio: 'inherit' });
   } catch (error) {
-    console.warn('[Build] Prisma generation failed. Continuing without database models.');
-    console.warn('  This is OK for Supabase Auth-only deployments.');
+    console.error('[Build] Prisma generation failed.');
+    process.exit(1);
   }
 } else {
-  console.log('[Build] Skipping Prisma generation (DATABASE_URL not set)');
-  console.log('[Build] Supabase Auth will be used instead');
+  console.log('[Build] No Prisma schema found; continuing with Supabase Auth only.');
 }
 
 // Run Next.js build
