@@ -17,10 +17,10 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="mt-12 border-t border-amber-300/20 bg-[#070d0a]/80">
+    <footer className="mt-12 border-t border-white/10 bg-[#070a08]">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3">
         <div>
-          <p className="font-display text-2xl text-amber-100">The Green List</p>
+          <p className="text-lg font-semibold tracking-tight text-zinc-100">The Green List</p>
           <p className="mt-3 max-w-sm text-sm text-zinc-300">
             Transparency, accountability, forums, reports, evidence, and trust signals for the cannabis community.
           </p>
@@ -53,7 +53,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-amber-300/15 py-4 text-center text-xs text-zinc-400">
+      <div className="border-t border-white/10 py-4 text-center text-xs text-zinc-500">
         © 2026 The Green List · Built for Truth. Driven by Community.
       </div>
     </footer>

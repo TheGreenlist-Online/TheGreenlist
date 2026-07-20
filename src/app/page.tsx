@@ -21,28 +21,24 @@ const pillars = [
     subtitle: 'Shine a light',
     href: '/report',
     icon: Search,
-    tone: 'violet',
   },
   {
     title: 'Verify It',
     subtitle: 'Seek the truth',
     href: '/businesses',
     icon: ShieldCheck,
-    tone: 'gold',
   },
   {
     title: 'Build Community',
     subtitle: 'Stand together',
     href: '/forums',
     icon: Users,
-    tone: 'cyan',
   },
   {
     title: 'Drive Change',
     subtitle: 'Leave a legacy',
     href: '/town',
     icon: Leaf,
-    tone: 'lime',
   },
 ]
 
@@ -130,8 +126,8 @@ export default function HomePage() {
           </div>
 
           <div className="greenlist-pillars" aria-label="Core platform pathways">
-            {pillars.map(({ title, subtitle, href, icon: Icon, tone }) => (
-              <Link key={title} href={href} className={`greenlist-pillar greenlist-pillar--${tone}`}>
+            {pillars.map(({ title, subtitle, href, icon: Icon }) => (
+              <Link key={title} href={href} className="greenlist-pillar">
                 <span className="greenlist-pillar__icon"><Icon /></span>
                 <span className="greenlist-pillar__title">{title}</span>
                 <span className="greenlist-pillar__subtitle">{subtitle}</span>

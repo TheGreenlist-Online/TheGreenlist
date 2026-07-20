@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { LogOut, Menu, UserRound, X } from 'lucide-react'
+import { Leaf, LogOut, Menu, UserRound, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
@@ -52,14 +52,15 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-[var(--compliance-banner-height)] z-50 border-b border-amber-300/20 bg-[#080e0b]/90 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 py-4">
+    <header className="site-header sticky top-[var(--compliance-banner-height)] z-50">
+      <div className="mx-auto max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="font-display text-2xl text-amber-100">
-            The Green List
+          <Link href="/" className="site-brand" aria-label="The Green List home">
+            <span className="site-brand__mark"><Leaf /></span>
+            <span>The Green List</span>
           </Link>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium text-zinc-200 lg:flex">
+          <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} className="transition hover:text-emerald-300">
                 {item.label}
@@ -82,7 +83,7 @@ export function SiteHeader() {
 
           <button
             type="button"
-            className="rounded-lg border border-amber-300/30 p-2 text-amber-100 lg:hidden"
+            className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-100 lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label="Toggle navigation"
           >
@@ -90,10 +91,10 @@ export function SiteHeader() {
           </button>
         </div>
 
-        <SearchBar className="mt-4" />
+        <SearchBar className="mt-3 lg:hidden" />
 
         {isOpen ? (
-          <nav className="mt-4 grid gap-2 rounded-xl border border-amber-300/20 bg-[#0f1512] p-4 text-sm lg:hidden">
+          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-[#0b100d] p-3 text-sm shadow-2xl lg:hidden">
             {navItems.map((item) => (
               <Link
                 key={item.href}
