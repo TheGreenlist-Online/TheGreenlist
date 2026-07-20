@@ -16,10 +16,10 @@ type SimplePageProps = {
 export function SimplePage({ title, subtitle, sections }: SimplePageProps) {
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">The Green List</p>
-        <h1 className="mt-3 text-4xl text-amber-100">{title}</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">{subtitle}</p>
+      <OrnatePanel className="district-page-intro">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">{title}</h1>
+        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">{subtitle}</p>
       </OrnatePanel>
 
       <section className="mt-8 grid gap-5 md:grid-cols-2">

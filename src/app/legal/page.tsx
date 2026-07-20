@@ -1,7 +1,5 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Footer } from '@/components/Footer'
-import { Header } from '@/components/Header'
 
 export const metadata = {
   title: 'Legal & Compliance - The Green List',
@@ -11,7 +9,6 @@ export const metadata = {
 export default function LegalHub() {
   return (
     <>
-      <Header />
       <main className="min-h-screen bg-background pt-8 pb-20 text-foreground">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -154,7 +151,6 @@ export default function LegalHub() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   )
 }

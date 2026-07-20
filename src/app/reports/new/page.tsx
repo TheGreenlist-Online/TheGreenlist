@@ -1,5 +1,3 @@
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 
@@ -11,7 +9,6 @@ export const metadata = {
 export default function ReportsNewPage() {
   return (
     <div className="min-h-screen smoke-surface flex flex-col">
-      <Header />
       <main className="flex-1 container mx-auto px-4 py-12">
         <section className="glow-border rounded-lg p-px mb-12">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
@@ -121,7 +118,6 @@ export default function ReportsNewPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   )
 }

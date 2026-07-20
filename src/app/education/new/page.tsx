@@ -3,8 +3,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, FlaskConical, Scale, ShieldCheck, Users } from 'lucide-react'
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
@@ -84,7 +82,6 @@ export default function EducationNewPage() {
 
   return (
     <div className="min-h-screen smoke-surface flex flex-col platform-stage">
-      <Header />
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-10 md:py-14">
         <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-[#07110c]/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(147,51,234,.2),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(132,204,22,.18),transparent_35%)]" />
@@ -146,7 +143,6 @@ export default function EducationNewPage() {
           </aside>
         </section>
       </main>
-      <Footer />
     </div>
   )
 }

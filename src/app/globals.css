@@ -74,6 +74,39 @@
   box-shadow: 0 8px 30px rgba(0,0,0,.12);
   backdrop-filter: blur(18px) saturate(1.2);
 }
+.site-frame {
+  --district-accent: 75, 196, 116;
+  --district-glow: rgba(75, 196, 116, .09);
+  position: relative;
+  min-height: calc(100vh - var(--compliance-banner-height));
+  background: #070a08;
+}
+.site-frame__content { min-height: 60vh; }
+.site-frame::before {
+  content: '';
+  position: fixed;
+  inset: var(--compliance-banner-height) 0 auto;
+  z-index: 0;
+  height: 28rem;
+  pointer-events: none;
+  background: radial-gradient(circle at 72% 0%, var(--district-glow), transparent 38rem);
+}
+.site-frame > * { position: relative; }
+.district--reports { --district-accent: 73, 153, 116; --district-glow: rgba(53, 121, 91, .13); }
+.district--forums { --district-accent: 65, 167, 137; --district-glow: rgba(45, 125, 108, .12); }
+.district--businesses { --district-accent: 87, 158, 105; --district-glow: rgba(62, 127, 79, .12); }
+.district--news { --district-accent: 98, 155, 124; --district-glow: rgba(61, 113, 86, .11); }
+.district--knowledge { --district-accent: 77, 155, 126; --district-glow: rgba(52, 117, 93, .11); }
+.district--civic { --district-accent: 106, 153, 113; --district-glow: rgba(70, 111, 77, .11); }
+.district--watchtower { --district-accent: 93, 139, 111; --district-glow: rgba(59, 97, 75, .13); }
+.district--resident { --district-accent: 78, 161, 109; --district-glow: rgba(51, 119, 76, .11); }
+.district--town { --district-accent: 75, 196, 116; --district-glow: rgba(75, 196, 116, .12); }
+.district-ribbon { border-bottom: 1px solid rgba(255,255,255,.07); background: rgba(9,13,10,.92); }
+.district-ribbon__inner { display: flex; width: min(1280px,100%); min-height: 2.5rem; margin: 0 auto; padding: .55rem 1rem; align-items: center; gap: .65rem; color: #78827a; font-size: .69rem; letter-spacing: .045em; }
+.district-ribbon__inner strong { color: rgb(var(--district-accent)); font-size: .71rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.district-ribbon__marker { width: .42rem; height: .42rem; border-radius: 999px; background: rgb(var(--district-accent)); box-shadow: 0 0 0 4px rgba(var(--district-accent),.08); }
+.district-page-intro { overflow: hidden; }
+.district-page-intro::before { content: ''; display: block; height: 2px; background: linear-gradient(90deg, rgb(var(--district-accent)), transparent 70%); opacity: .7; }
 .site-brand { display: inline-flex; align-items: center; gap: .65rem; color: #f2f5f2; font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
 .site-brand__mark { display: grid; width: 1.9rem; height: 1.9rem; place-items: center; border: 1px solid rgba(74,198,115,.36); border-radius: .55rem; color: #4fd07d; background: rgba(74,198,115,.08); }
 .site-brand__mark svg { width: 1rem; height: 1rem; }
@@ -167,4 +200,6 @@
   .greenlist-district-grid { grid-template-columns: 1fr; }
   .greenlist-district-card { min-height: 240px; }
   .greenlist-civic-panel { width: calc(100% - 1.5rem); }
+  .district-ribbon__inner { align-items: flex-start; flex-wrap: wrap; gap: .35rem .6rem; }
+  .district-ribbon__inner > span:last-child { width: 100%; padding-left: 1rem; }
 }

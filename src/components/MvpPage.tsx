@@ -1,5 +1,3 @@
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 
 export function MvpPage({
   eyebrow,
@@ -14,7 +12,6 @@ export function MvpPage({
 }) {
   return (
     <div className="min-h-screen smoke-surface text-foreground">
-      <Header />
       <main className="container mx-auto px-4 py-10">
         <section className="glow-border rounded-lg p-px">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
@@ -34,7 +31,6 @@ export function MvpPage({
           ))}
         </section>
       </main>
-      <Footer />
     </div>
   )
 }

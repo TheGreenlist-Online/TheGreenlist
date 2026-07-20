@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
+import { SiteFrame } from '@/components/SiteFrame'
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -48,7 +49,7 @@ export default function RootLayout({
       <body className="font-sans">
         <Providers>
           <ComplianceBanner />
-          {children}
+          <SiteFrame>{children}</SiteFrame>
         </Providers>
       </body>
     </html>

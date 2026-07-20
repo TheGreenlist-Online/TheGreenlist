@@ -11,14 +11,14 @@ type FeatureCardProps = {
 
 export function FeatureCard({ title, description, href, icon }: FeatureCardProps) {
   const content = (
-    <OrnatePanel className="h-full transition hover:border-emerald-300/50 hover:shadow-[0_0_28px_rgba(110,231,183,0.15)]" innerClassName="h-full">
+    <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35" innerClassName="h-full">
       <div className="flex items-start gap-3">
         {icon ? (
-          <div className="rounded-lg border border-amber-300/35 bg-[#1a261f]/80 p-2 text-emerald-300">{icon}</div>
+          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[.06] p-2 text-emerald-300">{icon}</div>
         ) : null}
         <div>
-          <h3 className="font-display text-xl text-amber-100">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">{description}</p>
+          <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
         </div>
       </div>
     </OrnatePanel>

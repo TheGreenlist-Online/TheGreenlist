@@ -9,8 +9,8 @@ type OrnatePanelProps = {
 
 export function OrnatePanel({ children, className, innerClassName }: OrnatePanelProps) {
   return (
-    <div className={cn('rounded-2xl border border-amber-300/35 bg-[#0b110e]/90 p-1 shadow-[0_0_0_1px_rgba(92,61,26,0.4),0_16px_50px_rgba(0,0,0,0.55)]', className)}>
-      <div className={cn('rounded-xl border border-emerald-300/15 bg-gradient-to-br from-[#101712]/95 via-[#0d130f]/95 to-[#090f0c]/95 p-6', innerClassName)}>
+    <div className={cn('rounded-xl border border-white/[.09] bg-[#0d120f] shadow-[0_14px_35px_rgba(0,0,0,0.16)]', className)}>
+      <div className={cn('h-full rounded-[inherit] border-t border-emerald-300/10 bg-gradient-to-br from-white/[.025] to-transparent p-6', innerClassName)}>
         {children}
       </div>
     </div>
