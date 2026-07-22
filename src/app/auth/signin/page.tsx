@@ -33,9 +33,12 @@ export default function SignInPage() {
   useEffect(() => {
     let isMounted = true
     const params = new URLSearchParams(window.location.search)
-    setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
-    setError(getErrorMessage(params.get('error')))
-    if (params.get('registered')) setNotice('Account created. Sign in after confirming your email.')
+    const initializeFromUrl = window.setTimeout(() => {
+      if (!isMounted) return
+      setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
+      setError(getErrorMessage(params.get('error')))
+      if (params.get('registered')) setNotice('Account created. Sign in after confirming your email.')
+    }, 0)
 
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) return
@@ -45,6 +48,7 @@ export default function SignInPage() {
 
     return () => {
       isMounted = false
+      window.clearTimeout(initializeFromUrl)
     }
   }, [supabase])
 

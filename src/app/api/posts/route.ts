@@ -1,36 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createPostSchema } from '@/utils/validators'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const validatedData = createPostSchema.parse(body)
 
-    const post = await prisma.post.create({
-      data: {
+    const slug = `${validatedData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${crypto.randomUUID().slice(0, 8)}`
+    const { data: post, error } = await supabase
+      .from('forum_threads')
+      .insert({
         title: validatedData.title,
-        content: validatedData.content,
-        authorId: session.user.id,
-        forumId: validatedData.forumId,
-        tags: validatedData.tags || [],
-      },
-      include: {
-        author: {
-          select: { id: true, name: true, username: true, image: true },
-        },
-        forum: {
-          select: { id: true, name: true, slug: true },
-        },
-      },
-    })
+        body: validatedData.content,
+        author_id: user.id,
+        forum_id: validatedData.forumId,
+        slug,
+        status: 'published',
+        visibility: 'public',
+      })
+      .select()
+      .single()
+
+    if (error) throw error
 
     return NextResponse.json(post)
   } catch (error) {
@@ -48,38 +46,24 @@ export async function GET(request: NextRequest) {
     const forumId = searchParams.get('forumId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
-    const skip = (page - 1) * limit
-
-    const where = forumId ? { forumId } : {}
-
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        include: {
-          author: {
-            select: { id: true, name: true, username: true, image: true },
-          },
-          forum: {
-            select: { id: true, name: true, slug: true },
-          },
-          _count: {
-            select: { comments: true, votes: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.post.count({ where }),
-    ])
+    const from = (page - 1) * limit
+    const supabase = await createSupabaseServerClient()
+    let query = supabase
+      .from('forum_threads')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, from + limit - 1)
+    if (forumId) query = query.eq('forum_id', forumId)
+    const { data: posts, count: total, error } = await query
+    if (error) throw error
 
     return NextResponse.json({
       posts,
       pagination: {
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit),
+        total: total ?? 0,
+        pages: Math.ceil((total ?? 0) / limit),
       },
     })
   } catch (error) {

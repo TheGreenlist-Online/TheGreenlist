@@ -10,68 +10,15 @@ import {
   Trees,
   Users,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
+import { DISTRICTS } from '@/config/districts'
 
-const districts = [
-  {
-    name: 'Forum Hall',
-    description: 'Enter the community commons for discussions, local rooms, questions, and public debate.',
-    href: '/forums',
-    icon: Users,
-    position: 'md:col-start-2 md:row-start-1',
-  },
-  {
-    name: 'Business District',
-    description: 'Explore verified business properties, public records, responses, and transparency histories.',
-    href: '/businesses',
-    icon: Building2,
-    position: 'md:col-start-1 md:row-start-2',
-  },
-  {
-    name: 'Town Hall',
-    description: 'The future home of platform proposals, governance records, policy discussions, and public decisions.',
-    href: '/legal',
-    icon: Landmark,
-    position: 'md:col-start-2 md:row-start-2',
-    featured: true,
-  },
-  {
-    name: 'Transparency Archives',
-    description: 'Review reports, evidence-led records, status histories, and resolved accountability matters.',
-    href: '/reports',
-    icon: Archive,
-    position: 'md:col-start-3 md:row-start-2',
-  },
-  {
-    name: 'Cultivator Grove',
-    description: 'A future district for verified cultivator profiles, practices, facilities, education, and trust records.',
-    href: '/businesses',
-    icon: Trees,
-    position: 'md:col-start-1 md:row-start-3',
-  },
-  {
-    name: 'Knowledge Library',
-    description: 'Find education, policy context, public-interest resources, and consumer protection guidance.',
-    href: '/education/new',
-    icon: BookOpen,
-    position: 'md:col-start-2 md:row-start-3',
-  },
-  {
-    name: 'Newsroom',
-    description: 'Follow investigations, platform developments, cannabis-industry news, and public-interest reporting.',
-    href: '/news',
-    icon: Newspaper,
-    position: 'md:col-start-3 md:row-start-3',
-  },
-  {
-    name: 'The Watchtower',
-    description: 'Transparent moderation, platform safety, review standards, appeals, and accountable oversight.',
-    href: '/admin/moderation',
-    icon: ShieldCheck,
-    position: 'md:col-start-2 md:row-start-4',
-  },
-]
+const icons: Record<(typeof DISTRICTS)[number]['icon'], LucideIcon> = {
+  archive: Archive, book: BookOpen, building: Building2, landmark: Landmark,
+  newspaper: Newspaper, shield: ShieldCheck, trees: Trees, users: Users,
+}
 
 export default function TownPage() {
   return (
@@ -97,9 +44,12 @@ export default function TownPage() {
         </section>
 
         <section className="relative z-10 mx-auto mt-14 grid max-w-6xl gap-5 md:grid-cols-3 md:grid-rows-4">
-          {districts.map(({ name, description, href, icon: Icon, position, featured }) => (
+          {DISTRICTS.map(({ id, name, description, href, icon, position, availability, ...district }) => {
+            const Icon = icons[icon]
+            const featured = 'featured' in district && district.featured
+            return (
             <Link
-              key={name}
+              key={id}
               href={href}
               className={`${position} group relative min-h-52 overflow-hidden rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-300/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)] ${
                 featured
@@ -114,12 +64,13 @@ export default function TownPage() {
                 </div>
                 <h2 className="mt-6 text-2xl text-amber-100">{name}</h2>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">{description}</p>
+                <span className="mt-4 inline-flex rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{availability}</span>
                 <span className="mt-5 inline-flex text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
                   Enter location →
                 </span>
               </div>
             </Link>
-          ))}
+          )})}
         </section>
 
         <section className="relative z-10 mx-auto mt-12 max-w-4xl rounded-2xl border border-amber-200/20 bg-black/45 p-6 text-center">

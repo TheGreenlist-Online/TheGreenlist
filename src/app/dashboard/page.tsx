@@ -23,16 +23,11 @@ const adminCards = [
 type DashboardProfile = {
   role: string | null
   display_name: string | null
-  full_name: string | null
 }
 
 function getUserName(profile: DashboardProfile | null, fallbackName: unknown) {
   if (profile?.display_name) {
     return profile.display_name
-  }
-
-  if (profile?.full_name) {
-    return profile.full_name
   }
 
   if (typeof fallbackName === 'string' && fallbackName.trim()) {
@@ -54,7 +49,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, display_name, full_name')
+    .select('role, display_name')
     .eq('id', user.id)
     .maybeSingle<DashboardProfile>()
 

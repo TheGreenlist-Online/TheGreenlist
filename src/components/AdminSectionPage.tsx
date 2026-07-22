@@ -1,21 +1,19 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { UserRole } from '@prisma/client'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/supabase/authz'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 
 export async function AdminSectionPage({ title, description }: { title: string; description: string }) {
-  const session = await getServerSession(authOptions)
+  const principal = await requireAdmin()
 
-  if (!session?.user) {
+  if (!principal.user) {
     redirect('/auth/signin?callbackUrl=/admin')
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!principal.authorized) {
     redirect('/dashboard')
   }
 

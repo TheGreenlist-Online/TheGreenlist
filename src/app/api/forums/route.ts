@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { requireAdmin } from '@/lib/supabase/authz'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const forums = await prisma.forum.findMany({
-      include: {
-        _count: {
-          select: { posts: true }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-
-    const forumsWithStats = forums.map(forum => ({
-      ...forum,
-      postCount: forum._count.posts,
-      memberCount: 0, // TODO: implement member count
-      lastActivity: forum.updatedAt
-    }))
-
-    return NextResponse.json(forumsWithStats)
+    const supabase = await createSupabaseServerClient()
+    const { data: forums, error } = await supabase
+      .from('forums')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return NextResponse.json(forums)
   } catch (error) {
     console.error('Error fetching forums:', error)
     return NextResponse.json(
@@ -35,13 +23,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const principal = await requireAdmin()
 
-    if (!session?.user?.id) {
+    if (!principal.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
+    }
+
+    if (!principal.authorized) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -54,15 +46,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const forum = await prisma.forum.create({
-      data: {
+    const { data: forum, error } = await principal.supabase
+      .from('forums')
+      .insert({
         name,
         description,
         slug,
         category,
-        color,
-      }
-    })
+        accent_color: color,
+      })
+      .select()
+      .single()
+    if (error) throw error
 
     return NextResponse.json(forum, { status: 201 })
   } catch (error) {
