@@ -86,6 +86,8 @@ For uploads such as evidence and images:
 
 ## Security Considerations
 
+- See [Role-based access control](./rbac.md) for the canonical permission map
+  and the dashboard-only Auth launch checklist.
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in client-side code
 - Use Row Level Security for data access control
 - Implement authorization checks in server routes

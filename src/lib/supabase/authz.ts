@@ -1,15 +1,9 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-
-export const PLATFORM_ROLES = [
-  'USER',
-  'BUSINESS',
-  'DISTRIBUTOR',
-  'CULTIVATOR',
-  'MODERATOR',
-  'ADMIN',
-] as const
-
-export type PlatformRole = (typeof PLATFORM_ROLES)[number]
+import {
+  hasPermission,
+  normalizePlatformRole,
+  type PlatformPermission,
+} from '@/lib/roles'
 
 export async function getCurrentPrincipal() {
   const supabase = await createSupabaseServerClient()
@@ -28,15 +22,21 @@ export async function getCurrentPrincipal() {
   return {
     supabase,
     user,
-    role: (profile?.role as PlatformRole | undefined) ?? 'USER',
+    role: normalizePlatformRole(profile?.role),
     isPlatformOwner: user.app_metadata?.platform_owner === true,
   }
 }
 
-export async function requireAdmin() {
+export async function requirePermission(permission: PlatformPermission) {
   const principal = await getCurrentPrincipal()
   return {
     ...principal,
-    authorized: principal.user !== null && (principal.role === 'ADMIN' || principal.isPlatformOwner),
+    authorized:
+      principal.user !== null &&
+      hasPermission(principal.role, permission, principal.isPlatformOwner),
   }
+}
+
+export function requireAdmin() {
+  return requirePermission('platform:admin')
 }

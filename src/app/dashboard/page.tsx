@@ -6,6 +6,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
+import { hasPermission, normalizePlatformRole } from '@/lib/roles'
 
 const userCards = [
   { title: 'My Reports', body: 'Track filed reports, evidence updates, and accountability status changes.', href: '/reports' },
@@ -53,8 +54,9 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .maybeSingle<DashboardProfile>()
 
-  const role = profile?.role ?? 'USER'
-  const isAdmin = role === 'ADMIN'
+  const role = normalizePlatformRole(profile?.role)
+  const isPlatformOwner = user.app_metadata?.platform_owner === true
+  const isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
   const cards = isAdmin ? [...userCards, ...adminCards] : userCards
   const userName = getUserName(profile ?? null, user.user_metadata?.full_name)
 

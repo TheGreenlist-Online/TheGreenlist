@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSupabaseSession } from '@/lib/supabase/proxy'
+import { hasPermission, normalizePlatformRole } from '@/lib/roles'
 
 function loginUrl(request: NextRequest) {
   const url = request.nextUrl.clone()
@@ -30,7 +31,10 @@ export async function proxy(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    if (error || profile?.role !== 'ADMIN') {
+    const role = normalizePlatformRole(profile?.role)
+    const isPlatformOwner = user.app_metadata?.platform_owner === true
+
+    if (error || !hasPermission(role, 'platform:admin', isPlatformOwner)) {
       return NextResponse.redirect(dashboardUrl(request))
     }
   }
