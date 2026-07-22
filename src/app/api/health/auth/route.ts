@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
 
@@ -28,11 +28,11 @@ export async function GET() {
 
   // Check Supabase connection
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data, error } = await supabase.auth.getUser()
-    if (!error) {
-      checks.supabaseReachable = true
-    }
+    const response = await fetch(`${getSupabaseUrl()}/auth/v1/health`, {
+      headers: { apikey: getSupabasePublishableKey() },
+      cache: 'no-store',
+    })
+    checks.supabaseReachable = response.ok
   } catch (error) {
     console.warn('Supabase auth check warning (non-fatal):', error)
   }
