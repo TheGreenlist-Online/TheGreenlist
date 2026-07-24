@@ -6,6 +6,7 @@ const footerLinks = {
     { name: 'Businesses', href: '/businesses' },
     { name: 'News', href: '/news' },
     { name: 'Reports', href: '/reports' },
+    { name: 'Evidence', href: '/evidence' },
   ],
   legal: [
     { name: 'Terms of Service', href: '/legal/terms' },
