@@ -52,10 +52,10 @@ cannot use. `POST` performs the request.
 | Endpoint | Access | Reads | Returns |
 | --- | --- | --- | --- |
 | `town-guide` | public | Static town/policy config, public businesses, public reports | Navigation answer + destinations + sources |
-| `forum-summary` | public | One forum thread and its comments, through the caller's session | Summary with facts/allegations/disagreements kept separate |
+| `forum-summary` | public | One published public `forum_threads` row and its `forum_posts` replies, through the caller's session | Summary with facts/allegations/disagreements kept separate |
 | `report-assistant` | authenticated | **Nothing.** Draft comes from the request body only | Chronology, gaps, sensitive-info flags |
-| `moderation-review` | moderator / admin / owner | One moderation queue item | A recommendation, never an action |
-| `business-transparency` | public | One business profile + its public report history | What the public record shows |
+| `moderation-review` | moderator / admin / owner | One moderation queue item, joined to the report or forum record it points at | A recommendation, never an action |
+| `business-transparency` | public | One business profile + the reports linked to it by `business_id` | What the public record shows |
 
 Success response shape:
 
@@ -89,10 +89,15 @@ Four independent layers. Any one of them failing does not by itself expose a rec
    (`resolveAiPrincipal()` → `getCurrentPrincipal()`). The database refuses rows the caller cannot
    see. The service-role key is never used in any AI path.
 2. **Second-layer filters in the tool.** Public report tools additionally filter
-   `is_anonymous = false`; forum tools filter `status = 'approved'`. This holds even if an RLS policy
-   is later loosened.
+   `is_anonymous = false`; forum tools filter `status = 'published'` and `visibility = 'public'`;
+   the Education Library tool filters `status = 'APPROVED'` so drafts and rejected material can
+   never be surfaced. This holds even if an RLS policy is later loosened.
 3. **Explicit column selects.** No tool uses `select('*')`. Reporter identity columns and evidence
    file references are never in a select list, so they cannot reach the model even accidentally.
+   `reports.description` — the reporter's raw, possibly unreviewed narrative — is deliberately
+   neither selected nor searched by any public tool; the curated `public_summary` is used instead.
+   Free-text search values are quoted before they enter a PostgREST `or(...)` filter so crafted
+   input cannot append a condition on a column the select omits.
 4. **Per-feature tool allow-lists.** `getToolsForFeature()` in `tools/index.ts` decides what exists.
    The town guide has no tool that can read a moderation queue; `report-assistant` has no tools at
    all and accepts no record id, so it is structurally incapable of reaching another user's report.

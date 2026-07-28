@@ -17,9 +17,9 @@ builds the remaining four endpoints on that same foundation without claiming the
 against production data.
 
 Concretely: the Town Guide is the only feature exercised end to end from UI through to audit row.
-The other four routes are implemented, typechecked and access-controlled, but their database reads
-depend on tables whose live schema could not be inspected from this environment (see
-*Known limitations*).
+The other four routes are implemented, typechecked and access-controlled, and their database reads
+have since been corrected against the live column-level schema (see *Schema verification* below),
+but they have no UI yet and no request has been executed against production data.
 
 ---
 
@@ -93,7 +93,34 @@ because there is no code path by which it could, not because a check forbids it.
 **Graceful degradation over hard failure.** Repo migrations have drifted from the live database (see
 `docs/ASSESSMENT.md`). Tools return `unavailable()` — "no results, plus a note" — when a table or
 column is missing, rather than 500ing. The Town Guide is grounded primarily in static config, so it
-works correctly even where database reads degrade.
+works correctly even where database reads degrade. This is kept even now that the reads are verified,
+because the repo's migrations still are not the source of truth.
+
+---
+
+## Schema verification
+
+The live column-level schema was read from the production project and every AI data read was
+corrected against it. The four previously-unverified spots resolved as follows.
+
+| Was | Actually |
+| --- | --- |
+| `business_profiles.business_name` / `license_number` / `license_state` | `name`, `state`, `city`. **No licence column exists** — the prompt now forbids stating or implying licensing at all. |
+| `reports.category` / `business_name` / `location` | `report_type`; link by `business_id` FK; `location_state` / `location_city`. |
+| thread content in `forum_posts.content`, replies in `forum_comments` | thread in `forum_threads` (`body`, `status = 'published'`, `visibility = 'public'`); replies in `forum_posts` (`thread_id`, `body`). **`forum_comments` does not exist**, and no table uses `status = 'approved'`. |
+| `moderation_queue_items.content_excerpt` / `status` | `queue_status`; the item carries no text of its own. Reviewable text is joined from `reports` via `report_id`, or read from `forum_threads`/`forum_posts` via `content_id` when the reported record is a forum one. |
+
+Two consequences worth calling out, both fixed here:
+
+- `moderation-review` could **never** have worked. `content_excerpt` does not exist, so the excerpt
+  was always undefined and the route always threw "no reviewable text available".
+- `searchEducationResources` filtered on nothing, so `DRAFT`, `PENDING_REVIEW` and `REJECTED`
+  resources could reach the model and therefore a reader. It now filters `status = 'APPROVED'`.
+
+**`reports.description` is treated as sensitive throughout.** It holds the reporter's raw narrative
+and may not have been reviewed. No public tool selects or searches it; the curated `public_summary`
+is used instead, and `moderation-review` only falls back to a truncated `description` when a queue
+item has no summary at all.
 
 **Optional output fields are `.nullable()`, not `.optional()`.** OpenAI strict mode requires every
 property to appear in `required`. This is easy to get wrong when adding a feature; it is called out
@@ -113,8 +140,9 @@ duplicate config.
    Until it is applied, AI endpoints still work — audit writes fail soft and log a warning.
 2. **Set `OPENAI_API_KEY`** in the Vercel project. Until then every AI route returns 503 and the
    Town Guide renders nothing. This is the intended unconfigured state, not a failure.
-3. **Review the four unverified routes** against the live schemas of `forum_threads`,
-   `moderation_queue_items` and `business_profiles`.
+3. **Exercise the four UI-less routes once against real data.** Their column selects are now
+   verified, but no request has been run end to end. `moderation-review` in particular should be
+   called against one real queue item of each `content_type` before a moderator relies on it.
 
 ## Recommended after merge
 
@@ -132,9 +160,12 @@ duplicate config.
 - **The migration is unapplied.** No Supabase credentials or MCP tooling were reachable from the
   build environment, so the branch-create → apply → verify → merge workflow could not be executed.
   The migration was written to be purely additive so that a maintainer can run it safely.
-- **Four of five routes are unverified against live data.** `forum-summary`, `moderation-review` and
-  `business-transparency` read tables whose live schema could not be inspected. `moderation-review`
-  carries an explicit fallback column list and a `KNOWN LIMITATION` comment.
+- **Four of five routes have no UI and have never been run against real data.** Their schemas are
+  verified and their selects are correct, but only the Town Guide is exercised end to end.
+- **`moderation_queue_items.content_type` values are not enumerated anywhere in the codebase.**
+  There is no human moderation UI to mirror (`src/app/admin/moderation/page.tsx` is a stub), so the
+  route resolves `forum_thread` and `forum_post` explicitly and falls back to the joined report for
+  any other value. If production uses further values with their own tables, add them there.
 - **Rate limiting is per-instance**, not global.
 - **Cost estimates return `null` for unrecognised models** rather than guessing a number.
 - **No end-to-end test of a real model call.** Tests cover pure logic only — no network, no
@@ -146,8 +177,8 @@ duplicate config.
 
 ## Next milestone
 
-**Verify and enable the remaining four endpoints.** In order: apply the migration on a dev branch,
-confirm the live schemas of `forum_threads` / `moderation_queue_items` / `business_profiles`, correct
-the column selects in those three routes, then build the moderator-facing UI for
-`moderation-review` — which is the feature with the most operational value and the strictest
-human-in-the-loop requirement.
+**Enable the remaining four endpoints.** In order: apply the migration on a dev branch, run each
+route once against real data to confirm the corrected selects behave as expected, then build the
+moderator-facing UI for `moderation-review` — the feature with the most operational value and the
+strictest human-in-the-loop requirement. That UI is also where the real set of `content_type`
+values will become apparent, which is the one schema question still genuinely open.

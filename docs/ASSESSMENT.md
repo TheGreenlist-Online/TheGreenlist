@@ -137,9 +137,17 @@ truth.** Concrete evidence of divergence:
 | no `moderation_queue*` | `moderation_queue`, `moderation_queue_items`, `moderation_batches` exist |
 | no `user_roles`, `nda_signatures`, `notifications`, `support_tickets` | all exist |
 
-Tables whose shape *is* reliably known from repo SQL: `profiles`, `reports`,
-`business_profiles`, `audit_logs`, `forum_posts`, `forum_comments`,
-`dashboard_preferences`, `content_submissions`.
+This assessment originally assumed `reports`, `business_profiles`, `forum_posts`
+and `forum_comments` were reliably described by repo SQL. **That assumption was
+wrong.** The live column-level schema was subsequently read from the production
+project and differs materially: `business_profiles` has `name`/`state`/`city`
+and no licence columns; `reports` has `report_type`, `business_id`,
+`location_state`/`location_city` and `public_summary`, and no `category`,
+`business_name` or `location`; thread content lives in `forum_threads.body`
+with `forum_posts` holding replies (`thread_id`, `body`, `status =
+'published'`); there is no `forum_comments` table at all; and
+`moderation_queue_items` has `queue_status` and `report_id` but no
+`content_excerpt`. Every AI data read now targets the verified schema.
 
 **This drives a core design decision** (see the plan): every AI data tool must
 degrade gracefully when a table or column is missing, rather than throwing.

@@ -25,6 +25,17 @@ function toSearchPattern(query: string): string {
   return `%${escaped}%`
 }
 
+/**
+ * Quote a pattern for use inside `.or(...)`, where a bare comma would be read
+ * as a filter separator — letting crafted search text append conditions on
+ * columns we deliberately never select (`description`, reporter identity) and
+ * use the result count as an oracle. Inside double quotes those characters are
+ * literal; only `"` and `\` need escaping.
+ */
+function toOrFilterPattern(query: string): string {
+  return `"${toSearchPattern(query).replace(/["\\]/g, (match) => `\\${match}`)}"`
+}
+
 function logUnavailable(tool: string, error: PostgrestError) {
   console.warn(`[ai:tool:${tool}] unavailable: ${redact(error.message)}`)
 }
@@ -38,14 +49,14 @@ const searchQuerySchema = z.object({
 export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
   name: 'searchPublicBusinesses',
   description:
-    'Search public business profiles by name. Returns name, licence state, and verification status. ' +
+    'Search public business profiles by name. Returns name, location, and verification status. ' +
     'Use when the user asks about a specific business or wants to browse the Business District.',
   inputSchema: searchQuerySchema,
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('business_profiles')
-      .select('id, business_name, license_state, verification_status')
-      .ilike('business_name', toSearchPattern(input.query))
+      .select('id, name, state, city, verification_status')
+      .ilike('name', toSearchPattern(input.query))
       .limit(SEARCH_LIMIT)
 
     if (error) {
@@ -58,8 +69,9 @@ export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
       result: {
         businesses: businesses.map((business) => ({
           id: business.id,
-          name: business.business_name,
-          licenseState: business.license_state,
+          name: business.name,
+          state: business.state,
+          city: business.city,
           verificationStatus: business.verification_status,
           standardHref: `/businesses/${business.id}`,
         })),
@@ -79,12 +91,13 @@ export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
 export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> = {
   name: 'getPublicBusinessProfile',
   description:
-    'Fetch one public business profile by id, including licence details and verification status.',
+    'Fetch one public business profile by id: name, location, and verification status. ' +
+    'Licence details are not tracked on this record and are never returned.',
   inputSchema: z.object({ businessId: z.uuid().describe('The business profile id.') }),
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('business_profiles')
-      .select('id, business_name, license_number, license_state, verification_status, created_at')
+      .select('id, name, state, city, verification_status, created_at')
       .eq('id', input.businessId)
       .maybeSingle()
 
@@ -101,12 +114,13 @@ export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> =
       result: {
         found: true,
         id: data.id,
-        name: data.business_name,
-        licenseNumber: data.license_number,
-        licenseState: data.license_state,
+        name: data.name,
+        state: data.state,
+        city: data.city,
         verificationStatus: data.verification_status,
         listedSince: data.created_at,
         standardHref: `/businesses/${data.id}`,
+        note: 'Licence details are not yet tracked on the business profile. Never state or imply a licence number or licensing status.',
       },
       records: [{ recordType: 'business_profile', recordId: String(data.id) }],
     }
@@ -119,21 +133,25 @@ export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> =
  * Reports are the most sensitive public-facing record. Anonymous reports are
  * excluded here in addition to the RLS policy, and reporter identity columns
  * are never selected at all — the model cannot leak a field it never receives.
+ *
+ * `description` is deliberately neither searched nor selected: it holds the
+ * reporter's raw narrative, which may not have been reviewed. Only `title` and
+ * the moderator-curated `public_summary` are exposed.
  */
 export const searchPublicReports: AiTool<{ query: string }, unknown> = {
   name: 'searchPublicReports',
   description:
-    'Search publicly listed reports by title or business name. Returns title, category, and status only. ' +
-    'Never returns anonymous reports, reporter identities, descriptions, or evidence.',
+    'Search publicly listed reports by title or public summary. Returns title, report type, and status only. ' +
+    'Never returns anonymous reports, reporter identities, full descriptions, or evidence.',
   inputSchema: searchQuerySchema,
   async execute({ principal }, input) {
-    const pattern = toSearchPattern(input.query)
+    const pattern = toOrFilterPattern(input.query)
 
     const { data, error } = await principal.supabase
       .from('reports')
-      .select('id, title, category, status, business_name, created_at')
+      .select('id, title, report_type, status, verification_status, business_id, created_at')
       .eq('is_anonymous', false)
-      .or(`title.ilike.${pattern},business_name.ilike.${pattern}`)
+      .or(`title.ilike.${pattern},public_summary.ilike.${pattern}`)
       .order('created_at', { ascending: false })
       .limit(SEARCH_LIMIT)
 
@@ -148,9 +166,10 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
         reports: reports.map((report) => ({
           id: report.id,
           title: report.title,
-          category: report.category,
+          reportType: report.report_type,
           status: report.status,
-          businessName: report.business_name,
+          verificationStatus: report.verification_status,
+          businessId: report.business_id,
           standardHref: `/reports/${report.id}`,
         })),
         note:
@@ -164,13 +183,15 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
 export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
   name: 'getPublicReport',
   description:
-    'Fetch one publicly listed report by id: title, category, status and business name. ' +
-    'Evidence files, reporter identity, and anonymous reports are never returned.',
+    'Fetch one publicly listed report by id: title, report type, status, location and public summary. ' +
+    'The full description, evidence files, reporter identity, and anonymous reports are never returned.',
   inputSchema: z.object({ reportId: z.uuid().describe('The report id.') }),
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('reports')
-      .select('id, title, category, status, business_name, location, created_at, updated_at')
+      .select(
+        'id, title, report_type, status, verification_status, business_id, public_summary, location_state, location_city, created_at, updated_at',
+      )
       .eq('id', input.reportId)
       .eq('is_anonymous', false)
       .maybeSingle()
@@ -194,10 +215,13 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
         found: true,
         id: data.id,
         title: data.title,
-        category: data.category,
+        reportType: data.report_type,
         status: data.status,
-        businessName: data.business_name,
-        location: data.location,
+        verificationStatus: data.verification_status,
+        businessId: data.business_id,
+        publicSummary: data.public_summary,
+        locationState: data.location_state,
+        locationCity: data.location_city,
         submittedAt: data.created_at,
         lastUpdatedAt: data.updated_at,
         standardHref: `/reports/${data.id}`,
@@ -209,16 +233,28 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Threads live in `forum_threads`; `forum_posts` holds their replies. Only
+ * thread titles are searched, never reply bodies.
+ *
+ * `is_anonymous` on a thread describes its *authorship*, not its visibility —
+ * an anonymous thread is still public. Excluding them here is a deliberate
+ * extra-conservative choice: search results are surfaced by the assistant
+ * without a human in the loop, so a thread whose author chose anonymity is
+ * never amplified by AI. A reader can still find it through the forum itself.
+ */
 export const searchPublicForumThreads: AiTool<{ query: string }, unknown> = {
   name: 'searchPublicForumThreads',
   description:
-    'Search approved public forum threads by title. Returns titles and links, not post bodies or author identities.',
+    'Search published public forum threads by title. Returns titles and links, not thread bodies, replies or author identities.',
   inputSchema: searchQuerySchema,
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
-      .from('forum_posts')
+      .from('forum_threads')
       .select('id, title, forum_id, created_at')
-      .eq('status', 'approved')
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .eq('is_anonymous', false)
       .ilike('title', toSearchPattern(input.query))
       .order('created_at', { ascending: false })
       .limit(SEARCH_LIMIT)
@@ -236,9 +272,9 @@ export const searchPublicForumThreads: AiTool<{ query: string }, unknown> = {
           title: thread.title,
           standardHref: `/forums/${thread.id}`,
         })),
-        note: threads.length === 0 ? 'No matching approved public threads.' : 'Author identities are not available.',
+        note: threads.length === 0 ? 'No matching published public threads.' : 'Author identities are not available.',
       },
-      records: threads.map((thread) => ({ recordType: 'forum_post', recordId: String(thread.id) })),
+      records: threads.map((thread) => ({ recordType: 'forum_thread', recordId: String(thread.id) })),
     }
   },
 }
@@ -249,9 +285,13 @@ export const searchEducationResources: AiTool<{ query: string }, unknown> = {
     'Search the Education Library for published educational resources. Use for policy context, consumer safety, and general cannabis education questions.',
   inputSchema: searchQuerySchema,
   async execute({ principal }, input) {
+    // Only APPROVED resources exist as far as the assistant is concerned.
+    // The status CHECK also allows DRAFT, PENDING_REVIEW, REJECTED and
+    // ARCHIVED, none of which have cleared editorial review.
     const { data, error } = await principal.supabase
       .from('education_resources')
       .select('id, title')
+      .eq('status', 'APPROVED')
       .ilike('title', toSearchPattern(input.query))
       .limit(SEARCH_LIMIT)
 

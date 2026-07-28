@@ -6,9 +6,9 @@ import { forumSummaryOutputSchema, forumSummaryRequestSchema } from '@/lib/ai/sc
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/** Comments pulled into the summary. Bounded to keep the prompt small. */
-const MAX_COMMENTS = 40
-const MAX_COMMENT_LENGTH = 1_200
+/** Replies pulled into the summary. Bounded to keep the prompt small. */
+const MAX_REPLIES = 40
+const MAX_REPLY_LENGTH = 1_200
 
 export const GET = createAiStatusRoute('forum-summary')
 
@@ -25,10 +25,11 @@ export const POST = createAiRoute({
     // them, the select returns nothing and we refuse. The AI can never be used
     // to read a thread the user could not open themselves.
     const { data: thread, error: threadError } = await principal.supabase
-      .from('forum_posts')
-      .select('id, title, content, status, created_at')
+      .from('forum_threads')
+      .select('id, title, body, status, is_anonymous, created_at')
       .eq('id', request.threadId)
-      .eq('status', 'approved')
+      .eq('status', 'published')
+      .eq('visibility', 'public')
       .maybeSingle()
 
     if (threadError) {
@@ -39,30 +40,30 @@ export const POST = createAiRoute({
       throw new AiError('forbidden', 'That discussion is not available to you.')
     }
 
-    const { data: comments, error: commentsError } = await principal.supabase
-      .from('forum_comments')
-      .select('id, content, created_at')
-      .eq('post_id', request.threadId)
-      .eq('status', 'approved')
+    // Replies live in forum_posts, keyed by thread_id.
+    const { data: posts, error: postsError } = await principal.supabase
+      .from('forum_posts')
+      .select('id, body, created_at')
+      .eq('thread_id', request.threadId)
+      .eq('status', 'published')
       .order('created_at', { ascending: true })
-      .limit(MAX_COMMENTS)
+      .limit(MAX_REPLIES)
 
-    if (commentsError) {
+    if (postsError) {
       throw new AiError('upstream_error', 'The discussion replies could not be read right now.', {
-        cause: commentsError,
+        cause: postsError,
       })
     }
 
-    const replies = comments ?? []
+    const replies = posts ?? []
 
     // Author ids are deliberately not selected, so participants stay
-    // unidentifiable. Positions are numbered only to preserve ordering.
+    // unidentifiable whether or not they posted anonymously. Positions are
+    // numbered only to preserve ordering.
     const transcript = [
       `Thread title: ${thread.title}`,
-      `Opening post: ${String(thread.content).slice(0, MAX_COMMENT_LENGTH)}`,
-      ...replies.map(
-        (reply, index) => `Reply ${index + 1}: ${String(reply.content).slice(0, MAX_COMMENT_LENGTH)}`,
-      ),
+      `Opening post: ${String(thread.body ?? '').slice(0, MAX_REPLY_LENGTH)}`,
+      ...replies.map((reply, index) => `Reply ${index + 1}: ${String(reply.body ?? '').slice(0, MAX_REPLY_LENGTH)}`),
     ].join('\n\n')
 
     const instructions = [
@@ -80,8 +81,8 @@ export const POST = createAiRoute({
         { role: 'user', content: asUntrustedContent(`forum thread ${thread.id}`, transcript) },
       ],
       records: [
-        { recordType: 'forum_post', recordId: String(thread.id) },
-        ...replies.map((reply) => ({ recordType: 'forum_comment', recordId: String(reply.id) })),
+        { recordType: 'forum_thread', recordId: String(thread.id) },
+        ...replies.map((reply) => ({ recordType: 'forum_post', recordId: String(reply.id) })),
       ],
     }
   },

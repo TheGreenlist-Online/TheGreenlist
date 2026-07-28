@@ -1,4 +1,5 @@
 import { AiError } from '@/lib/ai/errors'
+import type { AiPrincipal } from '@/lib/ai/permissions'
 import { asUntrustedContent } from '@/lib/ai/prompts'
 import { createAiRoute, createAiStatusRoute } from '@/lib/ai/route-handler'
 import { moderationReviewOutputSchema, moderationReviewRequestSchema } from '@/lib/ai/schemas'
@@ -6,26 +7,80 @@ import { moderationReviewOutputSchema, moderationReviewRequestSchema } from '@/l
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+/** Upper bound on the reviewable text handed to the model. */
+const MAX_EXCERPT_LENGTH = 4_000
+
 /**
- * Columns read from the existing `moderation_queue_items` table.
- *
- * KNOWN LIMITATION: this repository's migration history is behind production
- * (see docs/ASSESSMENT.md §4), so the real column names could not be verified
- * from source. The query below tries this list and falls back to a minimal
- * select if Postgres rejects it, rather than guessing wrong and 500-ing. A
- * maintainer with production schema access should reconcile this constant.
+ * `moderation_queue_items` holds no text of its own — it points at the record
+ * that was reported. Every item carries `report_id`, and `content_type` /
+ * `content_id` identify the specific record when it is not the report itself.
  */
-const CONTENT_COLUMNS = 'id, status, content_type, content_id, content_excerpt, reason, created_at'
-const FALLBACK_COLUMNS = 'id, status, created_at'
+const QUEUE_ITEM_COLUMNS =
+  'id, queue_status, content_type, content_id, reason, report_id, created_at, reports(id, title, description, public_summary)'
+
+type QueueReport = {
+  id: string
+  title?: string | null
+  description?: string | null
+  public_summary?: string | null
+}
 
 type QueueItem = {
   id: string
-  status?: string | null
+  queue_status?: string | null
   content_type?: string | null
   content_id?: string | null
-  content_excerpt?: string | null
   reason?: string | null
+  report_id?: string | null
   created_at?: string | null
+  // PostgREST returns an embedded to-one relation as an object, but returns an
+  // array when it cannot prove the relationship is to-one.
+  reports?: QueueReport | QueueReport[] | null
+}
+
+function joinedReport(item: QueueItem): QueueReport | null {
+  const joined = item.reports
+  if (!joined) return null
+  return Array.isArray(joined) ? joined[0] ?? null : joined
+}
+
+/**
+ * Prefer the moderator-curated `public_summary`. `description` is the
+ * reporter's raw narrative and may contain unreviewed sensitive detail, so it
+ * is only used when there is no summary, and only truncated.
+ */
+function reportExcerpt(report: QueueReport | null): string | null {
+  if (!report) return null
+  const summary = report.public_summary?.trim()
+  if (summary) return summary
+  const description = report.description?.trim()
+  return description ? description.slice(0, MAX_EXCERPT_LENGTH) : null
+}
+
+/**
+ * Resolve a directly-reported forum record. `content_type` values other than
+ * these fall back to the report the queue item is attached to rather than
+ * guessing at a table.
+ */
+async function forumExcerpt(principal: AiPrincipal, item: QueueItem): Promise<string | null> {
+  const table =
+    item.content_type === 'forum_thread' ? 'forum_threads' : item.content_type === 'forum_post' ? 'forum_posts' : null
+
+  if (!table || !item.content_id) return null
+
+  const { data, error } = await principal.supabase
+    .from(table)
+    .select('id, body')
+    .eq('id', item.content_id)
+    .maybeSingle()
+
+  if (error) {
+    console.warn(`[ai:moderation-review] could not read ${table} for queue item ${item.id}`)
+    return null
+  }
+
+  const body = (data as { body?: string | null } | null)?.body?.trim()
+  return body ? body.slice(0, MAX_EXCERPT_LENGTH) : null
 }
 
 export const GET = createAiStatusRoute('moderation-review')
@@ -49,36 +104,25 @@ export const POST = createAiRoute({
   async buildInput(request, principal) {
     // Read as the moderator. RLS on moderation_queue_items decides access; a
     // user without moderation rights gets nothing back even if they reach here.
-    let item: QueueItem | null = null
-
-    const primary = await principal.supabase
+    const { data, error } = await principal.supabase
       .from('moderation_queue_items')
-      .select(CONTENT_COLUMNS)
+      .select(QUEUE_ITEM_COLUMNS)
       .eq('id', request.queueItemId)
       .maybeSingle()
 
-    if (primary.error) {
-      const fallback = await principal.supabase
-        .from('moderation_queue_items')
-        .select(FALLBACK_COLUMNS)
-        .eq('id', request.queueItemId)
-        .maybeSingle()
-
-      if (fallback.error) {
-        throw new AiError('upstream_error', 'The moderation queue could not be read right now.', {
-          cause: fallback.error,
-        })
-      }
-      item = fallback.data as QueueItem | null
-    } else {
-      item = primary.data as QueueItem | null
+    if (error) {
+      throw new AiError('upstream_error', 'The moderation queue could not be read right now.', { cause: error })
     }
+
+    const item = data as QueueItem | null
 
     if (!item) {
       throw new AiError('forbidden', 'That moderation item is not available to you.')
     }
 
-    const excerpt = item.content_excerpt?.trim()
+    const report = joinedReport(item)
+    const excerpt = (await forumExcerpt(principal, item)) ?? reportExcerpt(report)
+
     if (!excerpt) {
       throw new AiError(
         'upstream_error',
@@ -90,6 +134,7 @@ export const POST = createAiRoute({
       'Recommend an outcome for the human moderator reviewing this queue item.',
       item.content_type ? `Content type: ${item.content_type}.` : '',
       item.reason ? `It was flagged for: ${item.reason}.` : '',
+      report?.title ? `The associated report is titled: ${report.title}.` : '',
       request.reviewerNote ? `The reviewer added this note: ${request.reviewerNote}` : '',
       'Give concrete reasons. You are advising, not deciding.',
     ]
@@ -103,6 +148,7 @@ export const POST = createAiRoute({
       ],
       records: [
         { recordType: 'moderation_queue_item', recordId: String(item.id) },
+        ...(report ? [{ recordType: 'report', recordId: String(report.id) }] : []),
         ...(item.content_id ? [{ recordType: item.content_type ?? 'content', recordId: String(item.content_id) }] : []),
       ],
     }

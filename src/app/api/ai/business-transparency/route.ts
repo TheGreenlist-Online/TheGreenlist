@@ -21,7 +21,7 @@ export const POST = createAiRoute({
   async buildInput(request, principal) {
     const { data: business, error } = await principal.supabase
       .from('business_profiles')
-      .select('id, business_name, license_number, license_state, verification_status, created_at')
+      .select('id, owner_id, name, state, city, verification_status, sponsorship_status, is_claimed, created_at')
       .eq('id', request.businessId)
       .maybeSingle()
 
@@ -33,34 +33,40 @@ export const POST = createAiRoute({
       throw new AiError('forbidden', 'That business profile is not available.')
     }
 
-    // Public report history only. Anonymous reports are excluded here as well
-    // as by RLS, and report descriptions are never selected.
+    // Public report history only. Reports link to a business by foreign key,
+    // so this is an exact association rather than a name match. Anonymous
+    // reports are excluded here as well as by RLS, and report descriptions are
+    // never selected.
     const { data: reports } = await principal.supabase
       .from('reports')
-      .select('id, title, category, status, created_at')
+      .select('id, title, report_type, status, verification_status, created_at')
+      .eq('business_id', business.id)
       .eq('is_anonymous', false)
-      .ilike('business_name', business.business_name)
       .order('created_at', { ascending: false })
       .limit(MAX_REPORTS)
 
     const reportHistory = reports ?? []
 
     const publicRecord = [
-      `Business name: ${business.business_name}`,
+      `Business name: ${business.name}`,
+      `Location: ${[business.city, business.state].filter(Boolean).join(', ') || 'not disclosed'}`,
       `Verification status: ${business.verification_status ?? 'unverified'}`,
-      `Licence number on file: ${business.license_number ? 'yes' : 'no'}`,
-      `Licence state: ${business.license_state ?? 'not disclosed'}`,
+      `Sponsorship status: ${business.sponsorship_status ?? 'none'}`,
+      `Profile claimed by owner: ${business.is_claimed ? 'yes' : 'no'}`,
       `Listed since: ${business.created_at ?? 'unknown'}`,
       '',
       reportHistory.length > 0
         ? `Public reports (${reportHistory.length}):\n` +
           reportHistory
-            .map((report) => `- [${report.status}] ${report.title} (${report.category ?? 'uncategorised'})`)
+            .map(
+              (report) =>
+                `- [${report.status}/${report.verification_status ?? 'unverified'}] ${report.title} (${report.report_type ?? 'uncategorised'})`,
+            )
             .join('\n')
         : 'Public reports: none on record.',
     ].join('\n')
 
-    const isOwner = principal.user?.id != null && principal.user.id === (business as { owner_user_id?: string }).owner_user_id
+    const isOwner = principal.user?.id != null && principal.user.id === business.owner_id
 
     const instructions = [
       'Explain what this public record shows.',
@@ -69,6 +75,8 @@ export const POST = createAiRoute({
         : 'The requester is a member of the public.',
       request.question ? `They asked: ${request.question}` : '',
       'Do not produce a score, grade, rating or ranking of any kind.',
+      'Licence details are not tracked on this record. Never state or imply whether the business is licensed.',
+      'Sponsorship is a paid placement and says nothing about conduct. Never treat it as a mark of trustworthiness.',
       'Absence of reports is not proof of good conduct; an unverified report is not proof of wrongdoing. Say so where relevant.',
     ]
       .filter(Boolean)
