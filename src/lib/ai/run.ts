@@ -31,6 +31,11 @@ export type AiRunRequest<TOutput> = Readonly<{
   /** Name for the JSON schema. Must match `^[a-zA-Z0-9_]+$`. */
   outputSchemaName: string
   tools?: readonly AiTool[]
+  /** Reports tool activity as it happens so failed runs can still be audited accurately. */
+  onProgress?: (progress: Readonly<{
+    toolNames: readonly string[]
+    recordsAccessed: readonly AccessedRecord[]
+  }>) => void
 }>
 
 export type AiRunResult<TOutput> = Readonly<{
@@ -197,6 +202,10 @@ export async function runAiFeature<TOutput>(request: AiRunRequest<TOutput>): Pro
       if (!usedToolNames.includes(call.name)) usedToolNames.push(call.name)
       const { output, records } = await runToolCall(request.feature, request.principal, call)
       recordsAccessed.push(...records)
+      request.onProgress?.({
+        toolNames: [...usedToolNames],
+        recordsAccessed: [...recordsAccessed],
+      })
 
       conversation.push(call as ResponseInputItem)
       conversation.push({
