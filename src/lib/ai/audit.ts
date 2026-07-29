@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { AiFeature } from './config'
 import { redact } from './errors'
 
@@ -15,6 +15,30 @@ import { redact } from './errors'
  */
 
 export const AI_AUDIT_TABLE = 'ai_audit_logs'
+
+let auditClient: SupabaseClient | null | undefined
+
+/**
+ * Audit inserts use a server-only Supabase credential. Caller-bound clients
+ * remain responsible for reads, but can never forge operational audit rows.
+ */
+function getAuditClient(): SupabaseClient | null {
+  if (auditClient !== undefined) return auditClient
+
+  const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const secret =
+    process.env.SUPABASE_SECRET_KEY?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+
+  if (!url || !secret) {
+    auditClient = null
+    return auditClient
+  }
+
+  auditClient = createClient(url, secret, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  })
+  return auditClient
+}
 
 /** How sensitive the input was, so reviewers know what was sent upstream. */
 export type InputClassification =
@@ -83,10 +107,14 @@ export function estimateCostUsd(
  * Persist an audit entry. Resolves to `true` when the row was written.
  * Never throws.
  */
-export async function recordAiAudit(
-  supabase: SupabaseClient,
-  entry: AiAuditEntry,
-): Promise<boolean> {
+export async function recordAiAudit(entry: AiAuditEntry): Promise<boolean> {
+  const supabase = getAuditClient()
+  if (!supabase) {
+    console.warn(
+      `[ai:audit] server-only Supabase credentials are not configured feature=${entry.feature} request=${entry.requestId}`,
+    )
+    return false
+  }
   const row = {
     user_id: entry.userId,
     feature: entry.feature,
