@@ -101,6 +101,12 @@ export const POST = createAiRoute({
   inputClassification: 'moderation_context',
   outputClassification: 'moderation_recommendation',
   humanReviewRequired: true,
+  auditMetadata(output) {
+    return {
+      moderationRecommendation: output.recommendation,
+      moderationConfidence: output.confidence,
+    }
+  },
   async buildInput(request, principal) {
     // Read as the moderator. RLS on moderation_queue_items decides access; a
     // user without moderation rights gets nothing back even if they reach here.
