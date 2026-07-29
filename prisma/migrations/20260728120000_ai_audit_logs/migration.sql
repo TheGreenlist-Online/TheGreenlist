@@ -66,6 +66,18 @@ CREATE TABLE IF NOT EXISTS public.ai_audit_logs (
   -- True whenever the output must not be acted on without a human decision.
   human_review_required BOOLEAN NOT NULL DEFAULT false,
 
+  -- Bounded metadata for moderation recommendations. Free-form model output is
+  -- deliberately excluded from the audit trail.
+  moderation_recommendation TEXT CHECK (moderation_recommendation IN (
+    'ALLOW',
+    'LABEL_ONLY',
+    'WARN_USER',
+    'HOLD_FOR_REVIEW',
+    'ESCALATE_TO_OWNER',
+    'RECOMMEND_ACCOUNT_REVIEW'
+  )),
+  moderation_confidence TEXT CHECK (moderation_confidence IN ('low', 'medium', 'high')),
+
   latency_ms INTEGER NOT NULL DEFAULT 0 CHECK (latency_ms >= 0),
 
   -- { "input": n, "output": n, "total": n }, or null when unknown.
@@ -88,6 +100,10 @@ COMMENT ON COLUMN public.ai_audit_logs.records_accessed IS
   'Array of { record_type, record_id } references to records the AI read. References only, never content.';
 COMMENT ON COLUMN public.ai_audit_logs.human_review_required IS
   'True when the output is a recommendation that an accountable human must decide on before any action is taken.';
+COMMENT ON COLUMN public.ai_audit_logs.moderation_recommendation IS
+  'Bounded AI moderation recommendation enum. Never a final moderation decision.';
+COMMENT ON COLUMN public.ai_audit_logs.moderation_confidence IS
+  'Bounded confidence level for an AI moderation recommendation.';
 
 CREATE INDEX IF NOT EXISTS ai_audit_logs_user_id_created_at_idx
   ON public.ai_audit_logs (user_id, created_at DESC);
