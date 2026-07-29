@@ -45,6 +45,9 @@ export type AiAuditEntry = Readonly<{
   toolNames: readonly string[]
   outputClassification: OutputClassification
   humanReviewRequired: boolean
+  /** Bounded moderation metadata only; never free-form model output. */
+  moderationRecommendation: string | null
+  moderationConfidence: 'low' | 'medium' | 'high' | null
   latencyMs: number
   tokenUsage: Readonly<{ input: number; output: number; total: number }> | null
   estimatedCostUsd: number | null
@@ -97,6 +100,8 @@ export async function recordAiAudit(
     tool_names: [...entry.toolNames],
     output_classification: entry.outputClassification,
     human_review_required: entry.humanReviewRequired,
+    moderation_recommendation: entry.moderationRecommendation,
+    moderation_confidence: entry.moderationConfidence,
     latency_ms: Math.round(entry.latencyMs),
     token_usage: entry.tokenUsage
       ? {
