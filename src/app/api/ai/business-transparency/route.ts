@@ -37,13 +37,19 @@ export const POST = createAiRoute({
     // so this is an exact association rather than a name match. Anonymous
     // reports are excluded here as well as by RLS, and report descriptions are
     // never selected.
-    const { data: reports } = await principal.supabase
+    const { data: reports, error: reportsError } = await principal.supabase
       .from('reports')
       .select('id, title, report_type, status, verification_status, created_at')
       .eq('business_id', business.id)
       .eq('is_anonymous', false)
       .order('created_at', { ascending: false })
       .limit(MAX_REPORTS)
+
+    if (reportsError) {
+      throw new AiError('upstream_error', 'That business report history could not be read right now.', {
+        cause: reportsError,
+      })
+    }
 
     const reportHistory = reports ?? []
 
