@@ -125,7 +125,7 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
       const recordsAccessed = [...builtRecords, ...result.recordsAccessed]
       const auditMetadata = definition.auditMetadata?.(result.output)
 
-      await recordAiAudit(principal.supabase, {
+      await recordAiAudit({
         userId: principal.user?.id ?? null,
         feature: definition.feature,
         model: result.model,
@@ -170,7 +170,7 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
                 ? 'refused'
                 : 'error'
 
-        await recordAiAudit(principal.supabase, {
+        await recordAiAudit({
           userId: principal.user?.id ?? null,
           feature: definition.feature,
           model: getAiConfig().model,
