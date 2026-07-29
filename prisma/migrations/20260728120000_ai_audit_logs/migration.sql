@@ -132,24 +132,15 @@ USING (
   )
 );
 
--- Insert: an authenticated caller may only write a row attributed to itself.
--- The application always sets user_id from the verified session, so a forged
--- user_id is rejected by the database as well as by the application.
+-- Insert: only trusted server code may append operational audit rows. The
+-- application uses a server-only Supabase secret/service-role credential for
+-- this write. Public browser credentials receive no INSERT privilege and no
+-- INSERT policy, so they cannot fabricate audit history.
 DROP POLICY IF EXISTS "ai_audit_logs_self_insert" ON public.ai_audit_logs;
-CREATE POLICY "ai_audit_logs_self_insert" ON public.ai_audit_logs
-FOR INSERT TO authenticated
-WITH CHECK (user_id = (SELECT auth.uid()));
-
--- Anonymous visitors may use public AI features (the Town Guide), so they must
--- be able to write their own audit row. It must be unattributed: an anon row
--- with a user_id would be a forged attribution.
 DROP POLICY IF EXISTS "ai_audit_logs_anon_insert" ON public.ai_audit_logs;
-CREATE POLICY "ai_audit_logs_anon_insert" ON public.ai_audit_logs
-FOR INSERT TO anon
-WITH CHECK (user_id IS NULL);
 
--- The audit trail is append-only. No UPDATE or DELETE policy is defined, so
--- with RLS enabled neither operation is permitted for anon or authenticated.
-
-GRANT SELECT, INSERT ON public.ai_audit_logs TO authenticated;
-GRANT INSERT ON public.ai_audit_logs TO anon;
+-- The audit trail is append-only for application roles. No UPDATE or DELETE
+-- policy is defined.
+REVOKE INSERT, UPDATE, DELETE ON public.ai_audit_logs FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.ai_audit_logs TO authenticated;
+GRANT INSERT ON public.ai_audit_logs TO service_role;
