@@ -7,6 +7,7 @@ import {
   createRequestId,
   estimateCostUsd,
   recordAiAudit,
+  type AccessedRecord,
   type InputClassification,
   type OutputClassification,
 } from './audit'
@@ -35,6 +36,14 @@ export type AiRouteDefinition<TRequest, TOutput> = Readonly<{
   outputClassification: OutputClassification
   /** Whether results from this feature always need a human decision. */
   humanReviewRequired: boolean
+  /**
+   * Extract bounded, structured metadata for the audit row. This must never
+   * return free-form model output.
+   */
+  auditMetadata?: (output: TOutput) => Readonly<{
+    moderationRecommendation: string
+    moderationConfidence: 'low' | 'medium' | 'high'
+  }>
   /**
    * Build the model input. May perform additional authorization (for example
    * confirming the caller can read the requested thread) and should throw an
@@ -80,6 +89,9 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
     const requestId = createRequestId()
     const startedAt = Date.now()
     let principal: AiPrincipal | null = null
+    let builtRecords: AccessedRecord[] = []
+    let toolRecords: AccessedRecord[] = []
+    let toolNames: string[] = []
 
     try {
       principal = await resolveAiPrincipal()
@@ -95,6 +107,7 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
       }
 
       const built = await definition.buildInput(parsed.data, principal)
+      builtRecords = [...(built.records ?? [])]
 
       const result = await runAiFeature({
         feature: definition.feature,
@@ -103,9 +116,14 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
         outputSchema: definition.outputSchema,
         outputSchemaName: definition.outputSchemaName,
         tools: getToolsForFeature(definition.feature),
+        onProgress(progress) {
+          toolRecords = [...progress.recordsAccessed]
+          toolNames = [...progress.toolNames]
+        },
       })
 
-      const recordsAccessed = [...(built.records ?? []), ...result.recordsAccessed]
+      const recordsAccessed = [...builtRecords, ...result.recordsAccessed]
+      const auditMetadata = definition.auditMetadata?.(result.output)
 
       await recordAiAudit(principal.supabase, {
         userId: principal.user?.id ?? null,
@@ -117,6 +135,8 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
         toolNames: result.toolNames,
         outputClassification: definition.outputClassification,
         humanReviewRequired: definition.humanReviewRequired,
+        moderationRecommendation: auditMetadata?.moderationRecommendation ?? null,
+        moderationConfidence: auditMetadata?.moderationConfidence ?? null,
         latencyMs: result.latencyMs,
         tokenUsage: result.tokenUsage,
         estimatedCostUsd: estimateCostUsd(result.model, result.tokenUsage),
@@ -156,10 +176,12 @@ export function createAiRoute<TRequest, TOutput>(definition: AiRouteDefinition<T
           model: getAiConfig().model,
           requestId,
           inputClassification: definition.inputClassification,
-          recordsAccessed: [],
-          toolNames: [],
+          recordsAccessed: [...builtRecords, ...toolRecords],
+          toolNames,
           outputClassification: definition.outputClassification,
           humanReviewRequired: definition.humanReviewRequired,
+          moderationRecommendation: null,
+          moderationConfidence: null,
           latencyMs: Date.now() - startedAt,
           tokenUsage: null,
           estimatedCostUsd: null,
