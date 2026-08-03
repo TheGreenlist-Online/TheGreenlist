@@ -91,9 +91,6 @@ export default function HomePage() {
   return (
     <PageShell className="greenlist-home">
       <section className="greenlist-hero" aria-labelledby="home-heading">
-        <div className="greenlist-hero__smoke greenlist-hero__smoke--left" />
-        <div className="greenlist-hero__smoke greenlist-hero__smoke--right" />
-        <div className="greenlist-hero__flare" />
 
         <div className="greenlist-hero__inner">
           <div className="greenlist-seal" aria-hidden="true">

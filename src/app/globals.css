@@ -30,10 +30,10 @@
   * { @apply border-border; }
   html { background: #070a08; }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     min-height: 100vh;
     overflow-x: hidden;
-    background: #070a08;
+    background: transparent;
     color: #eef2ee;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "ss01", "cv02", "cv03";
@@ -45,11 +45,35 @@
   ::selection { background: rgba(75, 196, 116, .28); color: #fff; }
 }
 
+/* Site-wide ambient smoke background video (see SmokeBackground.tsx). Fixed,
+   full-viewport, pinned to the bottom edge, sits behind all content. */
+.smoke-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #070a08;
+}
+.smoke-bg__video {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  min-width: 1600px;
+  height: auto;
+  transform: translateX(-50%);
+  opacity: .55;
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: reduce) {
+  .smoke-bg__video { display: none; }
+}
+.site-frame, .greenlist-home, .smoke-surface, .greenlist-template-bg { position: relative; z-index: 1; }
+
 @layer components {
   .smoke-surface {
-    background:
-      radial-gradient(circle at 50% -10rem, rgba(52, 130, 75, .09), transparent 38rem),
-      #070a08;
+    background: radial-gradient(circle at 50% -10rem, rgba(52, 130, 75, .09), transparent 38rem);
   }
   .smoke-panel, .ornate-greenlist-panel {
     border: 1px solid rgba(255,255,255,.09);
@@ -57,7 +81,7 @@
     box-shadow: 0 20px 50px rgba(0,0,0,.24);
   }
   .glow-border { background: rgba(69, 184, 108, .42); }
-  .greenlist-template-bg { position: relative; isolation: isolate; background: #070a08; }
+  .greenlist-template-bg { position: relative; isolation: isolate; }
   .greenlist-template-bg::before {
     content: '';
     position: absolute;
@@ -79,7 +103,6 @@
   --district-glow: rgba(75, 196, 116, .09);
   position: relative;
   min-height: calc(100vh - var(--compliance-banner-height));
-  background: #070a08;
 }
 .site-frame__content { min-height: 60vh; }
 .site-frame::before {
@@ -112,7 +135,7 @@
 .site-brand__mark svg { width: 1rem; height: 1rem; }
 
 .greenlist-home main { max-width: 100%; padding: 0; }
-.greenlist-home { background: #070a08; }
+
 .greenlist-hero {
   position: relative;
   overflow: hidden;
@@ -132,7 +155,6 @@
   mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
 .greenlist-hero__inner { position: relative; z-index: 1; width: min(1120px, calc(100% - 2rem)); margin: 0 auto; padding: clamp(4.5rem, 9vw, 8rem) 0 3rem; text-align: left; }
-.greenlist-hero__flare, .greenlist-hero__smoke { display: none; }
 .greenlist-seal { display: grid; width: 3rem; height: 3rem; margin-bottom: 1.4rem; place-items: center; border: 1px solid rgba(75,196,116,.3); border-radius: .8rem; background: rgba(75,196,116,.07); }
 .greenlist-seal::before, .greenlist-seal::after, .greenlist-seal__ring { display: none; }
 .greenlist-seal__leaf { color: #4bc474; }

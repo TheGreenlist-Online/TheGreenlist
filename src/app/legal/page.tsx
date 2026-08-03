@@ -9,7 +9,7 @@ export const metadata = {
 export default function LegalHub() {
   return (
     <>
-      <main className="min-h-screen bg-background pt-8 pb-20 text-foreground">
+      <main className="min-h-screen pt-8 pb-20 text-foreground">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="mb-12">

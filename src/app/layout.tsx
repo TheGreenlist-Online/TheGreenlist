@@ -3,6 +3,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
+import { SmokeBackground } from '@/components/SmokeBackground'
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -47,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
+        <SmokeBackground />
         <Providers>
           <ComplianceBanner />
           <SiteFrame>{children}</SiteFrame>
