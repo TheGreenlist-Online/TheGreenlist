@@ -66,6 +66,10 @@ export function BusinessDocumentUploadForm({ businessId, slug }: { businessId: s
     try {
       storagePath = `${businessId}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`
 
+      if (storagePath.includes('..')) {
+        throw new Error('Invalid file path.')
+      }
+
       const { error: uploadError } = await supabase.storage
         .from(DOCUMENTS_BUCKET)
         .upload(storagePath, file, {
