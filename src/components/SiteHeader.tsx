@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Leaf, LogOut, Menu, UserRound, X } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
+import { ViewSwitchLink } from '@/components/ViewSwitchLink'
 import { Button } from '@/components/ui/button'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
@@ -20,7 +21,6 @@ const navItems = [
 
 export function SiteHeader() {
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -69,9 +69,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Button asChild size="sm" variant="outline">
-              <Link href={pathname.startsWith('/town') ? '/' : '/town'}>
-                {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
-              </Link>
+              <ViewSwitchLink />
             </Button>
             {isAuthenticated ? (
               <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
@@ -112,13 +110,10 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href={pathname.startsWith('/town') ? '/' : '/town'}
-              onClick={() => setIsOpen(false)}
+            <ViewSwitchLink
+              onNavigate={() => setIsOpen(false)}
               className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
-            >
-              {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
-            </Link>
+            />
             {isAuthenticated ? (
               <button
                 type="button"

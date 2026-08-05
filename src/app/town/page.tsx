@@ -1,23 +1,15 @@
 import Link from 'next/link'
-import {
-  Archive,
-  BookOpen,
-  Building2,
-  Castle,
-  Landmark,
-  Newspaper,
-  ShieldCheck,
-  Trees,
-  Users,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Castle } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
-import { DISTRICTS } from '@/config/districts'
+import { TownGuidePanel } from '@/components/town/TownGuidePanel'
+import { TownLocationIcon } from '@/components/town/TownLocationIcon'
+import { TOWN_LOCATIONS } from '@/config/town-locations'
 
-const icons: Record<(typeof DISTRICTS)[number]['icon'], LucideIcon> = {
-  archive: Archive, book: BookOpen, building: Building2, landmark: Landmark,
-  newspaper: Newspaper, shield: ShieldCheck, trees: Trees, users: Users,
+export const metadata = {
+  title: 'Green List Town',
+  description:
+    'A living digital community where every building opens a real Green List feature. Same accounts, same records, same source of truth as the standard site.',
 }
 
 export default function TownPage() {
@@ -43,34 +35,51 @@ export default function TownPage() {
           </div>
         </section>
 
-        <section className="relative z-10 mx-auto mt-14 grid max-w-6xl gap-5 md:grid-cols-3 md:grid-rows-4">
-          {DISTRICTS.map(({ id, name, description, href, icon, position, availability, ...district }) => {
-            const Icon = icons[icon]
-            const featured = 'featured' in district && district.featured
-            return (
-            <Link
-              key={id}
-              href={href}
-              className={`${position} group relative min-h-52 overflow-hidden rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-300/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)] ${
-                featured
-                  ? 'border-amber-200/35 bg-gradient-to-b from-amber-100/10 to-emerald-950/65 md:min-h-64'
-                  : 'border-emerald-200/15 bg-gradient-to-b from-emerald-900/20 to-black/75'
-              }`}
-            >
-              <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 [background:radial-gradient(circle_at_50%_0%,rgba(52,211,153,0.16),transparent_70%)]" />
-              <div className="relative">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-300/20 bg-black/35 text-emerald-300">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h2 className="mt-6 text-2xl text-amber-100">{name}</h2>
-                <p className="mt-3 text-sm leading-6 text-zinc-300">{description}</p>
-                <span className="mt-4 inline-flex rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{availability}</span>
-                <span className="mt-5 inline-flex text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                  Enter location →
-                </span>
-              </div>
-            </Link>
-          )})}
+        <TownGuidePanel />
+
+        <section aria-labelledby="town-map-heading" className="relative z-10 mx-auto mt-14 max-w-6xl">
+          <h2 id="town-map-heading" className="sr-only">
+            Town map
+          </h2>
+          <ul className="grid gap-5 md:grid-cols-3 md:grid-rows-4">
+            {TOWN_LOCATIONS.map((location) => {
+              // The Town Square is this page; its card points at the guide rather than itself.
+              const href = location.id === 'town-square' ? '#town-guide-heading' : location.townHref
+
+              return (
+                <li key={location.id} className={location.gridPosition}>
+                  <Link
+                    href={href}
+                    className={`group relative flex h-full min-h-52 flex-col overflow-hidden rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-300/45 hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)] ${
+                      location.featured
+                        ? 'border-amber-200/35 bg-gradient-to-b from-amber-100/10 to-emerald-950/65 md:min-h-64'
+                        : 'border-emerald-200/15 bg-gradient-to-b from-emerald-900/20 to-black/75'
+                    }`}
+                  >
+                    <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 [background:radial-gradient(circle_at_50%_0%,rgba(52,211,153,0.16),transparent_70%)]" />
+                    <div className="relative flex h-full flex-col">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-300/20 bg-black/35 text-emerald-300">
+                        <TownLocationIcon icon={location.icon} className="h-6 w-6" />
+                      </div>
+                      <h3 className="mt-6 text-2xl text-amber-100">{location.name}</h3>
+                      <p className="mt-3 text-sm leading-6 text-zinc-300">{location.description}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="inline-flex rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">
+                          {location.availability}
+                        </span>
+                        <span className="inline-flex rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                          {location.district}
+                        </span>
+                      </div>
+                      <span className="mt-auto pt-5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                        Enter location →
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         </section>
 
         <section className="relative z-10 mx-auto mt-12 max-w-4xl rounded-2xl border border-amber-200/20 bg-black/45 p-6 text-center">

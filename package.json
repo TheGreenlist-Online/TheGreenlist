@@ -8,7 +8,8 @@
     "build": "node scripts/build-safe.js",
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint .",
-    "test": "prisma validate 2>/dev/null || true",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dns:list": "npx ts-node scripts/porkbun-dns.ts list",
     "dns:setup-vercel": "npx ts-node scripts/porkbun-dns.ts setup-vercel",
     "dns:setup-clerk": "npx ts-node scripts/porkbun-dns.ts setup-clerk",
@@ -53,7 +54,8 @@
     "postcss": "^8.5.10",
     "prisma": "5.22.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   },
   "overrides": {
     "glob": "^10.5.0",
