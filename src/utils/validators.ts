@@ -5,6 +5,7 @@ export const createPostSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   forumId: z.string().min(1, 'Forum is required'),
   tags: z.array(z.string()).optional(),
+  isAnonymous: z.boolean().optional(),
 })
 
 export const createCommentSchema = z.object({
