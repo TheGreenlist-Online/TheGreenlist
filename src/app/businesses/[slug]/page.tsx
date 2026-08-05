@@ -98,6 +98,9 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   // short-lived signed URLs here so the client only ever sees a working link.
   const allDocuments = await Promise.all(
     rawDocuments.map(async (doc) => {
+      if (doc.file_url.includes('..')) {
+        throw new Error('Invalid file path')
+      }
       const { data: signed } = await supabase.storage
         .from('business-documents')
         .createSignedUrl(doc.file_url, 60 * 60)
