@@ -12,7 +12,11 @@ export default function DashboardSettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
+  // Maps to the real `profiles.is_public` column (see field-mismatch fix notes below).
   const [publicProfile, setPublicProfile] = useState(true)
+  // NOTE: There is no `email_notifications` column on `profiles` and no notification-preferences
+  // table in the live schema. This control is intentionally disabled/"coming soon" — see comment
+  // in handleSave for details on the bug this replaces.
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [message, setMessage] = useState('')
 
@@ -27,6 +31,18 @@ export default function DashboardSettingsPage() {
       }
 
       setEmail(user.email || '')
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, is_public')
+        .eq('id', user!.id)
+        .maybeSingle<{ display_name: string | null; is_public: boolean | null }>()
+
+      if (profile) {
+        setDisplayName(profile.display_name ?? '')
+        setPublicProfile(profile.is_public ?? true)
+      }
+
       setIsLoading(false)
     }
 
@@ -38,27 +54,34 @@ export default function DashboardSettingsPage() {
     setMessage('')
 
     try {
-      // Save preferences to Supabase if profiles table exists
-      const { error } = await supabase.from('profiles').upsert(
-        {
-          id: (await supabase.auth.getUser()).data.user?.id,
+      // FIELD-MISMATCH FIX: this previously wrote `public_profile` and `email_notifications`
+      // columns that do not exist on the live `profiles` table, so the upsert either silently
+      // failed or silently wrote nothing useful. `public_profile` is now correctly mapped to the
+      // real `is_public` column. `email_notifications` has no backing column/table at all, so it
+      // is intentionally NOT sent here — that toggle is UI-only ("coming soon") until a
+      // notification-preferences table exists.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
           display_name: displayName,
-          public_profile: publicProfile,
-          email_notifications: emailNotifications,
+          is_public: publicProfile,
           updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'id' },
-      )
+        })
+        .eq('id', user?.id)
 
       if (error) {
-        console.warn('Preferences save attempted but profiles table may not exist:', error)
-        setMessage('Settings updated locally (database sync pending)')
+        console.warn('Preferences save failed:', error)
+        setMessage('Could not save settings. Please try again.')
       } else {
         setMessage('✓ Settings saved successfully')
       }
     } catch (error) {
       console.warn('Could not save preferences:', error)
-      setMessage('Settings saved to browser (full sync pending)')
+      setMessage('Could not save settings. Please try again.')
     } finally {
       setIsSaving(false)
     }
@@ -142,16 +165,24 @@ export default function DashboardSettingsPage() {
               <CardDescription>Email notification preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-not-allowed opacity-60">
                 <input
                   type="checkbox"
                   checked={emailNotifications}
                   onChange={(e) => setEmailNotifications(e.target.checked)}
+                  disabled
                   className="w-4 h-4 rounded border-primary/40 bg-card text-accent accent-accent"
                 />
                 <div>
-                  <span className="font-medium text-foreground">Email Notifications</span>
-                  <p className="text-xs text-muted-foreground">Receive updates about your reports, forum activity, and community interactions</p>
+                  <span className="font-medium text-foreground">
+                    Email Notifications{' '}
+                    <span className="ml-1 rounded-full border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                      Coming soon
+                    </span>
+                  </span>
+                  <p className="text-xs text-muted-foreground">
+                    Notification preferences aren&apos;t stored yet. This toggle doesn&apos;t save anywhere until that feature ships.
+                  </p>
                 </div>
               </label>
             </CardContent>
