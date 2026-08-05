@@ -1,20 +1,45 @@
-import { SimplePage } from '@/components/SimplePage'
+import Link from 'next/link'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { PageShell } from '@/components/PageShell'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { TrustBadge } from '@/components/TrustBadge'
+import { NewsFeed, type NewsRow } from './news-feed'
 
-export default function NewsPage() {
+export const revalidate = 0
+
+export default async function NewsPage() {
+  const supabase = await createSupabaseServerClient()
+
+  const { data, count } = await supabase
+    .from('news')
+    .select('id, title, summary, source_name, source_url, category, tags, published_at', { count: 'exact' })
+    .order('published_at', { ascending: false })
+    .range(0, 19)
+
+  const items = (data ?? []) as NewsRow[]
+
   return (
-    <SimplePage
-      title="News"
-      subtitle="Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and transparency-focused reporting."
-      sections={[
-        {
-          heading: 'Industry updates',
-          body: 'This page will collect cannabis market news, regulatory changes, public safety notices, and business accountability updates.',
-        },
-        {
-          heading: 'Transparency lens',
-          body: 'News content should focus on what consumers, patients, workers, and responsible operators need to know to make informed decisions.',
-        },
-      ]}
-    />
+    <PageShell>
+      <OrnatePanel className="district-page-intro">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">News</h1>
+        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+          Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and
+          transparency-focused reporting — refreshed automatically every two hours from trusted
+          public sources.
+        </p>
+      </OrnatePanel>
+
+      <section className="mt-8">
+        <NewsFeed initialItems={items} initialTotal={count ?? 0} />
+      </section>
+
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <Link href="/" className="text-sm font-semibold text-emerald-300 hover:underline">
+          Back to homepage
+        </Link>
+        <TrustBadge />
+      </div>
+    </PageShell>
   )
 }
