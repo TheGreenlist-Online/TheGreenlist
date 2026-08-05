@@ -1,10 +1,12 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
 const REPORT_TYPES = [
   { value: 'mislabeling', label: 'Mislabeling' },
@@ -26,6 +28,45 @@ export function ReportForm() {
   const [relatedBusiness, setRelatedBusiness] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type ReportDraft = {
+    reportType: string
+    title: string
+    description: string
+    locationState: string
+    locationCity: string
+    isAnonymous: boolean
+    relatedBusiness: string
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<ReportDraft>('report', {
+    reportType,
+    title,
+    description,
+    locationState,
+    locationCity,
+    isAnonymous,
+    relatedBusiness,
+  })
+
+  useEffect(() => {
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.reportType) setReportType(draft.reportType)
+      if (draft.title) setTitle(draft.title)
+      if (draft.description) setDescription(draft.description)
+      if (draft.locationState) setLocationState(draft.locationState)
+      if (draft.locationCity) setLocationCity(draft.locationCity)
+      if (draft.isAnonymous) setIsAnonymous(draft.isAnonymous)
+      if (draft.relatedBusiness) setRelatedBusiness(draft.relatedBusiness)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -65,6 +106,7 @@ export function ReportForm() {
         throw new Error(body?.error ?? 'The report could not be submitted.')
       }
 
+      await clearDraft()
       router.push(`/reports/${body.id}`)
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'The report could not be submitted.')
@@ -83,6 +125,19 @@ export function ReportForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {showRestoredBanner && restoredAt ? (
+            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
+              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button
+                type="button"
+                onClick={() => setShowRestoredBanner(false)}
+                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <label className="block space-y-2 text-sm font-medium" htmlFor="report-type">
               Report type
@@ -181,6 +236,12 @@ export function ReportForm() {
                 {error}
               </p>
             ) : null}
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">
+                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+              </span>
+            </div>
 
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Submitting…' : 'Submit Report'}

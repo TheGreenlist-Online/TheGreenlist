@@ -1,9 +1,11 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
+import { formatDistanceToNow } from 'date-fns'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
 const BUSINESS_TYPES = [
   { value: 'dispensary', label: 'Dispensary' },
@@ -23,6 +25,42 @@ export function ClaimBusinessForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<{ slug: string } | null>(null)
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type ClaimDraft = {
+    name: string
+    businessType: string
+    description: string
+    websiteUrl: string
+    state: string
+    city: string
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<ClaimDraft>('business_claim', {
+    name,
+    businessType,
+    description,
+    websiteUrl,
+    state,
+    city,
+  })
+
+  useEffect(() => {
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.name) setName(draft.name)
+      if (draft.businessType) setBusinessType(draft.businessType)
+      if (draft.description) setDescription(draft.description)
+      if (draft.websiteUrl) setWebsiteUrl(draft.websiteUrl)
+      if (draft.state) setState(draft.state)
+      if (draft.city) setCity(draft.city)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -61,6 +99,7 @@ export function ClaimBusinessForm() {
       setWebsiteUrl('')
       setState('')
       setCity('')
+      await clearDraft()
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'The business profile could not be created.')
     } finally {
@@ -78,6 +117,19 @@ export function ClaimBusinessForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {showRestoredBanner && restoredAt ? (
+            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
+              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button
+                type="button"
+                onClick={() => setShowRestoredBanner(false)}
+                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <label className="block space-y-2 text-sm font-medium" htmlFor="business-name">
               Business name
@@ -168,6 +220,12 @@ export function ClaimBusinessForm() {
                 </a>
               </div>
             ) : null}
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">
+                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+              </span>
+            </div>
 
             <Button className="w-full" type="submit" disabled={submitting}>
               {submitting ? 'Submitting…' : 'Submit Business Profile'}

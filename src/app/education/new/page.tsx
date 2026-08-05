@@ -3,9 +3,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, FlaskConical, Scale, ShieldCheck, Users } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
 const categories = [
   { value: 'SAFETY_GUIDE', title: 'Safety Guide', description: 'Testing standards, contamination prevention, consumer protection, labeling, and responsible-use information.', icon: ShieldCheck },
@@ -26,6 +28,41 @@ export default function EducationNewPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type EducationDraft = {
+    category: string
+    title: string
+    summary: string
+    content: string
+    sources: string
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<EducationDraft>(
+    'education_resource',
+    { category, title, summary, content, sources },
+    { enabled: !checkingSession && Boolean(userId) }
+  )
+
+  useEffect(() => {
+    if (checkingSession || !userId) return
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.category) setCategory(draft.category)
+      if (draft.title) setTitle(draft.title)
+      if (draft.summary) setSummary(draft.summary)
+      if (draft.content) setContent(draft.content)
+      if (draft.sources) setSources(draft.sources)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    return () => {
+      mounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkingSession, userId])
 
   useEffect(() => {
     let mounted = true
@@ -77,6 +114,7 @@ export default function EducationNewPage() {
     setSummary('')
     setContent('')
     setSources('')
+    await clearDraft()
     setMessage('Submission received. It is now marked Pending Review and will not be published until approved.')
   }
 
@@ -117,6 +155,20 @@ export default function EducationNewPage() {
               <div className="mt-6 rounded-xl border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">You are not signed in. The form stays visible so you can review what is required, but submission requires authentication. <Link className="font-bold text-lime-300 underline" href="/auth/signin?callbackUrl=/education/new">Sign in here</Link>.</div>
             ) : null}
 
+            {showRestoredBanner && restoredAt ? (
+              <div className="mt-6 flex items-start justify-between gap-3 rounded-xl border border-lime-300/30 bg-lime-950/20 p-4 text-sm text-lime-100">
+                <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+                <button
+                  type="button"
+                  onClick={() => setShowRestoredBanner(false)}
+                  className="shrink-0 text-xs font-medium text-zinc-400 hover:text-zinc-200"
+                  aria-label="Dismiss"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : null}
+
             <div className="mt-7 space-y-5">
               <label className="block text-sm font-semibold text-zinc-200">Title<Input className="mt-2" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required placeholder="A specific, factual title" /></label>
               <label className="block text-sm font-semibold text-zinc-200">Summary<textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={summary} onChange={(event) => setSummary(event.target.value)} minLength={20} maxLength={500} required placeholder="Explain what readers will learn and why it matters." /></label>
@@ -127,7 +179,11 @@ export default function EducationNewPage() {
             {error ? <div className="mt-5 rounded-xl border border-red-400/35 bg-red-950/30 p-4 text-sm text-red-100">{error}</div> : null}
             {message ? <div className="mt-5 rounded-xl border border-emerald-300/35 bg-emerald-950/30 p-4 text-sm text-emerald-100">{message}</div> : null}
 
-            <Button className="mt-6 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
+            <div className="mt-4 text-right text-xs text-zinc-500">
+              {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+            </div>
+
+            <Button className="mt-2 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
           </form>
 
           <aside className="rounded-3xl border border-amber-300/25 bg-[#0a120e]/88 p-6 md:p-8">

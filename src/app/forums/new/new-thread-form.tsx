@@ -1,10 +1,12 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
 type ForumOption = {
   id: string
@@ -28,6 +30,36 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState<{ forumSlug: string; threadSlug: string } | null>(null)
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type ThreadDraft = {
+    forumId: string
+    title: string
+    body: string
+    isAnonymous: boolean
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<ThreadDraft>('forum_thread', {
+    forumId,
+    title,
+    body,
+    isAnonymous,
+  })
+
+  useEffect(() => {
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.forumId) setForumId(draft.forumId)
+      if (draft.title) setTitle(draft.title)
+      if (draft.body) setBody(draft.body)
+      if (draft.isAnonymous) setIsAnonymous(draft.isAnonymous)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -70,6 +102,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
       setTitle('')
       setBody('')
       setIsAnonymous(false)
+      await clearDraft()
       if (forum && payload?.slug) {
         setSuccess({ forumSlug: forum.slug, threadSlug: payload.slug })
       } else if (forum) {
@@ -101,6 +134,19 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
           <CardDescription>Choose a forum, give your thread a clear title, and share the details.</CardDescription>
         </CardHeader>
         <CardContent>
+          {showRestoredBanner && restoredAt ? (
+            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
+              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button
+                type="button"
+                onClick={() => setShowRestoredBanner(false)}
+                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <label className="block space-y-2 text-sm font-medium" htmlFor="forum-select">
               Forum
@@ -175,6 +221,12 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
                 </a>
               </div>
             ) : null}
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">
+                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+              </span>
+            </div>
 
             <Button className="w-full" type="submit" disabled={submitting}>
               {submitting ? 'Posting…' : 'Create Thread'}
