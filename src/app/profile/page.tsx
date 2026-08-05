@@ -6,6 +6,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
 import { ScoreMeter } from '@/components/ScoreMeter'
+import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { normalizePlatformRole } from '@/lib/roles'
 
@@ -76,6 +77,15 @@ export default async function ProfilePage() {
   const role = normalizePlatformRole(profile.role)
   const memberSince = formatMemberSince(profile.created_at)
 
+  const { data: verifiedFactsData } = await supabase
+    .from('verified_facts')
+    .select('id, fact_text, category, source_url, verified_at')
+    .eq('subject_user_id', profile.id)
+    .order('verified_at', { ascending: false })
+    .returns<VerifiedFact[]>()
+
+  const verifiedFacts = verifiedFactsData ?? []
+
   return (
     <PageShell>
       <OrnatePanel>
@@ -143,6 +153,10 @@ export default async function ProfilePage() {
             <ScoreMeter label="Transparency" score={profile.transparency_score} />
           </div>
         </OrnatePanel>
+      </div>
+
+      <div className="mt-8">
+        <VerifiedWall facts={verifiedFacts} />
       </div>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4">

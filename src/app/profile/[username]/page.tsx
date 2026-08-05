@@ -7,6 +7,8 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
 import { ScoreMeter } from '@/components/ScoreMeter'
+import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { normalizePlatformRole } from '@/lib/roles'
 
 type PublicProfile = {
@@ -37,6 +39,22 @@ async function getBaseUrl() {
   const host = headerList.get('host')
   const protocol = process.env.NODE_ENV === 'development' || host?.includes('localhost') ? 'http' : 'https'
   return `${protocol}://${host}`
+}
+
+async function fetchVerifiedFacts(subjectUserId: string): Promise<VerifiedFact[]> {
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data } = await supabase
+      .from('verified_facts')
+      .select('id, fact_text, category, source_url, verified_at')
+      .eq('subject_user_id', subjectUserId)
+      .order('verified_at', { ascending: false })
+      .returns<VerifiedFact[]>()
+    return data ?? []
+  } catch (error) {
+    console.error('Error fetching verified facts for profile:', error)
+    return []
+  }
 }
 
 async function fetchProfile(username: string): Promise<{ profile: PublicProfile | null; status: number }> {
@@ -79,6 +97,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   }
 
   const isMinimal = profile.is_public === false && !profile.role
+  const verifiedFacts = !isMinimal && profile.id ? await fetchVerifiedFacts(profile.id) : []
 
   return (
     <PageShell>
@@ -141,6 +160,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               <ScoreMeter label="Transparency" score={profile.transparency_score} />
             </div>
           </OrnatePanel>
+        </div>
+      ) : null}
+
+      {!isMinimal ? (
+        <div className="mt-8">
+          <VerifiedWall facts={verifiedFacts} />
         </div>
       ) : null}
 

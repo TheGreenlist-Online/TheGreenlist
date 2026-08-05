@@ -3,13 +3,17 @@ import { notFound } from 'next/navigation'
 import { BadgeCheck, ExternalLink, MapPin, ShieldCheck, Star } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
+import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
+import { BusinessDocumentsSection, type BusinessDocument } from '@/components/BusinessDocumentsSection'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { normalizePlatformRole, hasPermission } from '@/lib/roles'
 
 export const revalidate = 0
 
 type BusinessRow = {
   id: string
   slug: string
+  owner_id: string | null
   name: string
   business_type: string | null
   description: string | null
@@ -47,6 +51,60 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
     .maybeSingle<BusinessRow>()
 
   if (!business) notFound()
+
+  const {
+    data: { user: requester },
+  } = await supabase.auth.getUser()
+
+  let isOwner = false
+  let isAdmin = false
+  if (requester) {
+    isOwner = requester.id === business.owner_id
+    if (!isOwner) {
+      const { data: requesterProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', requester.id)
+        .maybeSingle<{ role: string | null }>()
+      const role = normalizePlatformRole(requesterProfile?.role)
+      const isPlatformOwner = requester.app_metadata?.platform_owner === true
+      isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
+    }
+  }
+  const isOwnerOrAdmin = isOwner || isAdmin
+
+  const { data: verifiedFactsData } = await supabase
+    .from('verified_facts')
+    .select('id, fact_text, category, source_url, verified_at')
+    .eq('subject_business_id', business.id)
+    .order('verified_at', { ascending: false })
+    .returns<VerifiedFact[]>()
+  const verifiedFacts = verifiedFactsData ?? []
+
+  let documentsQuery = supabase
+    .from('business_documents')
+    .select('id, title, doc_type, file_url, status, review_note, created_at')
+    .eq('business_id', business.id)
+    .order('created_at', { ascending: false })
+
+  if (!isOwnerOrAdmin) {
+    documentsQuery = documentsQuery.eq('status', 'approved')
+  }
+
+  const { data: documentsData } = await documentsQuery.returns<BusinessDocument[]>()
+  const rawDocuments = documentsData ?? []
+
+  // file_url stores a private storage path (business-documents bucket); resolve
+  // short-lived signed URLs here so the client only ever sees a working link.
+  const allDocuments = await Promise.all(
+    rawDocuments.map(async (doc) => {
+      const { data: signed } = await supabase.storage
+        .from('business-documents')
+        .createSignedUrl(doc.file_url, 60 * 60)
+      return { ...doc, file_url: signed?.signedUrl ?? doc.file_url }
+    }),
+  )
+  const approvedDocuments = allDocuments.filter((doc) => doc.status === 'approved')
 
   return (
     <PageShell>
@@ -125,6 +183,20 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
           </div>
         </dl>
       </OrnatePanel>
+
+      <div className="mt-8">
+        <VerifiedWall facts={verifiedFacts} />
+      </div>
+
+      <div className="mt-8">
+        <BusinessDocumentsSection
+          businessId={business.id}
+          slug={business.slug}
+          approvedDocs={approvedDocuments}
+          ownDocs={isOwnerOrAdmin ? allDocuments : []}
+          isOwner={isOwner}
+        />
+      </div>
 
       <OrnatePanel className="mt-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Related reports</p>

@@ -37,6 +37,8 @@ export async function AdminSectionPage({ title, description }: { title: string; 
           ['Submissions', '/admin/submissions', 'Evaluate incoming community submissions and intake quality.'],
           ['Audit logs', '/admin/audit-logs', 'Track operational events and moderation audit records.'],
           ['NDA agreement', '/admin/nda', 'Sign the confidentiality agreement required to review sensitive content.'],
+          ['Verified Wall', '/admin/verified-facts', 'Add or remove moderator-verified facts on profiles and business pages.'],
+          ['Business documents', '/admin/business-documents', 'Approve or reject licenses, lab results, and permits.'],
         ].map(([label, href, cardDescription]) => (
           <FeatureCard key={href} title={label} href={href} description={cardDescription} />
         ))}
