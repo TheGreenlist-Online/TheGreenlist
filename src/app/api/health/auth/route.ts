@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, getDatabaseUrl } from '@/lib/prisma'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
@@ -8,7 +8,7 @@ export async function GET() {
   const checks = {
     supabaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseKeyConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
-    databaseUrlConfigured: Boolean(process.env.DATABASE_URL),
+    databaseUrlConfigured: Boolean(getDatabaseUrl()),
     supabaseReachable: false,
     databaseReachable: false,
     usersTableReachable: false,

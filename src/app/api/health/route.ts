@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, getDatabaseUrl } from '@/lib/prisma'
 
 export async function GET() {
   const requiredSupabaseEnv = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']
   const missingSupabaseEnv = requiredSupabaseEnv.filter((key) => !process.env[key])
-  let database: 'ok' | 'unconfigured' | 'error' = process.env.DATABASE_URL ? 'ok' : 'unconfigured'
+  const databaseUrl = getDatabaseUrl()
+  let database: 'ok' | 'unconfigured' | 'error' = databaseUrl ? 'ok' : 'unconfigured'
 
-  if (process.env.DATABASE_URL) {
+  if (databaseUrl) {
     try {
       await prisma.$queryRaw`SELECT 1`
       database = 'ok'
