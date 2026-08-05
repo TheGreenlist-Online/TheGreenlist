@@ -36,7 +36,7 @@ const adminCards = [
   { title: 'Evidence Review Queue', body: 'Review private evidence and report context under administrator access controls.', href: '/admin/review' },
   { title: 'Submission Queue', body: 'Review reports, educational resources, and other pending submissions.', href: '/admin/submissions' },
   { title: 'Moderation Queue', body: 'Handle flagged reports and community content.', href: '/admin/moderation' },
-  { title: 'Audit Logs', body: 'Review protected operational and role-management events.', href: '/admin/logs' },
+  { title: 'Audit Logs', body: 'Review protected operational and role-management events.', href: '/admin/audit-logs' },
 ]
 
 type DashboardProfile = {
