@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { PageShell } from '@/components/PageShell'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { ReportForm } from './report-form'
 
@@ -21,23 +23,19 @@ export default async function ReportsNewPage() {
   }
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-12">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Submit a Report</p>
-            <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">
-              Transparency Through Documented Accountability
-            </h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">
-              Share your experience with evidence, context, and documentation to help the cannabis community
-              understand and address accountability issues.
-            </p>
-          </div>
-        </section>
+    <PageShell>
+      <OrnatePanel className="mb-12">
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Submit a Report</p>
+        <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">
+          Transparency Through Documented Accountability
+        </h1>
+        <p className="mt-4 max-w-3xl text-muted-foreground">
+          Share your experience with evidence, context, and documentation to help the cannabis community
+          understand and address accountability issues.
+        </p>
+      </OrnatePanel>
 
-        <ReportForm />
-      </main>
-    </div>
+      <ReportForm />
+    </PageShell>
   )
 }

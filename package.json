@@ -5,23 +5,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/build-safe.js",
+    "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint .",
-    "test": "prisma validate 2>/dev/null || true",
     "dns:list": "npx ts-node scripts/porkbun-dns.ts list",
     "dns:setup-vercel": "npx ts-node scripts/porkbun-dns.ts setup-vercel",
     "dns:setup-clerk": "npx ts-node scripts/porkbun-dns.ts setup-clerk",
-    "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:status": "prisma migrate status",
-    "db:studio": "prisma studio"
+    "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all"
   },
   "dependencies": {
-    "@prisma/client": "5.22.0",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.10.3",
@@ -52,7 +44,6 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.6",
     "postcss": "^8.5.10",
-    "prisma": "5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
@@ -60,8 +51,6 @@
     "glob": "^10.5.0",
     "mime": "^3.0.0",
     "postcss": "^8.5.10",
-    "uuid": "^11.1.1",
-    "prisma": "5.22.0",
-    "@prisma/client": "5.22.0"
+    "uuid": "^11.1.1"
   }
 }
