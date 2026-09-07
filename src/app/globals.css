@@ -45,8 +45,7 @@
   ::selection { background: rgba(75, 196, 116, .28); color: #fff; }
 }
 
-/* Site-wide ambient smoke background video (see SmokeBackground.tsx). Fixed,
-   full-viewport, pinned to the bottom edge, sits behind all content. */
+/* One shared Green List visual-system shell, inherited by every district. */
 .smoke-bg {
   position: fixed;
   inset: 0;
@@ -55,19 +54,22 @@
   pointer-events: none;
   background: #070a08;
 }
-.smoke-bg__video {
+.greenlist-shell-bg__art,
+.greenlist-shell-bg__veil {
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 100%;
-  min-width: 1600px;
-  height: auto;
-  transform: translateX(-50%);
-  opacity: .55;
-  mix-blend-mode: screen;
+  inset: 0;
 }
-@media (prefers-reduced-motion: reduce) {
-  .smoke-bg__video { display: none; }
+.greenlist-shell-bg__art {
+  background-image: url('/media/greenlist-shell-bg.webp');
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(1.08) contrast(1.03);
+}
+.greenlist-shell-bg__veil {
+  background:
+    linear-gradient(180deg, rgba(4, 5, 4, .08), rgba(4, 5, 4, .48)),
+    radial-gradient(circle at 50% 38%, transparent 0 24rem, rgba(2, 3, 2, .22) 58rem);
 }
 .site-frame, .greenlist-home, .smoke-surface, .greenlist-template-bg { position: relative; z-index: 1; }
 
@@ -94,7 +96,7 @@
 
 .site-header {
   border-bottom: 1px solid rgba(255,255,255,.08);
-  background: rgba(7,10,8,.9);
+  background: rgba(7,10,8,.78);
   box-shadow: 0 8px 30px rgba(0,0,0,.12);
   backdrop-filter: blur(18px) saturate(1.2);
 }
@@ -104,7 +106,12 @@
   position: relative;
   min-height: calc(100vh - var(--compliance-banner-height));
 }
-.site-frame__content { min-height: 60vh; }
+.site-frame__content {
+  min-height: 60vh;
+  background: linear-gradient(180deg, rgba(5,8,6,.14), rgba(5,8,6,.36));
+}
+/* Tailwind's opaque page canvas previously hid every root-shell change. */
+.site-frame__content .bg-background { background-color: transparent !important; }
 .site-frame::before {
   content: '';
   position: fixed;
@@ -143,7 +150,7 @@
   background:
     linear-gradient(90deg, rgba(7,10,8,.97), rgba(7,10,8,.7) 56%, rgba(7,10,8,.93)),
     radial-gradient(circle at 70% 20%, rgba(55,142,84,.2), transparent 30rem),
-    #080c09;
+    rgba(8,12,9,.36);
 }
 .greenlist-hero::before {
   content: '';
@@ -181,7 +188,7 @@
 .greenlist-pillar__title { color: #e8ece8; font-size: .78rem; font-weight: 650; }
 .greenlist-pillar__subtitle { color: #758078; font-size: .64rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 
-.greenlist-section { padding: clamp(4rem,8vw,7rem) 1rem; background: #090d0a; }
+.greenlist-section { padding: clamp(4rem,8vw,7rem) 1rem; background: rgba(9,13,10,.72); backdrop-filter: blur(3px); }
 .greenlist-section__heading { width: min(1120px,100%); margin: 0 auto 2.5rem; text-align: left; }
 .greenlist-section__heading p { display: flex; align-items: center; gap: .5rem; color: #57c77c; font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .greenlist-section__heading h2 { max-width: 760px; margin-top: .8rem; color: #edf1ed; font-size: clamp(2.2rem,5vw,4rem); font-weight: 650; line-height: 1; }
@@ -224,4 +231,9 @@
   .greenlist-civic-panel { width: calc(100% - 1.5rem); }
   .district-ribbon__inner { align-items: flex-start; flex-wrap: wrap; gap: .35rem .6rem; }
   .district-ribbon__inner > span:last-child { width: 100%; padding-left: 1rem; }
+}
+
+@media (max-width: 640px) {
+  .greenlist-shell-bg__art { background-position: 52% top; }
+  .greenlist-shell-bg__veil { background-color: rgba(3,5,3,.12); }
 }
