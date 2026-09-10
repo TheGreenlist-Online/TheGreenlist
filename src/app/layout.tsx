@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Rampart_One, Permanent_Marker, Rubik_Puddles } from 'next/font/google'
+
+const rampart = Rampart_One({ weight: '400', subsets: ['latin'], variable: '--font-graffiti', display: 'swap' })
+const marker = Permanent_Marker({ weight: '400', subsets: ['latin'], variable: '--font-marker', display: 'swap' })
+const puddles = Rubik_Puddles({ weight: '400', subsets: ['latin'], variable: '--font-drip', display: 'swap' })
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
@@ -46,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${rampart.variable} ${marker.variable} ${puddles.variable}`}>
       <body className="font-sans">
         <SmokeBackground />
         <Providers>
