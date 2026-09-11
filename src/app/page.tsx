@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   BookOpen,
   Building2,
@@ -93,18 +94,22 @@ export default function HomePage() {
       <section className="greenlist-hero" aria-labelledby="home-heading">
 
         <div className="greenlist-hero__inner">
-          <div className="greenlist-seal" aria-hidden="true">
-            <span className="greenlist-seal__ring">Truth · Transparency · Trust</span>
-            <div className="greenlist-seal__leaf"><Leaf strokeWidth={1.5} /></div>
-          </div>
+          <Image
+            src="/brand/greenlist-mark.png"
+            alt="The Green List"
+            width={512}
+            height={512}
+            priority
+            className="greenlist-hero__logo"
+          />
 
-          <p className="greenlist-kicker">Cannabis transparency and accountability</p>
+          <p className="greenlist-kicker">Truth &middot; Transparency &middot; Trust</p>
           <h1 id="home-heading" className="greenlist-wordmark">
             <span className="greenlist-wordmark__the">The</span>
             <span className="greenlist-wordmark__green">Green</span>
             <span className="greenlist-wordmark__list">List</span>
           </h1>
-          <p className="greenlist-hero__tagline">Accountability above all.</p>
+          <p className="greenlist-hero__tagline">Excellence in every truth.</p>
           <p className="greenlist-hero__copy">
             A public-interest platform for verified business reputation, evidence-led reports, education, and community trust.
             No marketplace. No ordering. No cannabis sales.

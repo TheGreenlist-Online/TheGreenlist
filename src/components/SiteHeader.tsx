@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Leaf, LogOut, Menu, UserRound, X } from 'lucide-react'
+import Image from 'next/image'
+import { LogOut, Menu, UserRound, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
@@ -58,13 +59,20 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="site-brand" aria-label="The Green List home">
-            <span className="site-brand__mark"><Leaf /></span>
-            <span>The Green List</span>
+            <span className="site-brand__mark">
+              <Image src="/brand/greenlist-leaf.png" alt="" width={40} height={40} priority />
+            </span>
+            <span className="site-brand__text">
+              <span className="site-brand__name">
+                The <em>Green</em> List
+              </span>
+              <span className="site-brand__tag">Transparency &middot; Accountability</span>
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-emerald-300">
+              <Link key={item.href} href={item.href} className="transition hover:text-[#a3d93b]">
                 {item.label}
               </Link>
             ))}
@@ -107,7 +115,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-emerald-300/10 hover:text-emerald-200"
+                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
               >
                 {item.label}
               </Link>
@@ -115,7 +123,7 @@ export function SiteHeader() {
             <Link
               href={pathname.startsWith('/town') ? '/' : '/town'}
               onClick={() => setIsOpen(false)}
-              className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+              className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
             >
               {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
             </Link>
@@ -133,7 +141,7 @@ export function SiteHeader() {
               <Link
                 href="/auth/signin"
                 onClick={() => setIsOpen(false)}
-                className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+                className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
               >
                 Sign in
               </Link>

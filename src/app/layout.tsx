@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Rampart_One, Permanent_Marker, Rubik_Puddles } from 'next/font/google'
+import { Inter } from 'next/font/google'
 
-const rampart = Rampart_One({ weight: '400', subsets: ['latin'], variable: '--font-graffiti', display: 'swap' })
-const marker = Permanent_Marker({ weight: '400', subsets: ['latin'], variable: '--font-marker', display: 'swap' })
-const puddles = Rubik_Puddles({ weight: '400', subsets: ['latin'], variable: '--font-drip', display: 'swap' })
+// One voice: Inter for the entire interface. The brand's graffiti character
+// lives in the logo lockup, not in the body copy.
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
@@ -37,6 +41,10 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'The Green List',
@@ -51,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${rampart.variable} ${marker.variable} ${puddles.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body className="font-sans">
         <SmokeBackground />
         <Providers>

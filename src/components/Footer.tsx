@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 const footerLinks = {
   platform: [
@@ -18,21 +19,39 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="mt-12 border-t border-white/10 bg-[#070a08]">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3">
+    <footer className="site-footer mt-16">
+      <div className="site-footer__rule" />
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-3">
         <div>
-          <p className="text-lg font-semibold tracking-tight text-zinc-100">The Green List</p>
-          <p className="mt-3 max-w-sm text-sm text-zinc-300">
-            Transparency, accountability, forums, reports, evidence, and trust signals for the cannabis community.
+          <div className="flex items-center gap-3">
+            <Image
+              src="/brand/greenlist-mark.png"
+              alt="The Green List"
+              width={104}
+              height={104}
+              className="site-footer__mark"
+            />
+            <div className="leading-tight">
+              <p className="text-base font-bold tracking-tight text-[#f7f7f2]">
+                The <span className="text-[#a3d93b]">Green</span> List
+              </p>
+              <p className="mt-1 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#949c94]">
+                thegreenlist.online
+              </p>
+            </div>
+          </div>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#949c94]">
+            Transparency, accountability, forums, reports, evidence, and trust signals for the
+            cannabis community.
           </p>
         </div>
 
         <div>
-          <h3 className="font-semibold text-emerald-200">Platform</h3>
-          <ul className="mt-3 space-y-2">
+          <h3>Platform</h3>
+          <ul className="mt-4 space-y-2.5">
             {footerLinks.platform.map((link) => (
               <li key={link.name}>
-                <Link href={link.href} className="text-sm text-zinc-300 transition hover:text-emerald-300">
+                <Link href={link.href} className="text-sm">
                   {link.name}
                 </Link>
               </li>
@@ -41,11 +60,11 @@ export function Footer() {
         </div>
 
         <div>
-          <h3 className="font-semibold text-emerald-200">Legal</h3>
-          <ul className="mt-3 space-y-2">
+          <h3>Legal</h3>
+          <ul className="mt-4 space-y-2.5">
             {footerLinks.legal.map((link) => (
               <li key={link.name}>
-                <Link href={link.href} className="text-sm text-zinc-300 transition hover:text-emerald-300">
+                <Link href={link.href} className="text-sm">
                   {link.name}
                 </Link>
               </li>
@@ -54,7 +73,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4 text-center text-xs text-zinc-500">
+      <div className="border-t border-white/[.06] py-5 text-center text-xs text-[#6f766f]">
         © 2026 The Green List · Built for Truth. Driven by Community.
       </div>
     </footer>

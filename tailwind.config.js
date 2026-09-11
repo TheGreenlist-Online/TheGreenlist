@@ -57,15 +57,37 @@ module.exports = {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: '#00ff88',
+          DEFAULT: '#a3d93b',
           foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
-        surface: '#1a1a1a',
-        text: '#ffffff',
+        surface: '#0b0d0b',
+        text: '#f7f7f2',
+        brand: {
+          black: '#050605',
+          gold: '#c9a227',
+          lime: '#a3d93b',
+          green: '#4ea83f',
+        },
+        // The app used Tailwind's stock emerald (a blue-leaning teal) in ~300
+        // places, which fought the logo's yellow-green. Retinting the ramp
+        // brings every existing usage onto the brand palette at once.
+        emerald: {
+          50: '#f5fbe8',
+          100: '#eaf6cf',
+          200: '#cfe9a0',
+          300: '#a3d93b',
+          400: '#7ec13a',
+          500: '#4ea83f',
+          600: '#3d8a33',
+          700: '#2f6b29',
+          800: '#254f21',
+          900: '#1d3f16',
+          950: '#06110a',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -73,7 +95,7 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },
