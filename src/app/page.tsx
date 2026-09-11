@@ -75,7 +75,7 @@ const districts = [
     title: 'Education Center',
     eyebrow: 'Public-interest knowledge',
     description: 'Review policy context, consumer safety guidance, and transparent educational resources.',
-    href: '/education/new',
+    href: '/education',
     icon: BookOpen,
   },
   {
