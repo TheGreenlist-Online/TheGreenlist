@@ -53,7 +53,7 @@ export function BusinessDocumentsAdmin({ initialDocuments }: { initialDocuments:
   return (
     <div className="rounded-xl border border-white/[.09] bg-brand-panel">
       <div className="border-b border-white/10 p-4">
-        <h2 className="text-lg font-semibold text-zinc-100">Pending documents</h2>
+        <h2 className="greenlist-card-title">Pending documents</h2>
       </div>
 
       {error ? <div className="border-b border-red-400/20 bg-red-950/20 px-4 py-2 text-sm text-red-200">{error}</div> : null}

@@ -277,7 +277,7 @@ export function EvidenceUploadForm({
               </label>
             ) : (
               <div className="space-y-4 rounded-lg border border-primary/25 p-4">
-                <h2 className="font-semibold">New report context</h2>
+                <h2 className="greenlist-card-title">New report context</h2>
                 <label className="block space-y-2 text-sm font-medium" htmlFor="report-type">
                   Report type
                   <select

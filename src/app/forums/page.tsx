@@ -98,7 +98,7 @@ export default async function ForumsPage() {
                           className="h-3 w-3 rounded-full"
                           style={{ backgroundColor: forum.accent_color || '#34d399' }}
                         />
-                        <h3 className="text-lg font-semibold text-zinc-100">{forum.name}</h3>
+                        <h3 className="greenlist-card-title">{forum.name}</h3>
                       </div>
                       {forum.description ? (
                         <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-400">{forum.description}</p>

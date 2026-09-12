@@ -45,7 +45,7 @@ function NewsCard({ item }: { item: NewsRow }) {
         <span>{formatPublished(item.published_at)}</span>
       </div>
 
-      <h3 className="mt-3 text-lg font-semibold leading-6 text-zinc-100">{item.title}</h3>
+      <h3 className="greenlist-card-title mt-3">{item.title}</h3>
 
       {item.summary ? (
         <p className="mt-2 flex-1 text-sm leading-6 text-zinc-400">{item.summary}</p>

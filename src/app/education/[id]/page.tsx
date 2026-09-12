@@ -96,7 +96,7 @@ export default async function EducationDetailPage({
 
         {sourceUrls.length > 0 ? (
           <div className="mt-8 border-t border-white/10 pt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Sources</h2>
+            <h2 className="greenlist-eyebrow">Sources</h2>
             <ul className="mt-3 space-y-2">
               {sourceUrls.map((url) => (
                 <li key={url}>

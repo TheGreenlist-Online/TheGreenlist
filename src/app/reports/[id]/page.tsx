@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { ArrowLeft, MapPin, ShieldAlert } from 'lucide-react'
+import { statusToneClass, type StatusTone } from '@/lib/statusTones'
 
 export const metadata = {
   title: 'Report Detail - The Green List',
@@ -28,15 +29,19 @@ type ReportDetailRow = {
   updated_at: string
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  submitted: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  under_review: 'border-cyan-300/35 bg-cyan-950/25 text-cyan-200',
-  business_response_requested: 'border-orange-300/35 bg-orange-950/25 text-orange-200',
-  substantiated: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
-  unsubstantiated: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  inconclusive: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  resolved: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
+const REPORT_STATUS_TONES: Record<string, StatusTone> = {
+  submitted: 'pending',
+  under_review: 'progress',
+  business_response_requested: 'progress',
+  substantiated: 'success',
+  unsubstantiated: 'neutral',
+  inconclusive: 'neutral',
+  resolved: 'success',
 }
+
+const STATUS_STYLES: Record<string, string> = Object.fromEntries(
+  Object.entries(REPORT_STATUS_TONES).map(([status, tone]) => [status, statusToneClass[tone]]),
+)
 
 // NOTE (phase 2 TODO): public visibility for resolved/substantiated reports (via
 // public_summary, for non-owners / unauthenticated visitors) is not implemented yet.
@@ -107,13 +112,13 @@ export default async function ReportDetailPage({
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Description</h2>
+          <h2 className="greenlist-eyebrow">Description</h2>
           <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-300">{report.description}</p>
         </div>
 
         {report.public_summary ? (
           <div className="mt-6 border-t border-white/10 pt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Public summary</h2>
+            <h2 className="greenlist-eyebrow">Public summary</h2>
             <p className="mt-3 leading-7 text-zinc-300">{report.public_summary}</p>
           </div>
         ) : null}

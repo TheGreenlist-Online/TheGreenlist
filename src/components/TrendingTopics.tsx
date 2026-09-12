@@ -20,7 +20,7 @@ export function TrendingTopics() {
     <div className="rounded-lg border bg-card p-6">
       <div className="flex items-center space-x-2 mb-6">
         <TrendingUp className="h-5 w-5 text-accent" />
-        <h3 className="font-semibold">Trending Topics</h3>
+        <h3 className="greenlist-card-title">Trending Topics</h3>
       </div>
 
       <div className="space-y-3">

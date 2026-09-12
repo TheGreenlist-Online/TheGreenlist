@@ -49,7 +49,7 @@ export default async function AdminNdaPage() {
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Agreement signed</h2>
+              <h2 className="greenlist-card-title">Agreement signed</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-400">
                 You signed document version <span className="font-semibold text-zinc-200">{signature.document_version}</span> on{' '}
                 <span className="font-semibold text-zinc-200">{new Date(signature.signed_at).toLocaleString()}</span>.
@@ -60,7 +60,7 @@ export default async function AdminNdaPage() {
         </OrnatePanel>
       ) : (
         <OrnatePanel className="mt-8">
-          <h2 className="text-lg font-semibold text-zinc-100">Confidentiality statement</h2>
+          <h2 className="greenlist-card-title">Confidentiality statement</h2>
           <div className="mt-4 max-h-96 space-y-4 overflow-y-auto rounded-lg border border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-300">
             <p>
               As a moderator or administrator of The Green List, you may be granted access to sensitive user

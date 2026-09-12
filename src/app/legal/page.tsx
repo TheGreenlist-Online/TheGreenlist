@@ -106,25 +106,25 @@ export default function LegalHub() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">Age Verification</h3>
+                  <h3 className="greenlist-card-title mb-2">Age Verification</h3>
                   <p className="text-sm text-muted-foreground">
                     By using The Green List, you confirm that you are at least 21 years of age or meet the minimum legal age in your jurisdiction. Content is for adults only.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Legal Compliance</h3>
+                  <h3 className="greenlist-card-title mb-2">Legal Compliance</h3>
                   <p className="text-sm text-muted-foreground">
                     The Green List complies with applicable federal, state, and local laws. We do not facilitate illegal activities. Cannabis regulations vary by jurisdiction, so consult local authorities.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">User-Generated Content</h3>
+                  <h3 className="greenlist-card-title mb-2">User-Generated Content</h3>
                   <p className="text-sm text-muted-foreground">
                     All reviews, forum posts, reports, and community submissions are user-generated. Content is published for community discussion and accountability review.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Moderation & Safety</h3>
+                  <h3 className="greenlist-card-title mb-2">Moderation & Safety</h3>
                   <p className="text-sm text-muted-foreground">
                     We maintain community standards and moderate content to prevent harassment, hate speech, defamation, and illegal activity. See our Terms for details on enforcement.
                   </p>

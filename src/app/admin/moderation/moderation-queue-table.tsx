@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ModerationQueueRow } from '@/types/moderation'
+import { statusToneClass, type StatusTone } from '@/lib/statusTones'
 
 const STATUS_FILTERS: { label: string; value: string | null }[] = [
   { label: 'All', value: null },
@@ -14,16 +15,16 @@ const STATUS_FILTERS: { label: string; value: string | null }[] = [
 ]
 
 const RISK_STYLES: Record<string, string> = {
-  low: 'border-zinc-400/35 bg-zinc-800/35 text-zinc-300',
-  medium: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  high: 'border-orange-300/35 bg-orange-950/25 text-orange-200',
-  critical: 'border-red-400/35 bg-red-950/25 text-red-200',
+  low: statusToneClass.neutral,
+  medium: statusToneClass.pending,
+  high: statusToneClass.danger,
+  critical: statusToneClass.critical,
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  in_review: 'border-sky-300/35 bg-sky-950/25 text-sky-200',
-  resolved: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
+  pending: statusToneClass.pending,
+  in_review: statusToneClass.progress,
+  resolved: statusToneClass.success,
 }
 
 function Badge({ label, styleMap }: { label: string; styleMap: Record<string, string> }) {
@@ -159,7 +160,7 @@ export function ModerationQueueTable({ initialItems }: { initialItems: Moderatio
                         type="button"
                         disabled={savingId === item.id || item.status === 'in_review'}
                         onClick={() => updateItem(item.id, { status: 'in_review' })}
-                        className="rounded-full border border-sky-300/35 bg-sky-950/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-sky-200 transition hover:bg-sky-900/40 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-full border border-white/20 bg-white/[.05] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Mark in review
                       </button>

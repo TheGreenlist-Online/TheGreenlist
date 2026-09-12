@@ -8,6 +8,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { RoleBadge } from '@/components/RoleBadge'
 import { NewsRefreshPanel } from './news-refresh-panel'
 import { ShieldAlert } from 'lucide-react'
+import { statusToneClass } from '@/lib/statusTones'
 
 export const metadata = {
   title: 'News - Admin',
@@ -26,10 +27,10 @@ type AutomationJobRow = {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  running: 'border-sky-300/35 bg-sky-950/25 text-sky-200',
-  success: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
-  partial: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  error: 'border-red-400/35 bg-red-950/25 text-red-200',
+  running: statusToneClass.progress,
+  success: statusToneClass.success,
+  partial: statusToneClass.pending,
+  error: statusToneClass.danger,
 }
 
 export default async function AdminNewsPage() {
@@ -87,7 +88,7 @@ export default async function AdminNewsPage() {
       <section className="mt-8">
         <div className="rounded-xl border border-white/[.09] bg-brand-panel">
           <div className="border-b border-white/10 p-4">
-            <h2 className="text-lg font-semibold text-zinc-100">Recent refresh runs</h2>
+            <h2 className="greenlist-card-title">Recent refresh runs</h2>
           </div>
           {jobs.length === 0 ? (
             <p className="p-6 text-sm text-zinc-500">No refresh runs recorded yet.</p>

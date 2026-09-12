@@ -38,7 +38,7 @@ export function RecentPosts() {
   if (isLoading) {
     return (
       <section className="py-12">
-        <h2 className="text-3xl font-bold tracking-tight mb-8">Recent Posts</h2>
+        <h2 className="greenlist-section-title mb-8">Recent Posts</h2>
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="animate-pulse">
@@ -54,7 +54,7 @@ export function RecentPosts() {
   return (
     <section className="py-12">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Recent Posts</h2>
+        <h2 className="greenlist-section-title">Recent Posts</h2>
         <Link
           href="/posts"
           className="text-sm font-medium text-accent hover:text-accent/80"
@@ -75,7 +75,7 @@ export function RecentPosts() {
             <Link href={`/posts/${post.id}`}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2 group-hover:text-accent transition-colors">
+                  <h3 className="greenlist-card-title mb-2 transition-colors group-hover:text-accent">
                     {post.title}
                   </h3>
                   <p className="text-muted-foreground text-sm mb-3 line-clamp-2">

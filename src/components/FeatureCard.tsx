@@ -17,7 +17,7 @@ export function FeatureCard({ title, description, href, icon }: FeatureCardProps
           <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[.06] p-2 text-emerald-300">{icon}</div>
         ) : null}
         <div>
-          <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
+          <h3 className="greenlist-card-title">{title}</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
         </div>
       </div>
