@@ -59,7 +59,7 @@ export default async function EducationPage({
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Knowledge Library</p>
+        <p className="greenlist-eyebrow">Knowledge Library</p>
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
           Cannabis education & accountability resources
         </h1>

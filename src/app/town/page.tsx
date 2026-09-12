@@ -65,7 +65,7 @@ export default function TownPage() {
                 <h2 className="mt-6 text-2xl text-amber-100">{name}</h2>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">{description}</p>
                 <span className="mt-4 inline-flex rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">{availability}</span>
-                <span className="mt-5 inline-flex text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                <span className="mt-5 inline-flex greenlist-eyebrow">
                   Enter location →
                 </span>
               </div>

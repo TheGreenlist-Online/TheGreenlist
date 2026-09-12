@@ -56,7 +56,7 @@ export default async function ProfilePage() {
     return (
       <PageShell>
         <OrnatePanel className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Profile</p>
+          <p className="greenlist-eyebrow">Profile</p>
           <h1 className="mt-3 text-3xl font-semibold text-zinc-100">Let&apos;s set up your profile</h1>
           <p className="mx-auto mt-4 max-w-xl leading-7 text-zinc-400">
             We couldn&apos;t find a profile for your account yet. Complete your profile to choose a username,
@@ -100,7 +100,7 @@ export default async function ProfilePage() {
               )}
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">My Profile</p>
+              <p className="greenlist-eyebrow">My Profile</p>
               <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">
                 {profile.display_name || profile.username || 'Unnamed member'}
               </h1>
@@ -142,13 +142,13 @@ export default async function ProfilePage() {
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Trust score</p>
+          <p className="greenlist-eyebrow">Trust score</p>
           <div className="mt-4">
             <ScoreMeter label="Trust" score={profile.trust_score} />
           </div>
         </OrnatePanel>
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Transparency score</p>
+          <p className="greenlist-eyebrow">Transparency score</p>
           <div className="mt-4">
             <ScoreMeter label="Transparency" score={profile.transparency_score} />
           </div>

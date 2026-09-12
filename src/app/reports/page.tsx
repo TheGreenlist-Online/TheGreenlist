@@ -65,7 +65,7 @@ export default async function ReportsPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Reports Bureau</p>
+        <p className="greenlist-eyebrow">Reports Bureau</p>
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
           Structured accountability reports
         </h1>
@@ -85,7 +85,7 @@ export default async function ReportsPage() {
       </OrnatePanel>
 
       <section className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Your reports</p>
+        <p className="greenlist-eyebrow">Your reports</p>
         <h2 className="mt-2 text-2xl text-amber-100">My filed reports</h2>
 
         {!user ? (

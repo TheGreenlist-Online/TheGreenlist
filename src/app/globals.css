@@ -121,7 +121,11 @@
   pointer-events: none;
   background: radial-gradient(circle at 72% 0%, var(--district-glow), transparent 38rem);
 }
-.site-frame > * { position: relative; }
+/* The blanket `position: relative` below outranks Tailwind's `sticky` utility
+   (0,1,1 vs 0,1,0). Applied to the header it turned `top` into a relative
+   offset, pushing the header down over the district ribbon — hiding the ribbon
+   on every page — and silently killing sticky scroll. Exclude the header. */
+.site-frame > *:not(.site-header) { position: relative; }
 .district--reports { --district-accent: 73, 153, 116; --district-glow: rgba(53, 121, 91, .13); }
 .district--forums { --district-accent: 65, 167, 137; --district-glow: rgba(45, 125, 108, .12); }
 .district--businesses { --district-accent: 87, 158, 105; --district-glow: rgba(62, 127, 79, .12); }
@@ -296,6 +300,9 @@ body { background: var(--gl-black); color: var(--gl-text); }
 
 /* ---- Header ------------------------------------------------- */
 .site-header {
+  position: sticky;
+  top: var(--compliance-banner-height);
+  z-index: 50;
   border-bottom: 1px solid var(--gl-line);
   background: rgba(5, 6, 5, .86);
   box-shadow: 0 1px 0 rgba(201, 162, 39, .10), 0 10px 30px rgba(0, 0, 0, .35);
@@ -328,9 +335,32 @@ body { background: var(--gl-black); color: var(--gl-text); }
 
 /* ---- District ribbon --------------------------------------- */
 .site-frame { --district-accent: 163, 217, 59; --district-glow: rgba(163, 217, 59, .07); }
+
+/* The original per-district accents were all teal variants, and were being
+   flattened to one lime anyway (`.site-frame` above wins on equal specificity,
+   being declared later). Restated here so districts stay distinguishable
+   while every accent sits inside the gold-to-green brand range. */
+.site-frame.district--reports    { --district-accent: 201, 162, 39;  --district-glow: rgba(201, 162, 39, .09); }
+.site-frame.district--forums     { --district-accent: 163, 217, 59;  --district-glow: rgba(163, 217, 59, .08); }
+.site-frame.district--businesses { --district-accent: 78, 168, 63;   --district-glow: rgba(78, 168, 63, .09); }
+.site-frame.district--news       { --district-accent: 224, 190, 92;  --district-glow: rgba(224, 190, 92, .08); }
+.site-frame.district--knowledge  { --district-accent: 140, 200, 90;  --district-glow: rgba(140, 200, 90, .08); }
+.site-frame.district--civic      { --district-accent: 168, 186, 120; --district-glow: rgba(168, 186, 120, .07); }
+.site-frame.district--watchtower { --district-accent: 224, 145, 43;  --district-glow: rgba(224, 145, 43, .08); }
+.site-frame.district--resident   { --district-accent: 122, 196, 90;  --district-glow: rgba(122, 196, 90, .08); }
+.site-frame.district--town       { --district-accent: 163, 217, 59;  --district-glow: rgba(163, 217, 59, .10); }
 .district-ribbon { border-bottom: 1px solid var(--gl-line); background: rgba(8, 10, 8, .94); }
-.district-ribbon__inner strong { color: var(--gl-lime); }
-.district-ribbon__marker { background: var(--gl-gold); box-shadow: 0 0 0 4px rgba(201, 162, 39, .10); }
+.district-ribbon__inner strong { color: rgb(var(--district-accent)); }
+
+/* Page eyebrow — same weight and rhythm as the ribbon label above it. */
+.greenlist-eyebrow {
+  color: var(--gl-gold);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.district-ribbon__marker { background: rgb(var(--district-accent)); box-shadow: 0 0 0 4px rgba(var(--district-accent), .12); }
 
 /* ---- Hero -------------------------------------------------- */
 .greenlist-hero {

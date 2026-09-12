@@ -3,21 +3,23 @@ import { PageShell } from '@/components/PageShell'
 import { FeatureCard } from '@/components/FeatureCard'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { TrustBadge } from '@/components/TrustBadge'
+import { DistrictLabel } from '@/components/DistrictLabel'
 
 type SimplePageProps = {
   title: string
   subtitle: string
+  eyebrow?: string
   sections: {
     heading: string
     body: string
   }[]
 }
 
-export function SimplePage({ title, subtitle, sections }: SimplePageProps) {
+export function SimplePage({ title, subtitle, sections, eyebrow }: SimplePageProps) {
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <DistrictLabel override={eyebrow} />
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">{title}</h1>
         <p className="mt-4 max-w-3xl leading-7 text-zinc-400">{subtitle}</p>
       </OrnatePanel>
@@ -29,7 +31,7 @@ export function SimplePage({ title, subtitle, sections }: SimplePageProps) {
       </section>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="text-sm font-semibold text-emerald-300 hover:underline">
+        <Link href="/" className="text-sm font-semibold text-brand-lime hover:underline">
           Back to homepage
         </Link>
         <TrustBadge />

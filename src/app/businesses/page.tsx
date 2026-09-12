@@ -5,6 +5,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
+import { DistrictLabel } from '@/components/DistrictLabel'
 
 export const metadata = {
   title: 'Business Directory - The Green List',
@@ -90,7 +91,7 @@ export default async function BusinessesPage({
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <DistrictLabel />
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">Business Directory</h1>
         <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
           A public-facing directory of cannabis businesses with accountability records, transparency signals, and

@@ -80,7 +80,7 @@ export default async function ReportDetailPage({
       <OrnatePanel className="mt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            <p className="greenlist-eyebrow">
               {report.report_type.replace(/_/g, ' ')}
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">{report.title}</h1>

@@ -20,7 +20,7 @@ export async function AdminSectionPage({ title, description }: { title: string; 
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin command center</p>
+        <p className="greenlist-eyebrow">Admin command center</p>
         <h1 className="mt-3 text-4xl text-amber-100">{title}</h1>
         <p className="mt-4 max-w-3xl text-zinc-300">{description}</p>
         <div className="mt-5">

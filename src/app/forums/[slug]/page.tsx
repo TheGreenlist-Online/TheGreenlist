@@ -92,7 +92,7 @@ export default async function ForumDetailPage({
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+        <p className="greenlist-eyebrow">
           {forum.category ? forum.category.replace(/[_-]+/g, ' ') : 'Forum'}
         </p>
         <div className="mt-3 flex items-center gap-3">

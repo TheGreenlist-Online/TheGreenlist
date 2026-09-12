@@ -5,6 +5,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
+import { DistrictLabel } from '@/components/DistrictLabel'
 
 export const metadata = {
   title: 'Forums - The Green List',
@@ -54,7 +55,7 @@ export default async function ForumsPage() {
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <DistrictLabel />
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">Forums</h1>
         <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
           Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open
@@ -94,7 +95,7 @@ export default async function ForumsPage() {
         <div className="mt-8 space-y-10">
           {Array.from(grouped.entries()).map(([category, categoryForums]) => (
             <section key={category}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">{category}</h2>
+              <h2 className="greenlist-eyebrow">{category}</h2>
               <div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {categoryForums.map((forum) => (
                   <Link key={forum.id} href={`/forums/${forum.slug}`} className="block">

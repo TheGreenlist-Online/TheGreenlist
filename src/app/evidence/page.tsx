@@ -14,7 +14,7 @@ export default function EvidencePage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Reports Bureau</p>
+        <p className="greenlist-eyebrow">Reports Bureau</p>
         <h1 className="mt-3 text-4xl text-amber-100">Evidence Center</h1>
         <p className="mt-4 max-w-3xl text-zinc-300">
           Securely attach photos, receipts, screenshots, PDFs, and written records to a transparency report.

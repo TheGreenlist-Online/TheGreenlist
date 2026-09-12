@@ -4,6 +4,7 @@ import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { TrustBadge } from '@/components/TrustBadge'
 import { NewsFeed, type NewsRow } from './news-feed'
+import { DistrictLabel } from '@/components/DistrictLabel'
 
 export const revalidate = 0
 
@@ -21,7 +22,7 @@ export default async function NewsPage() {
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
+        <DistrictLabel />
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">News</h1>
         <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
           Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and

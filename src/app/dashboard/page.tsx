@@ -96,7 +96,7 @@ export default async function DashboardPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Dashboard</p>
+        <p className="greenlist-eyebrow">Dashboard</p>
         <h1 className="mt-3 text-4xl text-amber-100">Welcome back{userName ? `, ${userName}` : ''}</h1>
         <p className="mt-4 max-w-3xl text-zinc-300">
           {getWorkspaceDescription(role, isAdmin, isPlatformOwner)}
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
       </OrnatePanel>
 
       <section className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Create & submit</p>
+        <p className="greenlist-eyebrow">Create & submit</p>
         <h2 className="mt-2 text-2xl text-amber-100">Send content to the correct review path</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {submissionCards.map((card) => (
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Role workspace</p>
+        <p className="greenlist-eyebrow">Role workspace</p>
         <h2 className="mt-2 text-2xl text-amber-100">{isPlatformOwner ? 'Platform owner' : role.toLowerCase().replace('_', ' ')}</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {workspaceCards.map((card) => (

@@ -112,7 +112,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Member profile</p>
+            <p className="greenlist-eyebrow">Member profile</p>
             <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">
               {profile.display_name || profile.username || 'Member'}
             </h1>
@@ -149,13 +149,13 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       {!isMinimal ? (
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <OrnatePanel>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Trust score</p>
+            <p className="greenlist-eyebrow">Trust score</p>
             <div className="mt-4">
               <ScoreMeter label="Trust" score={profile.trust_score} />
             </div>
           </OrnatePanel>
           <OrnatePanel>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Transparency score</p>
+            <p className="greenlist-eyebrow">Transparency score</p>
             <div className="mt-4">
               <ScoreMeter label="Transparency" score={profile.transparency_score} />
             </div>

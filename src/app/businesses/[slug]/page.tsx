@@ -110,7 +110,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
     <PageShell>
       <OrnatePanel className="district-page-intro">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+          <p className="greenlist-eyebrow">
             {formatType(business.business_type)}
           </p>
           {business.verification_status === 'verified' ? (
@@ -151,14 +151,14 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Trust rating</p>
+          <p className="greenlist-eyebrow">Trust rating</p>
           <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-amber-300">
             <Star className="h-6 w-6 fill-current" />
             {(business.trust_rating ?? 0).toFixed(1)}
           </div>
         </OrnatePanel>
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Transparency score</p>
+          <p className="greenlist-eyebrow">Transparency score</p>
           <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-emerald-200">
             <ShieldCheck className="h-6 w-6" />
             {business.transparency_score ?? 0}
@@ -167,7 +167,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
       </div>
 
       <OrnatePanel className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Profile status</p>
+        <p className="greenlist-eyebrow">Profile status</p>
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wide text-zinc-500">Verification</dt>
@@ -199,7 +199,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
       </div>
 
       <OrnatePanel className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Related reports</p>
+        <p className="greenlist-eyebrow">Related reports</p>
         <p className="mt-2 text-sm leading-6 text-zinc-400">
           Report linkage for this business is coming in a later phase.
         </p>

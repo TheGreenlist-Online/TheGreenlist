@@ -140,7 +140,7 @@ export default async function ThreadDetailPage({
       </OrnatePanel>
 
       <section className="mt-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+        <h2 className="greenlist-eyebrow">
           {(replies ?? []).length} {replies && replies.length === 1 ? 'Reply' : 'Replies'}
         </h2>
 
