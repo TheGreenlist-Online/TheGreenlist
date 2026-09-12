@@ -60,10 +60,10 @@ export default async function EducationPage({
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Knowledge Library</p>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
+        <h1 className="greenlist-page-title">
           Cannabis education & accountability resources
         </h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+        <p className="greenlist-page-lede">
           Resources are reviewed for accuracy, sourcing, safety, and compliance before publication. The
           library does not provide cannabis sales, ordering, delivery, or medical advice.
         </p>

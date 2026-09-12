@@ -57,8 +57,8 @@ export default async function ProfilePage() {
       <PageShell>
         <OrnatePanel className="text-center">
           <p className="greenlist-eyebrow">Profile</p>
-          <h1 className="mt-3 text-3xl font-semibold text-zinc-100">Let&apos;s set up your profile</h1>
-          <p className="mx-auto mt-4 max-w-xl leading-7 text-zinc-400">
+          <h1 className="greenlist-page-title">Let&apos;s set up your profile</h1>
+          <p className="greenlist-page-lede mx-auto">
             We couldn&apos;t find a profile for your account yet. Complete your profile to choose a username,
             add a bio, and control what other members can see.
           </p>
@@ -91,7 +91,7 @@ export default async function ProfilePage() {
       <OrnatePanel>
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-[#121a15]">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-brand-raised">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profile.avatar_url} alt={profile.display_name ?? profile.username ?? 'Profile avatar'} className="h-full w-full object-cover" />
@@ -101,7 +101,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="greenlist-eyebrow">My Profile</p>
-              <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">
+              <h1 className="greenlist-page-title">
                 {profile.display_name || profile.username || 'Unnamed member'}
               </h1>
               {profile.username ? <p className="mt-1 text-sm text-zinc-500">@{profile.username}</p> : null}

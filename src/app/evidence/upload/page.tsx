@@ -45,7 +45,7 @@ export default async function EvidenceUploadPage() {
         <section className="glow-border rounded-lg p-px mb-12">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Upload Evidence</p>
-            <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">
+            <h1 className="greenlist-page-title max-w-4xl">
               Document Your Report with Supporting Evidence
             </h1>
             <p className="mt-4 max-w-3xl text-muted-foreground">

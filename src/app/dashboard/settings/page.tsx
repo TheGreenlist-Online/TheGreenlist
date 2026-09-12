@@ -103,7 +103,7 @@ export default function DashboardSettingsPage() {
         <section className="glow-border rounded-lg p-px mb-8">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Settings</p>
-            <h1 className="mt-3 text-3xl font-bold">Account & Preferences</h1>
+            <h1 className="greenlist-page-title">Account & Preferences</h1>
           </div>
         </section>
 

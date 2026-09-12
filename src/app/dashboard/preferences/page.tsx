@@ -133,7 +133,7 @@ export default function DashboardPreferencesPage() {
         <section className="glow-border rounded-lg p-px mb-8">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Customization</p>
-            <h1 className="mt-3 text-3xl font-bold">Dashboard Preferences</h1>
+            <h1 className="greenlist-page-title">Dashboard Preferences</h1>
           </div>
         </section>
 

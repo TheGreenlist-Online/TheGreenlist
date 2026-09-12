@@ -123,7 +123,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
             </span>
           )}
         </div>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">{business.name}</h1>
+        <h1 className="greenlist-page-title">{business.name}</h1>
         {(business.city || business.state) ? (
           <p className="mt-3 flex items-center gap-1 text-sm text-zinc-400">
             <MapPin className="h-4 w-4" />
@@ -131,7 +131,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
           </p>
         ) : null}
         {business.description ? (
-          <p className="mt-4 max-w-3xl leading-7 text-zinc-400">{business.description}</p>
+          <p className="greenlist-page-lede">{business.description}</p>
         ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">

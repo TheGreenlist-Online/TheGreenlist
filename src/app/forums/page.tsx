@@ -5,7 +5,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
-import { DistrictLabel } from '@/components/DistrictLabel'
+import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
   title: 'Forums - The Green List',
@@ -54,23 +54,16 @@ export default async function ForumsPage() {
 
   return (
     <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <DistrictLabel />
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">Forums</h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
-          Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open
-          public oversight.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/forums/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
-          >
+      <PageIntro
+        title="Forums"
+        lede="Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open public oversight."
+        actions={
+          <Link href="/forums/new" className="greenlist-primary-button">
             <Sparkles className="h-4 w-4" />
             Start a new thread
           </Link>
-        </div>
-      </OrnatePanel>
+        }
+      />
 
       {error ? (
         <OrnatePanel className="mt-8">

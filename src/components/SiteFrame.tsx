@@ -2,13 +2,20 @@
 
 import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { Footer } from '@/components/Footer'
 import { SiteHeader } from '@/components/SiteHeader'
 import { getDistrict } from '@/lib/districts'
 
-export function SiteFrame({ children }: { children: ReactNode }) {
+/**
+ * The persistent app shell: district theming, header, ribbon, footer.
+ *
+ * This is a client component only because the district is derived from the
+ * pathname. `children` and `footer` are passed in from the server layout, so
+ * they stay server-rendered and out of the client bundle — importing Footer
+ * here instead would drag it across the boundary on every route.
+ */
+export function SiteFrame({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const pathname = usePathname()
-  const district = getDistrict(pathname)
+  const district = getDistrict(pathname ?? '')
 
   return (
     <div className={`site-frame district--${district?.slug ?? 'home'}`}>
@@ -23,7 +30,7 @@ export function SiteFrame({ children }: { children: ReactNode }) {
         </div>
       ) : null}
       <div className="site-frame__content">{children}</div>
-      <Footer />
+      {footer}
     </div>
   )
 }

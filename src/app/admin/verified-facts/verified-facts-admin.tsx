@@ -133,7 +133,7 @@ export function VerifiedFactsAdmin({ initialFacts }: { initialFacts: VerifiedFac
 
   return (
     <div className="space-y-8">
-      <form onSubmit={handleSubmit} className="rounded-xl border border-white/[.09] bg-[#0d120f] p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="rounded-xl border border-white/[.09] bg-brand-panel p-6 space-y-4">
         <h2 className="text-lg font-semibold text-zinc-100">Add a verified fact</h2>
 
         <fieldset className="flex gap-4">
@@ -211,7 +211,7 @@ export function VerifiedFactsAdmin({ initialFacts }: { initialFacts: VerifiedFac
         </button>
       </form>
 
-      <div className="rounded-xl border border-white/[.09] bg-[#0d120f]">
+      <div className="rounded-xl border border-white/[.09] bg-brand-panel">
         <div className="border-b border-white/10 p-4">
           <h2 className="text-lg font-semibold text-zinc-100">Recent verified facts</h2>
         </div>

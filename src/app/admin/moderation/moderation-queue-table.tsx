@@ -71,7 +71,7 @@ export function ModerationQueueTable({ initialItems }: { initialItems: Moderatio
   }
 
   return (
-    <div className="rounded-xl border border-white/[.09] bg-[#0d120f] shadow-[0_14px_35px_rgba(0,0,0,0.16)]">
+    <div className="rounded-xl border border-white/[.09] bg-brand-panel shadow-[0_14px_35px_rgba(0,0,0,0.16)]">
       <div className="flex flex-wrap items-center gap-2 border-b border-white/10 p-4">
         {STATUS_FILTERS.map((filter) => (
           <button

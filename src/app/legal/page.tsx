@@ -13,7 +13,7 @@ export default function LegalHub() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="mb-12">
-              <h1 className="text-4xl font-bold mb-4">Legal & Compliance</h1>
+              <h1 className="greenlist-page-title mb-4">Legal & Compliance</h1>
               <p className="text-xl text-muted-foreground">
                 Important information about The Green List and our platform.
               </p>

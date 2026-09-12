@@ -23,7 +23,7 @@ export default async function BusinessesClaimPage() {
         <section className="glow-border rounded-lg p-px mb-12">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Business Profile</p>
-            <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">Claim Your Business Profile</h1>
+            <h1 className="greenlist-page-title max-w-4xl">Claim Your Business Profile</h1>
             <p className="mt-4 max-w-3xl text-muted-foreground">
               Verify your cannabis business on The Green List to manage your profile, respond to community
               discussions, and demonstrate transparency and accountability.

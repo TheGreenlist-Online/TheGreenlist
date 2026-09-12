@@ -128,7 +128,7 @@ export default async function ThreadDetailPage({
             </span>
           ) : null}
         </div>
-        <h1 className="mt-3 text-3xl font-semibold text-zinc-100 md:text-5xl">{thread.title}</h1>
+        <h1 className="greenlist-page-title">{thread.title}</h1>
         <p className="mt-3 text-sm text-zinc-500">
           by {authorLabel(thread.author_id, thread.is_anonymous)} ·{' '}
           {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })} · in{' '}

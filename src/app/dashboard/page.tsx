@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
 import { hasPermission, normalizePlatformRole, type PlatformRole } from '@/lib/roles'
+import { PageIntro } from '@/components/PageIntro'
 
 const submissionCards = [
   { title: 'Submit a Report & Evidence', body: 'Create a report or add private photos, receipts, screenshots, labels, PDFs, and supporting documents.', href: '/evidence/upload' },
@@ -95,29 +95,30 @@ export default async function DashboardPage() {
 
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Dashboard</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Welcome back{userName ? `, ${userName}` : ''}</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
-          {getWorkspaceDescription(role, isAdmin, isPlatformOwner)}
-        </p>
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <RoleBadge role={role} />
-          {user.email ? <span className="text-sm text-zinc-400">{user.email}</span> : null}
-        </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/dashboard/settings" className="rounded-lg border border-amber-300/35 px-4 py-2 text-sm text-amber-100 transition hover:border-emerald-300 hover:text-emerald-200">
+      <PageIntro
+        eyebrow="Dashboard"
+        title={`Welcome back${userName ? `, ${userName}` : ''}`}
+        lede={getWorkspaceDescription(role, isAdmin, isPlatformOwner)}
+        actions={
+          <>
+            <RoleBadge role={role} />
+            {user.email ? <span className="text-sm text-zinc-400">{user.email}</span> : null}
+          </>
+        }
+      >
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link href="/dashboard/settings" className="greenlist-quiet-button">
             Settings
           </Link>
-          <Link href="/dashboard/preferences" className="rounded-lg border border-amber-300/35 px-4 py-2 text-sm text-amber-100 transition hover:border-emerald-300 hover:text-emerald-200">
+          <Link href="/dashboard/preferences" className="greenlist-quiet-button">
             Preferences
           </Link>
         </div>
-      </OrnatePanel>
+      </PageIntro>
 
       <section className="mt-8">
         <p className="greenlist-eyebrow">Create & submit</p>
-        <h2 className="mt-2 text-2xl text-amber-100">Send content to the correct review path</h2>
+        <h2 className="greenlist-section-title">Send content to the correct review path</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {submissionCards.map((card) => (
             <FeatureCard key={card.href} title={card.title} description={card.body} href={card.href} />
@@ -127,7 +128,7 @@ export default async function DashboardPage() {
 
       <section className="mt-10">
         <p className="greenlist-eyebrow">Role workspace</p>
-        <h2 className="mt-2 text-2xl text-amber-100">{isPlatformOwner ? 'Platform owner' : role.toLowerCase().replace('_', ' ')}</h2>
+        <h2 className="greenlist-section-title">{isPlatformOwner ? 'Platform owner' : role.toLowerCase().replace('_', ' ')}</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {workspaceCards.map((card) => (
           <FeatureCard key={card.href} title={card.title} description={card.body} href={card.href} />

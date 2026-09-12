@@ -34,7 +34,7 @@ export function NewsRefreshPanel() {
   }
 
   return (
-    <div className="rounded-xl border border-white/[.09] bg-[#0d120f] p-5">
+    <div className="rounded-xl border border-white/[.09] bg-brand-panel p-5">
       <h2 className="text-lg font-semibold text-zinc-100">Manual refresh</h2>
       <p className="mt-2 text-sm text-zinc-400">
         The news feed refreshes automatically every two hours via Vercel Cron. Use this button to

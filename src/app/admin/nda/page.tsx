@@ -35,8 +35,8 @@ export default async function AdminNdaPage() {
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Confidentiality</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Non-disclosure agreement</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <h1 className="greenlist-page-title">Non-disclosure agreement</h1>
+        <p className="greenlist-page-lede">
           Reviewing sensitive reports, private evidence, or restricted forum content requires a signed
           confidentiality agreement scoped to your moderator/admin access on The Green List.
         </p>

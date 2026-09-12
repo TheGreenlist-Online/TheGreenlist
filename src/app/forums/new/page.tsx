@@ -42,7 +42,7 @@ export default async function ForumsNewPage({
         <section className="glow-border rounded-lg p-px mb-12">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Create Forum Thread</p>
-            <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">Join the Community Conversation</h1>
+            <h1 className="greenlist-page-title max-w-4xl">Join the Community Conversation</h1>
             <p className="mt-4 max-w-3xl text-muted-foreground">
               Participate in moderated discussions about cannabis transparency, consumer safety, industry
               accountability, and community trust.

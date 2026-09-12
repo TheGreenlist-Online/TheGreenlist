@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
 import { TrustBadge } from '@/components/TrustBadge'
 import { NewsFeed, type NewsRow } from './news-feed'
-import { DistrictLabel } from '@/components/DistrictLabel'
+import { PageIntro } from '@/components/PageIntro'
 
 export const revalidate = 0
 
@@ -21,15 +20,10 @@ export default async function NewsPage() {
 
   return (
     <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <DistrictLabel />
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">News</h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
-          Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and
-          transparency-focused reporting — refreshed automatically every two hours from trusted
-          public sources.
-        </p>
-      </OrnatePanel>
+      <PageIntro
+        title="News"
+        lede="Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and transparency-focused reporting — refreshed automatically every two hours from trusted public sources."
+      />
 
       <section className="mt-8">
         <NewsFeed initialItems={items} initialTotal={count ?? 0} />

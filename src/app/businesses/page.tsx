@@ -5,7 +5,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
-import { DistrictLabel } from '@/components/DistrictLabel'
+import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
   title: 'Business Directory - The Green List',
@@ -90,22 +90,15 @@ export default async function BusinessesPage({
 
   return (
     <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <DistrictLabel />
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">Business Directory</h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
-          A public-facing directory of cannabis businesses with accountability records, transparency signals, and
-          consumer verification. Not a marketplace — this is a directory built for oversight.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/businesses/claim"
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
-          >
+      <PageIntro
+        title="Business Directory"
+        lede="A public-facing directory of cannabis businesses with accountability records, transparency signals, and consumer verification. Not a marketplace — this is a directory built for oversight."
+        actions={
+          <Link href="/businesses/claim" className="greenlist-primary-button">
             Claim a Business
           </Link>
-        </div>
-      </OrnatePanel>
+        }
+      />
 
       <OrnatePanel className="mt-8">
         <form method="get" className="grid gap-4 sm:grid-cols-4">

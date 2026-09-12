@@ -79,7 +79,7 @@ export default async function EducationDetailPage({
           {meta?.label ?? resource.category.replace(/_/g, ' ')}
         </span>
 
-        <h1 className="mt-4 text-3xl font-semibold text-zinc-100 md:text-4xl">{resource.title}</h1>
+        <h1 className="greenlist-page-title">{resource.title}</h1>
         <p className="mt-2 text-xs text-zinc-500">
           Published {new Date(resource.created_at).toLocaleDateString()}
         </p>

@@ -96,7 +96,7 @@ export function ThreadReplyForm({ threadId, isSignedIn, signInHref }: ThreadRepl
       <button
         type="submit"
         disabled={submitting}
-        className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300 disabled:opacity-50"
+        className="greenlist-primary-button disabled:opacity-50"
       >
         {submitting ? 'Posting…' : 'Post reply'}
       </button>

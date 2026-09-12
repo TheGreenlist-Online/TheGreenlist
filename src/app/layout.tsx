@@ -12,6 +12,7 @@ const inter = Inter({
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
+import { Footer } from '@/components/Footer'
 import { SmokeBackground } from '@/components/SmokeBackground'
 
 const siteUrl = 'https://thegreenlist.online'
@@ -64,7 +65,7 @@ export default function RootLayout({
         <SmokeBackground />
         <Providers>
           <ComplianceBanner />
-          <SiteFrame>{children}</SiteFrame>
+          <SiteFrame footer={<Footer />}>{children}</SiteFrame>
         </Providers>
       </body>
     </html>

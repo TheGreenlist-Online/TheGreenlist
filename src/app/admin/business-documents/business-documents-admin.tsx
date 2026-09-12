@@ -51,7 +51,7 @@ export function BusinessDocumentsAdmin({ initialDocuments }: { initialDocuments:
   }
 
   return (
-    <div className="rounded-xl border border-white/[.09] bg-[#0d120f]">
+    <div className="rounded-xl border border-white/[.09] bg-brand-panel">
       <div className="border-b border-white/10 p-4">
         <h2 className="text-lg font-semibold text-zinc-100">Pending documents</h2>
       </div>

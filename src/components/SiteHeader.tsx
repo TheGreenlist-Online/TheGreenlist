@@ -109,7 +109,7 @@ export function SiteHeader() {
         <SearchBar className="mt-3 lg:hidden" />
 
         {isOpen ? (
-          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-[#0b100d] p-3 text-sm shadow-2xl lg:hidden">
+          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
             {navItems.map((item) => (
               <Link
                 key={item.href}

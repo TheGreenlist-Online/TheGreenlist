@@ -9,7 +9,7 @@ export default function RegisterPage() {
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-accent">
               The Green List
             </p>
-            <h1 className="text-3xl font-bold text-foreground">Registration is closed</h1>
+            <h1 className="greenlist-page-title">Registration is closed</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               The Green List uses owner-approved accounts. Public visitors cannot create an account or choose a role.
             </p>

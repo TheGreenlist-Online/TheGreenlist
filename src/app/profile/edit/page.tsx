@@ -131,7 +131,7 @@ export default function ProfileEditPage() {
         <section className="glow-border rounded-lg p-px mb-8">
           <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Profile</p>
-            <h1 className="mt-3 text-3xl font-bold">Edit Profile</h1>
+            <h1 className="greenlist-page-title">Edit Profile</h1>
             {!profile ? (
               <p className="mt-2 text-sm text-muted-foreground">
                 You don&apos;t have a profile row yet — saving will create one.

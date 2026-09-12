@@ -35,8 +35,8 @@ export default async function AdminVerifiedFactsPage() {
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Verified Wall</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <h1 className="greenlist-page-title">Verified Wall</h1>
+        <p className="greenlist-page-lede">
           Add or remove moderator-verified facts shown on user profiles and business pages. This is
           moderator-curated content only — users and businesses cannot self-add entries.
         </p>

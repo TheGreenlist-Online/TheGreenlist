@@ -83,7 +83,7 @@ export default async function ReportDetailPage({
             <p className="greenlist-eyebrow">
               {report.report_type.replace(/_/g, ' ')}
             </p>
-            <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">{report.title}</h1>
+            <h1 className="greenlist-page-title">{report.title}</h1>
           </div>
           <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.12em] ${statusStyle}`}>
             {report.status.replace(/_/g, ' ')}

@@ -65,8 +65,8 @@ export default async function AdminNewsPage() {
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">News controls</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <h1 className="greenlist-page-title">News controls</h1>
+        <p className="greenlist-page-lede">
           Manage the automated news feed. Articles are pulled from free public RSS feeds every two
           hours, summarized with OpenAI, and published to the /news page.
         </p>
@@ -85,7 +85,7 @@ export default async function AdminNewsPage() {
       </section>
 
       <section className="mt-8">
-        <div className="rounded-xl border border-white/[.09] bg-[#0d120f]">
+        <div className="rounded-xl border border-white/[.09] bg-brand-panel">
           <div className="border-b border-white/10 p-4">
             <h2 className="text-lg font-semibold text-zinc-100">Recent refresh runs</h2>
           </div>

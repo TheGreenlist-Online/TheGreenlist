@@ -121,11 +121,11 @@ export default function EducationNewPage() {
   return (
     <div className="min-h-screen smoke-surface flex flex-col platform-stage">
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-10 md:py-14">
-        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-[#07110c]/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
+        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-brand-panel/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(147,51,234,.2),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(132,204,22,.18),transparent_35%)]" />
           <div className="relative max-w-4xl">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-lime-300">Education Center</p>
-            <h1 className="mt-4 text-4xl font-bold leading-none text-amber-50 md:text-6xl">Share knowledge that strengthens the community.</h1>
+            <h1 className="greenlist-hero-title">Share knowledge that strengthens the community.</h1>
             <p className="mt-5 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg">Submit evidence-based guides, regulatory resources, worker-rights information, or research summaries. Every submission enters a transparent review queue before publication.</p>
           </div>
         </section>
@@ -135,9 +135,9 @@ export default function EducationNewPage() {
             const Icon = item.icon
             const active = category === item.value
             return (
-              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-[#08110d]/85 hover:border-emerald-300/45'}`}>
+              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-brand-panel/85 hover:border-emerald-300/45'}`}>
                 <Icon className="h-7 w-7 text-lime-300" />
-                <h2 className="mt-4 text-xl text-amber-50">{item.title}</h2>
+                <h2 className="greenlist-section-title">{item.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-zinc-400">{item.description}</p>
               </button>
             )
@@ -145,10 +145,10 @@ export default function EducationNewPage() {
         </section>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr]">
-          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-[#07100c]/92 p-6 shadow-xl shadow-black/30 md:p-8">
+          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-brand-panel/92 p-6 shadow-xl shadow-black/30 md:p-8">
             <div className="flex items-center gap-3">
               <BookOpen className="h-6 w-6 text-lime-300" />
-              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="text-2xl text-amber-50">{categories.find((item) => item.value === category)?.title}</h2></div>
+              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="greenlist-section-title">{categories.find((item) => item.value === category)?.title}</h2></div>
             </div>
 
             {!checkingSession && !userId ? (
@@ -186,9 +186,9 @@ export default function EducationNewPage() {
             <Button className="mt-2 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
           </form>
 
-          <aside className="rounded-3xl border border-amber-300/25 bg-[#0a120e]/88 p-6 md:p-8">
+          <aside className="rounded-3xl border border-amber-300/25 bg-brand-panel/88 p-6 md:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-lime-300">Publication standards</p>
-            <h2 className="mt-3 text-3xl text-amber-50">Useful. Verifiable. Non-commercial.</h2>
+            <h2 className="greenlist-section-title">Useful. Verifiable. Non-commercial.</h2>
             <div className="mt-6 space-y-5 text-sm leading-6 text-zinc-300">
               <div><strong className="text-emerald-300">Evidence-led</strong><p>Use primary sources, public records, research, or clearly identified firsthand experience.</p></div>
               <div><strong className="text-emerald-300">Accessible</strong><p>Explain technical terms and provide practical context for a general audience.</p></div>

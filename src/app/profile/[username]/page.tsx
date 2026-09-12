@@ -103,7 +103,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     <PageShell>
       <OrnatePanel>
         <div className="flex items-start gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-[#121a15]">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-brand-raised">
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatar_url} alt={profile.display_name ?? profile.username ?? 'Profile avatar'} className="h-full w-full object-cover" />
@@ -113,7 +113,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
           </div>
           <div>
             <p className="greenlist-eyebrow">Member profile</p>
-            <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">
+            <h1 className="greenlist-page-title">
               {profile.display_name || profile.username || 'Member'}
             </h1>
             {profile.username ? <p className="mt-1 text-sm text-zinc-500">@{profile.username}</p> : null}

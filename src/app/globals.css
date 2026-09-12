@@ -352,6 +352,88 @@ body { background: var(--gl-black); color: var(--gl-text); }
 .district-ribbon { border-bottom: 1px solid var(--gl-line); background: rgba(8, 10, 8, .94); }
 .district-ribbon__inner strong { color: rgb(var(--district-accent)); }
 
+/* ---- Page header ------------------------------------------- */
+/* Owned by the PageIntro component so titles cannot drift per page. */
+.greenlist-page-title {
+  margin-top: .7rem;
+  color: var(--gl-white);
+  font-size: clamp(1.9rem, 1.25rem + 2.1vw, 3rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+.greenlist-page-lede {
+  margin-top: 1rem;
+  max-width: 62ch;
+  color: var(--gl-muted);
+  font-size: .97rem;
+  line-height: 1.7;
+}
+.greenlist-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem;
+  margin-top: 1.5rem;
+}
+
+/* Hero-scale title for the town and submission landing pages. */
+.greenlist-hero-title {
+  margin-top: 1rem;
+  color: var(--gl-white);
+  font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+
+/* Section heading inside a page — one step down from .greenlist-page-title. */
+.greenlist-section-title {
+  margin-top: .5rem;
+  color: var(--gl-white);
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+
+/* Primary action rendered as a link. Matches the Button `default` variant so a
+   hand-rolled link can't drift off-palette the way bg-emerald-400 did. */
+.greenlist-primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem 1.05rem;
+  border-radius: .6rem;
+  background: linear-gradient(180deg, var(--gl-lime), var(--gl-green));
+  color: #06110a;
+  font-size: .875rem;
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .18) inset, 0 6px 18px rgba(78, 168, 63, .18);
+  transition: filter .18s ease, transform .18s ease;
+}
+.greenlist-primary-button:hover { filter: brightness(1.07); }
+
+/* Low-emphasis link styled as a button (settings, preferences, back links). */
+.greenlist-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1rem;
+  border: 1px solid var(--gl-line);
+  border-radius: .6rem;
+  color: var(--gl-text);
+  font-size: .875rem;
+  transition: border-color .18s ease, color .18s ease, background-color .18s ease;
+}
+.greenlist-quiet-button:hover {
+  border-color: rgba(201, 162, 39, .45);
+  background: rgba(201, 162, 39, .06);
+  color: var(--gl-white);
+}
+
 /* Page eyebrow — same weight and rhythm as the ribbon label above it. */
 .greenlist-eyebrow {
   color: var(--gl-gold);

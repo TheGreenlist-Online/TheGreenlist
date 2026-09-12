@@ -66,10 +66,10 @@ export default async function ReportsPage() {
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Reports Bureau</p>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
+        <h1 className="greenlist-page-title">
           Structured accountability reports
         </h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+        <p className="greenlist-page-lede">
           File a report documenting mislabeling, contamination, licensing issues, worker safety concerns,
           deceptive marketing, or other accountability matters. Reports enter a transparent review process.
         </p>
@@ -86,7 +86,7 @@ export default async function ReportsPage() {
 
       <section className="mt-8">
         <p className="greenlist-eyebrow">Your reports</p>
-        <h2 className="mt-2 text-2xl text-amber-100">My filed reports</h2>
+        <h2 className="greenlist-section-title">My filed reports</h2>
 
         {!user ? (
           <OrnatePanel className="mt-5">

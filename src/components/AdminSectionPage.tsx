@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/authz'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { PageIntro } from '@/components/PageIntro'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 
@@ -19,14 +19,12 @@ export async function AdminSectionPage({ title, description }: { title: string; 
 
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">{title}</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">{description}</p>
-        <div className="mt-5">
-          <RoleBadge role="ADMIN" />
-        </div>
-      </OrnatePanel>
+      <PageIntro
+        eyebrow="Admin command center"
+        title={title}
+        lede={description}
+        actions={<RoleBadge role="ADMIN" />}
+      />
 
       <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {[

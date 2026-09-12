@@ -53,8 +53,8 @@ export default async function AdminModerationPage() {
     <PageShell>
       <OrnatePanel>
         <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Moderation queue</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <h1 className="greenlist-page-title">Moderation queue</h1>
+        <p className="greenlist-page-lede">
           Review flagged reports, forum content, evidence files, and education submissions. AI can flag
           content, but admin review controls the final decision.
         </p>
