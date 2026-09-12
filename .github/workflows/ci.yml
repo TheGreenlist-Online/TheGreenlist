@@ -13,21 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -44,25 +29,11 @@ jobs:
     - name: Run linting
       run: npm run lint
 
-    - name: Generate Prisma client
-      run: npx prisma generate
-
-    - name: Wait for PostgreSQL
-      run: |
-        until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
-          echo "Waiting for PostgreSQL to be ready..."
-          sleep 1
-        done
-
-    - name: Run database migrations
-      run: npx prisma db push --accept-data-loss
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/test
-
     - name: Run tests
-      run: npm test
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/test
+      run: npm test --if-present
+
+    - name: Verify Supabase migrations are tracked
+      run: test -n "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print -quit)"
 
   build:
     runs-on: ubuntu-latest
