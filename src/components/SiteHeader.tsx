@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { LogOut, Menu, UserRound, X } from 'lucide-react'
+import { LogOut, Menu, Settings, UserRound, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
@@ -82,10 +82,21 @@ export function SiteHeader() {
               </Link>
             </Button>
             {isAuthenticated ? (
-              <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                {isSigningOut ? 'Signing out...' : 'Sign out'}
-              </Button>
+              <>
+                {/* Settings was previously only reachable by knowing the URL or
+                    finding a button on the dashboard. */}
+                <Link
+                  href="/settings"
+                  aria-label="Account settings"
+                  className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-300 transition hover:border-[#a3d93b]/40 hover:text-[#a3d93b]"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
+                <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </Button>
+              </>
             ) : (
               <Button asChild size="sm">
                 <Link href="/auth/signin">
@@ -128,15 +139,25 @@ export function SiteHeader() {
               {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
             </Link>
             {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                {isSigningOut ? 'Signing out...' : 'Sign out'}
-              </button>
+              <>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </button>
+              </>
             ) : (
               <Link
                 href="/auth/signin"

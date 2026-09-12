@@ -14,6 +14,7 @@ import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
 import { Footer } from '@/components/Footer'
 import { SmokeBackground } from '@/components/SmokeBackground'
+import { APPEARANCE_BOOT_SCRIPT } from '@/lib/appearance'
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -61,6 +62,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        {/* Applies the saved calm-background preference before first paint so the
+            backdrop never flashes at full strength. */}
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
+      </head>
       <body className="font-sans">
         <SmokeBackground />
         <Providers>
