@@ -674,3 +674,136 @@ html.gl-calm button:hover { transform: none !important; }
   }
   a:hover, button:hover { transform: none !important; }
 }
+
+
+/* HYBRID BRAND DIRECTION — official identity with controlled street-art atmosphere. */
+:root {
+  --gl-smoke-purple: rgba(126, 48, 184, .30);
+  --gl-smoke-amber: rgba(244, 112, 28, .23);
+  --gl-purple-bright: #a54ee8;
+  --gl-orange-bright: #f47a24;
+}
+
+/* Keep the official black/lime/gold system, with purple and orange used only
+   as atmospheric light. These colors never communicate application status. */
+.greenlist-shell-bg__art {
+  background-image:
+    radial-gradient(ellipse 58% 46% at 4% 24%, var(--gl-smoke-purple), transparent 66%),
+    radial-gradient(ellipse 50% 42% at 98% 16%, var(--gl-smoke-amber), transparent 66%),
+    radial-gradient(ellipse 48% 36% at 82% 82%, rgba(117, 43, 163, .14), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 108%, rgba(44, 107, 42, .18), transparent 70%),
+    linear-gradient(180deg, #070707, #030403);
+}
+
+.greenlist-hero {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 52% 68% at 2% 32%, rgba(126, 48, 184, .34), transparent 66%),
+    radial-gradient(ellipse 46% 62% at 100% 18%, rgba(244, 112, 28, .28), transparent 66%),
+    radial-gradient(circle at 54% 92%, rgba(163, 217, 59, .10), transparent 38rem),
+    linear-gradient(180deg, rgba(7, 8, 7, .96), rgba(4, 5, 4, .99));
+}
+
+/* Fine spray texture: CSS-only, non-animated, and intentionally faint. */
+.greenlist-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .24;
+  background-image:
+    radial-gradient(circle at 14% 31%, rgba(255,255,255,.28) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 88% 24%, rgba(255,255,255,.20) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 74% 72%, rgba(163,217,59,.26) 0 1px, transparent 1.8px);
+  background-size: 43px 47px, 59px 61px, 71px 67px;
+  mask-image: linear-gradient(90deg, #000, transparent 42%, transparent 62%, #000);
+}
+
+.greenlist-hero__inner { z-index: 1; }
+
+.greenlist-hero__logo {
+  filter:
+    drop-shadow(0 0 18px rgba(163, 217, 59, .20))
+    drop-shadow(-12px 8px 24px rgba(126, 48, 184, .15))
+    drop-shadow(12px 8px 24px rgba(244, 112, 28, .12));
+}
+
+/* Expressive lettering is reserved for the public hero. Interface headings,
+   reports, dashboards, forms, and legal content remain in Inter. */
+.greenlist-wordmark {
+  gap: 0 .12em;
+  font-family: var(--font-expressive), 'Segoe Print', cursive;
+  font-weight: 400;
+  letter-spacing: -.035em;
+  line-height: .86;
+}
+.greenlist-wordmark__the {
+  font-family: var(--font-sans), Inter, sans-serif;
+  color: var(--gl-gold-soft);
+  font-size: .18em;
+  font-weight: 750;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.greenlist-wordmark__green,
+.greenlist-wordmark__list {
+  font-family: inherit;
+  font-weight: 400;
+  transform: rotate(-1deg);
+}
+.greenlist-wordmark__green {
+  background: linear-gradient(180deg, #c8ef64 4%, var(--gl-lime) 48%, var(--gl-green) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px rgba(4, 8, 4, .9);
+  filter: drop-shadow(0 0 12px rgba(163, 217, 59, .25));
+}
+.greenlist-wordmark__list {
+  color: var(--gl-white);
+  -webkit-text-stroke: 1px rgba(4, 4, 4, .92);
+  text-shadow:
+    3px 3px 0 rgba(5, 6, 5, .9),
+    8px 10px 24px rgba(126, 48, 184, .25);
+  transform: rotate(1deg);
+}
+
+.greenlist-hero__tagline {
+  letter-spacing: .025em;
+  text-shadow: 0 0 18px rgba(163, 217, 59, .14);
+}
+
+.greenlist-district-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 0 0, rgba(126, 48, 184, .10), transparent 44%),
+    radial-gradient(circle at 100% 0, rgba(244, 112, 28, .08), transparent 42%);
+  transition: opacity .18s ease;
+}
+.greenlist-district-card:hover::before { opacity: 1; }
+.greenlist-district-card > * { position: relative; z-index: 1; }
+
+/* The accessibility preference remains a genuinely calm alternative. */
+html.gl-calm .greenlist-shell-bg__art { opacity: .26; }
+html.gl-calm .greenlist-hero::after { display: none; }
+html.gl-calm .greenlist-hero {
+  background:
+    radial-gradient(ellipse 48% 56% at 4% 30%, rgba(126, 48, 184, .10), transparent 68%),
+    radial-gradient(ellipse 42% 52% at 98% 20%, rgba(244, 112, 28, .08), transparent 68%),
+    linear-gradient(180deg, #070807, #040504);
+}
+html.gl-calm .greenlist-wordmark__green { filter: none; }
+html.gl-calm .greenlist-wordmark__list { text-shadow: none; }
+
+@media (max-width: 640px) {
+  .greenlist-wordmark { gap: 0 .06em; }
+  .greenlist-wordmark__green,
+  .greenlist-wordmark__list { -webkit-text-stroke-width: .75px; }
+  .greenlist-hero::after { opacity: .16; }
+}
