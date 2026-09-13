@@ -1,12 +1,19 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Permanent_Marker } from 'next/font/google'
 
-// One voice: Inter for the entire interface. The brand's graffiti character
-// lives in the logo lockup, not in the body copy.
+// Inter remains the interface voice. Permanent Marker is scoped to the public
+// hero so the official system can carry a controlled street-art accent.
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
+  display: 'swap',
+})
+
+const expressive = Permanent_Marker({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-expressive',
   display: 'swap',
 })
 import { Providers } from './providers'
@@ -61,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${expressive.variable}`}>
       <head>
         {/* Applies the saved calm-background preference before first paint so the
             backdrop never flashes at full strength. */}
