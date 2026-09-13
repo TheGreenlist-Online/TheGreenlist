@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Inter, Permanent_Marker, Bebas_Neue, Anton, Archivo_Black } from 'next/font/google'
+import { Inter, Permanent_Marker, Bebas_Neue, Anton, Archivo_Black, Fugaz_One, Kaushan_Script, Alfa_Slab_One } from 'next/font/google'
 
 // Inter remains the interface voice. Permanent Marker is scoped to the public
 // hero so the official system can carry a controlled street-art accent.
@@ -17,10 +17,13 @@ const expressive = Permanent_Marker({
   display: 'swap',
 })
 
-// Tight, industrial-grade type stack for a corporate-graffiti/streetwear feel.
+// Hand-painted tag stack: character + slant, still legit.
 const display = Bebas_Neue({ subsets: ['latin'], weight: '400', variable: '--font-display', display: 'swap' })
 const stencil = Anton({ subsets: ['latin'], weight: '400', variable: '--font-stencil', display: 'swap' })
 const heavy = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-heavy', display: 'swap' })
+const mural = Fugaz_One({ subsets: ['latin'], weight: '400', variable: '--font-mural', display: 'swap' })
+const brush = Kaushan_Script({ subsets: ['latin'], weight: '400', variable: '--font-brush', display: 'swap' })
+const slab = Alfa_Slab_One({ subsets: ['latin'], weight: '400', variable: '--font-slab', display: 'swap' })
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
@@ -73,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${expressive.variable} ${display.variable} ${stencil.variable} ${heavy.variable}`}>
+    <html lang="en" className={`${inter.variable} ${expressive.variable} ${display.variable} ${stencil.variable} ${heavy.variable} ${mural.variable} ${brush.variable} ${slab.variable}`}>
       <head>
         {/* Applies the saved calm-background preference before first paint so the
             backdrop never flashes at full strength. */}

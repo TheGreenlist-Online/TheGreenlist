@@ -1220,3 +1220,204 @@ body {
 
 /* District accent tokens */
 .site-frame { --district-accent: 198, 255, 61; --district-glow: rgba(198, 255, 61, .08); }
+
+/* ================================================================= */
+/* HAND-PAINTED TAG PASS — character + slant, restrained showmanship  */
+/* ================================================================= */
+
+/* Wordmark: mural-cut display with real slant and a chrome-line highlight */
+.greenlist-wordmark {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -.02em !important;
+  line-height: .88 !important;
+  text-transform: uppercase !important;
+  transform: skewX(-8deg) !important;
+  transform-origin: left center !important;
+  margin-top: 1.35rem !important;
+  gap: 0 .12em !important;
+  padding-right: 2rem !important; /* skew tail bleed */
+}
+
+.greenlist-wordmark__the {
+  font-family: var(--font-brush), cursive !important;
+  color: var(--neon) !important;
+  font-size: .3em !important;
+  font-weight: 400 !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  text-shadow: 2px 2px 0 #000 !important;
+  transform: skewX(8deg) !important; /* counter the parent skew so script reads natural */
+  margin-bottom: .35rem !important;
+  padding-left: .15em !important;
+}
+
+.greenlist-wordmark__green {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  color: var(--neon) !important;
+  -webkit-text-stroke: 0 !important;
+  /* Layered painted shadow: crisp black offset, deep shadow, subtle neon halo */
+  text-shadow:
+    3px 3px 0 #000,
+    6px 6px 0 rgba(0,0,0,.85),
+    0 0 60px rgba(198,255,61,.22) !important;
+  /* Faint top chrome highlight via background-clip */
+  background-image: linear-gradient(180deg, #f4ffb8 0%, #c6ff3d 42%, #8fbf1a 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  transform: none !important;
+  padding: 0 !important;
+}
+
+.greenlist-wordmark__list {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  color: var(--text) !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow:
+    3px 3px 0 #000,
+    6px 6px 0 rgba(0,0,0,.85) !important;
+  background-image: linear-gradient(180deg, #ffffff 0%, #f2f2ef 55%, #c8c8c2 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+
+/* Painted swash underline beneath the wordmark for showmanship */
+.greenlist-hero__inner { position: relative; }
+.greenlist-wordmark::after {
+  content: '';
+  display: block;
+  width: min(520px, 55%);
+  height: 14px;
+  margin-top: .35rem;
+  transform: skewX(-4deg);
+  background:
+    radial-gradient(ellipse 100% 60% at 0% 50%, var(--neon) 0%, var(--neon) 40%, transparent 65%),
+    linear-gradient(90deg, var(--neon) 0%, var(--neon) 60%, transparent 100%);
+  clip-path: polygon(0 40%, 96% 0, 100% 55%, 90% 100%, 3% 90%);
+  opacity: .95;
+  filter: drop-shadow(3px 3px 0 #000) drop-shadow(0 0 22px rgba(198,255,61,.35));
+}
+
+/* Kicker: keep the mono label but soften slightly and pick up character */
+.greenlist-kicker {
+  color: var(--text-2) !important;
+  font-family: var(--font-brush), cursive !important;
+  font-size: 1.05rem !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+  font-weight: 400 !important;
+  text-shadow: 1px 1px 0 #000 !important;
+  transform: skewX(-6deg) !important;
+}
+.greenlist-kicker::before {
+  content: '';
+  width: 1.5rem; height: 2px;
+  background: var(--neon);
+  display: inline-block;
+  margin-right: .55rem;
+  vertical-align: middle;
+  transform: skewX(6deg);
+}
+
+/* Tagline: hand-painted brush with slant */
+.greenlist-hero__tagline {
+  font-family: var(--font-brush), cursive !important;
+  color: var(--text) !important;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 400 !important;
+  text-shadow:
+    2px 2px 0 #000,
+    3px 3px 0 rgba(0,0,0,.6) !important;
+  transform: skewX(-6deg) !important;
+  display: inline-block !important;
+  margin-top: 1.4rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.greenlist-hero__tagline::before {
+  content: '';
+  display: inline-block;
+  width: 1.6rem; height: 2px;
+  background: var(--neon);
+  margin-right: .7rem;
+  vertical-align: middle;
+  transform: skewX(6deg);
+}
+
+/* Section headings: painted slab with slight italic slant, keep the hard shadow */
+.greenlist-section__heading h2 {
+  color: var(--text) !important;
+  font-family: var(--font-slab), Impact, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -.01em !important;
+  text-transform: uppercase !important;
+  font-style: normal !important;
+  text-shadow:
+    3px 3px 0 #000,
+    5px 5px 0 rgba(0,0,0,.7) !important;
+  transform: skewX(-5deg) !important;
+  display: inline-block !important;
+  padding-right: .5em !important;
+}
+
+.greenlist-civic-panel h2 {
+  color: var(--text) !important;
+  font-family: var(--font-slab), Impact, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -.01em !important;
+  text-transform: uppercase !important;
+  text-shadow: 3px 3px 0 #000, 5px 5px 0 rgba(0,0,0,.7) !important;
+  transform: skewX(-4deg) !important;
+  display: inline-block !important;
+}
+
+/* District card titles: mural-cut with a subtle slant so they feel painted */
+.greenlist-district-card h3 {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  letter-spacing: -.005em !important;
+  text-transform: uppercase !important;
+  text-shadow: 2px 2px 0 #000 !important;
+  transform: skewX(-4deg) !important;
+  display: inline-block !important;
+}
+
+/* Site brand up top: subtle slant so it reads as part of the tag family */
+.site-brand {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  letter-spacing: .01em !important;
+  text-transform: uppercase !important;
+  transform: skewX(-6deg) !important;
+  display: inline-flex !important;
+}
+.site-brand__mark { transform: skewX(6deg) !important; }
+
+/* Primary CTA: keep sharp, add a tiny slant on label only, painted feel */
+.greenlist-primary-button {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  font-style: normal !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  font-size: .95rem !important;
+}
+.greenlist-primary-button > * { transform: skewX(-6deg); display: inline-block; }
+
+.greenlist-secondary-button {
+  font-family: var(--font-mural), Impact, sans-serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  font-size: .95rem !important;
+}
+.greenlist-secondary-button > * { transform: skewX(-6deg); display: inline-block; }
+
+/* Reduce halo on mobile so the tag reads clean */
+@media (max-width: 640px) {
+  .greenlist-wordmark { transform: skewX(-6deg) !important; padding-right: 1rem !important; }
+  .greenlist-wordmark::after { width: 70%; height: 10px; }
+}
