@@ -9,7 +9,7 @@ import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
 import { hasPermission, normalizePlatformRole, type PlatformRole } from '@/lib/roles'
 import { statusBadgeBase, toneClass, type StatusTone } from '@/lib/statusTones'
-import { getDashboardData } from '@/lib/dashboard'
+import { getDashboardData, getPendingClaimCount } from '@/lib/dashboard'
 import { StatTile } from '@/components/dashboard/StatTile'
 import { DashboardPanel } from '@/components/dashboard/DashboardPanel'
 import { ActivityList } from '@/components/dashboard/ActivityList'
@@ -89,6 +89,11 @@ const moderatorCards = [
 ]
 
 const adminCards = [
+  {
+    title: 'Business claims',
+    body: 'Verify that a claimant represents the business, then approve or deny. The owner is notified either way.',
+    href: '/admin/claims',
+  },
   {
     title: 'Admin command center',
     body: 'Moderation, review, submissions, sources and audit tooling in one place.',
@@ -179,6 +184,9 @@ export default async function DashboardPage() {
   const role = normalizePlatformRole(profile?.role)
   const isPlatformOwner = user.app_metadata?.platform_owner === true
   const isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
+
+  // Reviewer workload, not personal activity — only fetched for people who can act on it.
+  const pendingClaims = isAdmin ? await getPendingClaimCount() : null
   const workspaceCards = getWorkspaceCards(role, isAdmin)
   const userName = getUserName(profile ?? null, user.user_metadata?.full_name)
   const accountStatus = profile?.account_status ?? 'active'
@@ -309,6 +317,22 @@ export default async function DashboardPage() {
           </DashboardPanel>
         </div>
       </div>
+
+      {pendingClaims && pendingClaims > 0 ? (
+        <section className="mt-6">
+          <Link
+            href="/admin/claims"
+            className="block rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-5 transition hover:border-emerald-400/60"
+          >
+            <p className="text-sm font-semibold text-emerald-100">
+              {pendingClaims} business {pendingClaims === 1 ? 'claim' : 'claims'} waiting on review
+            </p>
+            <p className="mt-1 text-sm text-emerald-200/75">
+              Approve or deny each claim. The owner is notified either way.
+            </p>
+          </Link>
+        </section>
+      ) : null}
 
       {counts.openTickets > 0 ? (
         <section className="mt-6">

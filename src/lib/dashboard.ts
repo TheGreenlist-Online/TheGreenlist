@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { StatusTone } from '@/lib/statusTones'
+import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 /**
  * Everything the dashboard shows about the signed-in user.
@@ -290,5 +291,30 @@ export async function getDashboardData(supabase: Client, userId: string): Promis
     activity,
     notifications,
     degraded: failures.count > 0,
+  }
+}
+
+/**
+ * How many business claims are waiting on a reviewer.
+ *
+ * Uses the service role client because pending claims are unlisted
+ * (`is_active` stays false until approval) and are not readable through a
+ * reviewer's own session. Admin-gated callers only. Returns null if the count
+ * cannot be read, so the caller can stay quiet rather than showing a wrong zero.
+ */
+export async function getPendingClaimCount(): Promise<number | null> {
+  try {
+    const admin = createSupabaseAdminClient()
+    const { count, error } = await admin
+      .from('business_profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_claimed', true)
+      .eq('verification_status', 'unverified')
+
+    if (error) throw error
+    return count ?? 0
+  } catch (error) {
+    console.error('Failed to count pending claims:', error)
+    return null
   }
 }
