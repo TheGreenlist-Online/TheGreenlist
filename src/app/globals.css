@@ -807,3 +807,385 @@ html.gl-calm .greenlist-wordmark__list { text-shadow: none; }
   .greenlist-wordmark__list { -webkit-text-stroke-width: .75px; }
   .greenlist-hero::after { opacity: .16; }
 }
+
+/* ================================================================= */
+/* STREET GRAFFITI THEME — heavy tag style, sticker slaps, spray drip */
+/* ================================================================= */
+:root {
+  --gl-ink: #050505;
+  --gl-brick: #0a0908;
+  --gl-neon: #b9ff2f;
+  --gl-neon-2: #7ede3a;
+  --gl-white: #f7f5ee;
+  --gl-purple: #8a2be2;
+  --gl-magenta: #ff2ec3;
+  --gl-orange: #ff6a1a;
+  --gl-yellow: #ffd329;
+  --gl-blood: #ff2d3d;
+}
+
+/* Raw wall backdrop: brick tone + noise + drip splashes */
+html { background: var(--gl-ink) !important; }
+body {
+  background: var(--gl-ink) !important;
+  color: var(--gl-white) !important;
+  /* Subtle concrete grain via layered noise */
+  background-image:
+    radial-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    radial-gradient(rgba(255,255,255,.015) 1px, transparent 1px) !important;
+  background-size: 3px 3px, 7px 7px !important;
+  background-position: 0 0, 1px 2px !important;
+}
+
+.smoke-bg,
+.greenlist-shell-bg__art {
+  background-image:
+    /* Spray paint clouds */
+    radial-gradient(ellipse 40% 30% at 10% 15%, rgba(138,43,226,.55), transparent 60%),
+    radial-gradient(ellipse 35% 30% at 88% 12%, rgba(255,106,26,.5), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 20% 85%, rgba(255,46,195,.42), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 82% 78%, rgba(185,255,47,.28), transparent 60%),
+    radial-gradient(ellipse 30% 25% at 50% 50%, rgba(255,211,41,.18), transparent 65%),
+    /* Concrete wall gradient */
+    linear-gradient(180deg, #050505, #020202) !important;
+  filter: contrast(1.1) saturate(1.15) !important;
+}
+.greenlist-shell-bg__veil {
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0 18rem, rgba(0,0,0,.65) 42rem),
+    linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.6)) !important;
+}
+
+::selection { background: var(--gl-neon); color: #000; }
+
+/* ============ HEADER — sticker-slap look ============ */
+.site-header {
+  background: rgba(0,0,0,.88) !important;
+  border-bottom: 3px solid var(--gl-neon) !important;
+  box-shadow: 0 0 24px rgba(185,255,47,.25), 0 4px 0 #000 !important;
+}
+.site-brand__mark {
+  border: 2px solid var(--gl-neon) !important;
+  color: var(--gl-neon) !important;
+  background: #000 !important;
+  transform: rotate(-4deg);
+  box-shadow: 3px 3px 0 var(--gl-magenta), 0 0 14px rgba(185,255,47,.5);
+}
+.site-brand {
+  color: var(--gl-white) !important;
+  font-family: var(--font-tag), 'Impact', sans-serif !important;
+  letter-spacing: .04em !important;
+  text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(215,38,255,.5);
+  text-transform: uppercase !important;
+}
+
+/* ============ HERO — spray-can canvas ============ */
+.greenlist-hero {
+  background:
+    /* Big neon burst behind wordmark */
+    radial-gradient(circle at 25% 40%, rgba(138,43,226,.4), transparent 45%),
+    radial-gradient(circle at 78% 30%, rgba(255,106,26,.35), transparent 45%),
+    radial-gradient(circle at 55% 90%, rgba(255,46,195,.28), transparent 55%),
+    linear-gradient(180deg, #060606, #020202) !important;
+  border-bottom: 4px dashed rgba(185,255,47,.35) !important;
+}
+.greenlist-hero::before {
+  /* Overlay of scratched paint texture */
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image:
+    linear-gradient(90deg, transparent 0, transparent 48%, rgba(255,255,255,.03) 50%, transparent 52%, transparent 100%),
+    linear-gradient(0deg, transparent 0, transparent 48%, rgba(255,255,255,.02) 50%, transparent 52%, transparent 100%) !important;
+  background-size: 8px 8px, 12px 12px !important;
+  mix-blend-mode: overlay !important;
+  pointer-events: none !important;
+}
+
+/* Kicker "TRUTH · TRANSPARENCY · TRUST" — spray-stencil */
+.greenlist-kicker {
+  color: var(--gl-neon) !important;
+  font-family: var(--font-expressive), 'Impact', sans-serif !important;
+  font-size: 1rem !important;
+  letter-spacing: .3em !important;
+  text-transform: uppercase !important;
+  text-shadow:
+    0 0 12px rgba(185,255,47,.65),
+    2px 2px 0 #000,
+    0 0 30px rgba(185,255,47,.3);
+  transform: rotate(-1deg);
+  display: inline-block !important;
+  padding: .35rem .9rem !important;
+  border: 2px dashed rgba(185,255,47,.5) !important;
+  background: rgba(0,0,0,.4) !important;
+}
+
+/* Cannabis-leaf seal — spray-can badge */
+.greenlist-seal {
+  width: 5rem !important; height: 5rem !important;
+  border: 3px solid var(--gl-neon) !important;
+  background: radial-gradient(circle, rgba(185,255,47,.18), rgba(0,0,0,.7)) !important;
+  box-shadow:
+    0 0 30px rgba(185,255,47,.55),
+    inset 0 0 20px rgba(138,43,226,.4),
+    5px 5px 0 rgba(255,46,195,.4) !important;
+  transform: rotate(-3deg);
+}
+.greenlist-seal__leaf { color: var(--gl-neon) !important; filter: drop-shadow(0 0 10px rgba(185,255,47,.9)); }
+.greenlist-seal__leaf svg { width: 2.5rem !important; height: 2.5rem !important; }
+
+/* ============ WORDMARK — REAL GRAFFITI TAG ============ */
+.greenlist-wordmark {
+  font-family: var(--font-tag), 'Impact', sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -.03em !important;
+  line-height: .82 !important;
+  transform: rotate(-2deg) !important;
+  margin-top: 1.5rem !important;
+}
+
+.greenlist-wordmark__the {
+  font-family: var(--font-expressive), cursive !important;
+  color: var(--gl-white) !important;
+  font-size: .3em !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+  transform: rotate(-8deg) translateX(1rem);
+  text-shadow:
+    2px 2px 0 #000,
+    4px 4px 0 var(--gl-magenta),
+    0 0 18px rgba(255,255,255,.4);
+}
+
+/* "Green" — dripping neon spray */
+.greenlist-wordmark__green {
+  font-family: var(--font-wet), var(--font-tag), sans-serif !important;
+  color: var(--gl-neon) !important;
+  -webkit-text-stroke: 3px #000 !important;
+  text-stroke: 3px #000 !important;
+  text-shadow:
+    /* Chunky hard shadow */
+    5px 5px 0 #000,
+    8px 8px 0 var(--gl-purple),
+    /* Neon glow */
+    0 0 20px rgba(185,255,47,.9),
+    0 0 45px rgba(126,222,58,.65),
+    /* Purple drip glow underneath */
+    0 12px 30px rgba(138,43,226,.7) !important;
+  transform: skewX(-6deg) rotate(-2deg);
+  display: inline-block;
+  padding-right: .2em;
+}
+
+/* "List" — bold white marker tag, slashed across */
+.greenlist-wordmark__list {
+  font-family: var(--font-expressive), cursive !important;
+  color: var(--gl-white) !important;
+  -webkit-text-stroke: 2px #000 !important;
+  text-shadow:
+    4px 4px 0 #000,
+    7px 7px 0 var(--gl-magenta),
+    0 0 18px rgba(255,255,255,.55),
+    0 8px 24px rgba(255,46,195,.6) !important;
+  transform: rotate(4deg) skewX(-4deg);
+  display: inline-block;
+  margin-left: .3em;
+}
+
+/* Tagline */
+.greenlist-hero__tagline {
+  font-family: var(--font-expressive), cursive !important;
+  color: var(--gl-neon) !important;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem) !important;
+  text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(138,43,226,.6), 0 0 14px rgba(185,255,47,.5) !important;
+  letter-spacing: .04em !important;
+  transform: rotate(-1deg);
+  display: inline-block !important;
+  margin-top: 1.8rem !important;
+}
+.greenlist-hero__copy { color: #d2d6ce !important; text-shadow: 1px 1px 0 #000; }
+
+/* ============ BUTTONS — sticker slaps ============ */
+.greenlist-primary-button {
+  background: var(--gl-neon) !important;
+  color: #050505 !important;
+  border: 3px solid #000 !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  font-size: 1.05rem !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  box-shadow: 5px 5px 0 #000, 0 0 30px rgba(185,255,47,.55) !important;
+  transform: rotate(-1deg);
+  padding: .8rem 1.4rem !important;
+}
+.greenlist-primary-button:hover {
+  background: var(--gl-neon-2) !important;
+  transform: rotate(-1deg) translate(2px,2px);
+  box-shadow: 3px 3px 0 #000, 0 0 40px rgba(185,255,47,.8) !important;
+}
+.greenlist-secondary-button {
+  border: 3px solid var(--gl-magenta) !important;
+  color: var(--gl-white) !important;
+  background: #000 !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  box-shadow: 5px 5px 0 var(--gl-purple), 0 0 22px rgba(255,46,195,.45) !important;
+  transform: rotate(1deg);
+  padding: .8rem 1.4rem !important;
+}
+.greenlist-secondary-button:hover {
+  border-color: var(--gl-neon) !important;
+  color: var(--gl-neon) !important;
+  transform: rotate(1deg) translate(2px,2px);
+  box-shadow: 3px 3px 0 var(--gl-purple), 0 0 30px rgba(185,255,47,.55) !important;
+}
+
+/* ============ PILLARS — sticker row ============ */
+.greenlist-pillars {
+  border: 3px solid #000 !important;
+  outline: 2px dashed var(--gl-neon) !important;
+  outline-offset: -8px !important;
+  background: rgba(0,0,0,.75) !important;
+  box-shadow: 8px 8px 0 var(--gl-purple), 0 0 32px rgba(255,46,195,.25) !important;
+  border-radius: .5rem !important;
+  transform: rotate(-.5deg);
+}
+.greenlist-pillar { border-right: 2px dashed rgba(185,255,47,.35) !important; }
+.greenlist-pillar:hover { background: rgba(185,255,47,.1) !important; }
+.greenlist-pillar__icon {
+  background: var(--gl-neon) !important;
+  color: #000 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 14px rgba(185,255,47,.7), 2px 2px 0 #000;
+}
+.greenlist-pillar__title {
+  color: var(--gl-white) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  text-shadow: 2px 2px 0 #000;
+}
+.greenlist-pillar__subtitle {
+  color: var(--gl-neon) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .14em !important;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ============ SECTION HEADERS — chunky tag ============ */
+.greenlist-section { background: rgba(3,3,3,.82) !important; }
+.greenlist-section__heading p {
+  color: var(--gl-neon) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .18em !important;
+  text-shadow: 2px 2px 0 #000;
+}
+.greenlist-section__heading h2 {
+  color: var(--gl-white) !important;
+  font-family: var(--font-tag), 'Impact', sans-serif !important;
+  letter-spacing: -.02em !important;
+  -webkit-text-stroke: 2px #000 !important;
+  text-shadow:
+    4px 4px 0 var(--gl-purple),
+    7px 7px 0 #000,
+    0 0 22px rgba(255,46,195,.35) !important;
+  transform: rotate(-1.5deg) !important;
+  display: inline-block !important;
+}
+.greenlist-section__heading span { color: #b4bcae !important; }
+
+/* ============ DISTRICT CARDS — tagged sticker slaps ============ */
+.greenlist-district-card {
+  background: #060606 !important;
+  border: 3px solid #000 !important;
+  outline: 2px solid rgba(185,255,47,.35) !important;
+  outline-offset: -8px !important;
+  box-shadow: 6px 6px 0 var(--gl-purple), 0 0 24px rgba(138,43,226,.25) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+.greenlist-district-card:nth-child(even) { transform: rotate(.6deg); box-shadow: 6px 6px 0 var(--gl-magenta) !important; }
+.greenlist-district-card:nth-child(odd) { transform: rotate(-.6deg); }
+.greenlist-district-card:hover {
+  transform: rotate(0deg) translate(-2px,-2px) !important;
+  box-shadow: 10px 10px 0 var(--gl-neon), 0 0 32px rgba(185,255,47,.4) !important;
+  outline-color: var(--gl-neon) !important;
+}
+.greenlist-district-card__icon {
+  background: var(--gl-neon) !important;
+  color: #000 !important;
+  border-radius: 999px !important;
+  box-shadow: 3px 3px 0 #000, 0 0 12px rgba(185,255,47,.6) !important;
+}
+.greenlist-district-card p {
+  color: var(--gl-neon) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .14em !important;
+  text-shadow: 1px 1px 0 #000;
+}
+.greenlist-district-card h3 {
+  color: var(--gl-white) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .02em !important;
+  text-shadow: 2px 2px 0 #000, 3px 3px 0 rgba(215,38,255,.45);
+}
+.greenlist-district-card strong {
+  color: var(--gl-neon) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  text-shadow: 1px 1px 0 #000;
+  letter-spacing: .08em !important;
+}
+.greenlist-district-card > span:not(.greenlist-district-card__icon) { color: #b4bcae !important; }
+
+/* ============ CIVIC PANEL ============ */
+.greenlist-civic-panel {
+  background: linear-gradient(140deg, #060606, #100416 55%, #100604) !important;
+  border: 3px solid #000 !important;
+  outline: 2px dashed var(--gl-neon) !important;
+  outline-offset: -10px !important;
+  box-shadow: 8px 8px 0 var(--gl-purple), 0 0 40px rgba(138,43,226,.3) !important;
+  transform: rotate(-.4deg);
+}
+.greenlist-civic-panel h2 {
+  color: var(--gl-white) !important;
+  font-family: var(--font-tag), 'Impact', sans-serif !important;
+  -webkit-text-stroke: 2px #000 !important;
+  text-shadow:
+    4px 4px 0 var(--gl-orange),
+    7px 7px 0 #000,
+    0 0 20px rgba(255,106,26,.4) !important;
+}
+.greenlist-civic-panel__points span {
+  background: #000 !important;
+  border: 2px solid var(--gl-neon) !important;
+  color: var(--gl-white) !important;
+  font-family: var(--font-expressive), sans-serif !important;
+  letter-spacing: .05em !important;
+  text-transform: uppercase !important;
+  box-shadow: 3px 3px 0 var(--gl-magenta) !important;
+}
+.greenlist-civic-panel__points svg { color: var(--gl-neon) !important; filter: drop-shadow(0 0 6px rgba(185,255,47,.6)); }
+
+/* District accent tokens — swing the whole shell to neon */
+.site-frame {
+  --district-accent: 185, 255, 47;
+  --district-glow: rgba(185, 255, 47, .16);
+}
+
+/* Add spray-splash divider strips to hero/section boundaries */
+.greenlist-hero,
+.greenlist-section {
+  position: relative;
+}
+.greenlist-hero::after,
+.greenlist-section::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 6px;
+  background:
+    radial-gradient(circle at 5% 50%, var(--gl-neon) 2px, transparent 3px) 0 0/40px 6px repeat-x,
+    radial-gradient(circle at 20% 50%, var(--gl-magenta) 1.5px, transparent 2.5px) 0 0/60px 6px repeat-x;
+  opacity: .55;
+  pointer-events: none;
+}
