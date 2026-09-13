@@ -1421,3 +1421,58 @@ body {
   .greenlist-wordmark { transform: skewX(-6deg) !important; padding-right: 1rem !important; }
   .greenlist-wordmark::after { width: 70%; height: 10px; }
 }
+
+/* ================================================================= */
+/* WILDSTYLE PIECE — replaces the text wordmark on the home hero.     */
+/* ================================================================= */
+.greenlist-wordmark--piece {
+  transform: none !important;
+  padding: 0 !important;
+  margin-top: 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: .35rem !important;
+  overflow: visible !important;
+}
+.greenlist-wordmark--piece::after { display: none !important; }
+
+.greenlist-piece {
+  position: relative;
+  display: block;
+  width: min(1000px, 100%);
+  filter:
+    drop-shadow(0 20px 40px rgba(0,0,0,.55))
+    drop-shadow(0 0 34px rgba(198,255,61,.18));
+}
+
+.greenlist-piece__the {
+  display: inline-block;
+  font-family: var(--font-brush), cursive;
+  color: var(--neon);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  letter-spacing: .01em;
+  text-shadow: 2px 2px 0 #000, 3px 3px 0 rgba(0,0,0,.6);
+  transform: skewX(-8deg);
+  margin-left: 1rem;
+  margin-bottom: -.25rem;
+}
+
+.greenlist-piece__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .greenlist-piece { width: 100%; }
+}
+
+/* Screen-reader-only label helper (in case the app doesn't already ship one) */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important;
+}

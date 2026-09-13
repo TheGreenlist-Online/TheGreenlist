@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
+import { GraffitiWordmark } from '@/components/GraffitiWordmark'
 
 const pillars = [
   {
@@ -104,10 +105,9 @@ export default function HomePage() {
           />
 
           <p className="greenlist-kicker">Truth &middot; Transparency &middot; Trust</p>
-          <h1 id="home-heading" className="greenlist-wordmark">
-            <span className="greenlist-wordmark__the">The</span>
-            <span className="greenlist-wordmark__green">Green</span>
-            <span className="greenlist-wordmark__list">List</span>
+          <h1 id="home-heading" className="greenlist-wordmark greenlist-wordmark--piece">
+            <span className="sr-only">The Green List</span>
+            <GraffitiWordmark />
           </h1>
           <p className="greenlist-hero__tagline">Excellence in every truth.</p>
           <p className="greenlist-hero__copy">
