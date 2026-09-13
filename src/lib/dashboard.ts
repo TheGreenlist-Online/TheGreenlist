@@ -53,8 +53,15 @@ export type DashboardData = {
   degraded: boolean
 }
 
-/** Report statuses that mean "a reviewer still has to look at this". */
-const REPORT_PENDING = ['submitted', 'SUBMITTED', 'pending', 'PENDING', 'under_review', 'UNDER_REVIEW']
+/**
+ * Report statuses that mean "a reviewer still has to look at this".
+ *
+ * reports.status is constrained to lowercase submitted / under_review /
+ * needs_more_info / published / resolved / rejected, so the uppercase variants
+ * this list used to carry could never match and have been dropped. 'pending' is
+ * not a real status either, but is cheap to keep as a synonym.
+ */
+const REPORT_PENDING = ['submitted', 'pending', 'under_review']
 /** education_resources.status is constrained to DRAFT/PENDING_REVIEW/APPROVED/REJECTED/ARCHIVED. */
 const RESOURCE_PENDING = ['DRAFT', 'PENDING_REVIEW']
 
