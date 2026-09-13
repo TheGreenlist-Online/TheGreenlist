@@ -46,6 +46,9 @@ export default async function AdminBusinessDocumentsPage() {
 
   const documents = await Promise.all(
     rows.map(async (row) => {
+      if (row.file_url.includes('..')) {
+        throw new Error('Invalid file path')
+      }
       const { data: signed } = await principal.supabase.storage
         .from('business-documents')
         .createSignedUrl(row.file_url, 60 * 60)
