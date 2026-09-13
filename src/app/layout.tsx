@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Inter, Permanent_Marker, Rubik_Puddles, Rubik_Wet_Paint, Rampart_One, Bungee_Shade } from 'next/font/google'
+import { Inter, Permanent_Marker, Bebas_Neue, Anton, Archivo_Black } from 'next/font/google'
 
 // Inter remains the interface voice. Permanent Marker is scoped to the public
 // hero so the official system can carry a controlled street-art accent.
@@ -17,10 +17,10 @@ const expressive = Permanent_Marker({
   display: 'swap',
 })
 
-const drip = Rubik_Puddles({ subsets: ['latin'], weight: '400', variable: '--font-drip', display: 'swap' })
-const wet = Rubik_Wet_Paint({ subsets: ['latin'], weight: '400', variable: '--font-wet', display: 'swap' })
-const tag = Rampart_One({ subsets: ['latin'], weight: '400', variable: '--font-tag', display: 'swap' })
-const chunk = Bungee_Shade({ subsets: ['latin'], weight: '400', variable: '--font-chunk', display: 'swap' })
+// Tight, industrial-grade type stack for a corporate-graffiti/streetwear feel.
+const display = Bebas_Neue({ subsets: ['latin'], weight: '400', variable: '--font-display', display: 'swap' })
+const stencil = Anton({ subsets: ['latin'], weight: '400', variable: '--font-stencil', display: 'swap' })
+const heavy = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-heavy', display: 'swap' })
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
@@ -73,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${expressive.variable} ${drip.variable} ${wet.variable} ${tag.variable} ${chunk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${expressive.variable} ${display.variable} ${stencil.variable} ${heavy.variable}`}>
       <head>
         {/* Applies the saved calm-background preference before first paint so the
             backdrop never flashes at full strength. */}
