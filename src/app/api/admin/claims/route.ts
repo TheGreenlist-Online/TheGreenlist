@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/supabase/authz'
+import { requirePermission } from '@/lib/supabase/authz'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -28,7 +28,7 @@ function isDecision(value: unknown): value is Decision {
 }
 
 export async function GET() {
-  const principal = await requireAdmin()
+  const principal = await requirePermission('business.review')
 
   if (!principal.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -59,7 +59,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const principal = await requireAdmin()
+  const principal = await requirePermission('business.review')
 
   if (!principal.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

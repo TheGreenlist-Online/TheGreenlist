@@ -11,7 +11,8 @@
     "dns:list": "npx ts-node scripts/porkbun-dns.ts list",
     "dns:setup-vercel": "npx ts-node scripts/porkbun-dns.ts setup-vercel",
     "dns:setup-clerk": "npx ts-node scripts/porkbun-dns.ts setup-clerk",
-    "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all"
+    "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all",
+    "check:roles": "node scripts/check-role-sync.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.0.6",

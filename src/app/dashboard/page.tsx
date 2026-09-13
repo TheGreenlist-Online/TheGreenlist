@@ -7,7 +7,14 @@ import { PageIntro } from '@/components/PageIntro'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 import { TrustBadge } from '@/components/TrustBadge'
-import { hasPermission, normalizePlatformRole, type PlatformRole } from '@/lib/roles'
+import {
+  canReviewBusinessClaims,
+  isAdmin as isAdminRole,
+  isModerator,
+  normalizePlatformRole,
+  roleCategory,
+  type PlatformRole,
+} from '@/lib/roles'
 import { statusBadgeBase, toneClass, type StatusTone } from '@/lib/statusTones'
 import { getDashboardData, getPendingClaimCount } from '@/lib/dashboard'
 import { StatTile } from '@/components/dashboard/StatTile'
@@ -136,18 +143,22 @@ function getUserName(profile: DashboardProfile | null, fallbackName: unknown) {
   return ''
 }
 
+// The workspace section is chosen by role category rather than by comparing
+// role names, so adding an operator or review role does not require editing
+// these three functions. ADMIN and MODERATOR share the REVIEW category but get
+// different tools, so they are still distinguished within it.
 function getWorkspaceCards(role: PlatformRole, isAdmin: boolean) {
   if (isAdmin) return adminCards
-  if (role === 'MODERATOR') return moderatorCards
-  if (hasPermission(role, 'business:manage')) return businessCards
+  if (isModerator(role)) return moderatorCards
+  if (roleCategory(role) === 'OPERATOR') return businessCards
   return personalCards
 }
 
 function getWorkspaceTitle(role: PlatformRole, isAdmin: boolean, isPlatformOwner: boolean) {
   if (isPlatformOwner) return 'Platform owner tools'
   if (isAdmin) return 'Administrator tools'
-  if (role === 'MODERATOR') return 'Moderator tools'
-  if (hasPermission(role, 'business:manage')) return 'Business tools'
+  if (isModerator(role)) return 'Moderator tools'
+  if (roleCategory(role) === 'OPERATOR') return 'Business tools'
   return 'Explore the platform'
 }
 
@@ -155,9 +166,9 @@ function getWorkspaceDescription(role: PlatformRole, isAdmin: boolean, isPlatfor
   if (isPlatformOwner)
     return 'Owner authority is held in server-managed account metadata and cannot be self-assigned.'
   if (isAdmin) return 'Private evidence review, moderation, submissions and audited platform operations.'
-  if (role === 'MODERATOR')
+  if (isModerator(role))
     return 'Private evidence stays unavailable until you have signed an NDA scoped to that specific report.'
-  if (hasPermission(role, 'business:manage'))
+  if (roleCategory(role) === 'OPERATOR')
     return 'Profile management, report awareness and factual accountability responses.'
   return 'Where to go next beyond your own submissions.'
 }
@@ -183,10 +194,12 @@ export default async function DashboardPage() {
 
   const role = normalizePlatformRole(profile?.role)
   const isPlatformOwner = user.app_metadata?.platform_owner === true
-  const isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
+  const isAdmin = isAdminRole(role, isPlatformOwner)
 
   // Reviewer workload, not personal activity — only fetched for people who can act on it.
-  const pendingClaims = isAdmin ? await getPendingClaimCount() : null
+  // Gated on the permission that names the action, not on being an admin.
+  const canReviewClaims = canReviewBusinessClaims(role, isPlatformOwner)
+  const pendingClaims = canReviewClaims ? await getPendingClaimCount() : null
   const workspaceCards = getWorkspaceCards(role, isAdmin)
   const userName = getUserName(profile ?? null, user.user_metadata?.full_name)
   const accountStatus = profile?.account_status ?? 'active'

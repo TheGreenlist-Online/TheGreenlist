@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/supabase/authz'
+import { requirePermission } from '@/lib/supabase/authz'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -34,7 +34,7 @@ const VERIFICATION_STATUSES = [
 ] as const
 
 export async function PATCH(request: NextRequest) {
-  const principal = await requireAdmin()
+  const principal = await requirePermission('report.review')
 
   if (!principal.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

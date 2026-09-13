@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { requireAdmin } from '@/lib/supabase/authz'
+import { requirePermission } from '@/lib/supabase/authz'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { PageShell } from '@/components/PageShell'
 import { PageIntro } from '@/components/PageIntro'
@@ -15,7 +15,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function AdminClaimsPage() {
-  const principal = await requireAdmin()
+  const principal = await requirePermission('business.review')
 
   if (!principal.user) {
     redirect('/auth/signin?callbackUrl=/admin/claims')
