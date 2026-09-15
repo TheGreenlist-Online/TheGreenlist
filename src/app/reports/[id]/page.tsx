@@ -14,6 +14,7 @@ type ReportDetailRow = {
   id: string
   reporter_id: string | null
   business_id: string | null
+  business_name_reported: string | null
   report_type: string
   title: string
   description: string
@@ -64,7 +65,7 @@ export default async function ReportDetailPage({
   const { data: report, error } = await supabase
     .from('reports')
     .select(
-      'id, reporter_id, business_id, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
+      'id, reporter_id, business_id, business_name_reported, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
     )
     .eq('id', id)
     .maybeSingle<ReportDetailRow>()
@@ -109,6 +110,7 @@ export default async function ReportDetailPage({
             Risk: {report.risk_level}
           </span>
           {report.is_anonymous ? <span>Public anonymity requested</span> : null}
+          {report.business_name_reported ? <span>Business reported: {report.business_name_reported}</span> : null}
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-6">

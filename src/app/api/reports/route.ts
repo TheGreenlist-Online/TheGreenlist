@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-
-const REPORT_TYPES = new Set([
-  'mislabeling',
-  'contamination',
-  'licensing',
-  'worker_safety',
-  'deceptive_marketing',
-  'other',
-])
+import { REPORT_TYPE_VALUES } from '@/lib/report-types'
 
 type ReportListRow = {
   id: string
@@ -67,9 +59,10 @@ export async function POST(request: NextRequest) {
       location_city,
       is_anonymous,
       business_id,
+      business_name_reported,
     } = body ?? {}
 
-    if (typeof report_type !== 'string' || !REPORT_TYPES.has(report_type)) {
+    if (typeof report_type !== 'string' || !REPORT_TYPE_VALUES.has(report_type)) {
       return NextResponse.json({ error: 'A valid report_type is required.' }, { status: 400 })
     }
 
@@ -103,6 +96,8 @@ export async function POST(request: NextRequest) {
 
     if (typeof business_id === 'string' && business_id.trim()) {
       insertPayload.business_id = business_id.trim()
+    } else if (typeof business_name_reported === 'string' && business_name_reported.trim()) {
+      insertPayload.business_name_reported = business_name_reported.trim().slice(0, 160)
     }
 
     const { data: report, error } = await supabase

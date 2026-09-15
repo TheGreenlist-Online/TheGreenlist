@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { REPORT_TYPES } from '@/lib/report-types'
 
 const EVIDENCE_BUCKET = 'evidence'
 const MAX_FILE_SIZE = 15 * 1024 * 1024
@@ -77,7 +78,7 @@ export function EvidenceUploadForm({
   const [selectedReportId, setSelectedReportId] = useState(reports[0]?.id ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [reportType, setReportType] = useState('consumer_concern')
+  const [reportType, setReportType] = useState('mislabeling')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -286,12 +287,9 @@ export function EvidenceUploadForm({
                     value={reportType}
                     onChange={(event) => setReportType(event.target.value)}
                   >
-                    <option value="consumer_concern">Consumer concern</option>
-                    <option value="product_safety">Product safety</option>
-                    <option value="business_conduct">Business conduct</option>
-                    <option value="compliance_concern">Compliance concern</option>
-                    <option value="platform_issue">Platform issue</option>
-                    <option value="other">Other accountability matter</option>
+                    {REPORT_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
                   </select>
                 </label>
                 <label className="block space-y-2 text-sm font-medium" htmlFor="report-title">

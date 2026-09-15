@@ -9,9 +9,6 @@ export const metadata = {
   description: 'Submit a transparency report with evidence and documentation',
 }
 
-// TODO (phase 2): once /api/businesses GET exists and is stable, replace the free-text
-// "related business" field in report-form.tsx with an autocomplete/select bound to
-// business_id, and pass business_id through to POST /api/reports.
 export default async function ReportsNewPage() {
   const supabase = await createSupabaseServerClient()
   const {
@@ -21,6 +18,13 @@ export default async function ReportsNewPage() {
   if (!user) {
     redirect('/auth/signin?callbackUrl=/reports/new')
   }
+
+  const { data: businesses } = await supabase
+    .from('business_profiles')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name')
+    .limit(250)
 
   return (
     <PageShell>
@@ -35,7 +39,7 @@ export default async function ReportsNewPage() {
         </p>
       </OrnatePanel>
 
-      <ReportForm />
+      <ReportForm businesses={businesses ?? []} />
     </PageShell>
   )
 }
