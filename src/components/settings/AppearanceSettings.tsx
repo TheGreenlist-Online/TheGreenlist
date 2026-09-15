@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { SettingsSection } from '@/components/settings/SettingsSection'
 import { Toggle } from '@/components/settings/SettingsControls'
 import { CALM_CLASS, CALM_STORAGE_KEY, readCalmPreference } from '@/lib/appearance'
@@ -15,20 +15,26 @@ import { CALM_CLASS, CALM_STORAGE_KEY, readCalmPreference } from '@/lib/appearan
  * success. Calm mode below is applied to <html> immediately and re-applied
  * before first paint by the script in the root layout.
  */
-export function AppearanceSettings() {
-  const [calm, setCalm] = useState(false)
-  const [isReady, setIsReady] = useState(false)
+const APPEARANCE_CHANGE_EVENT = 'greenlist:appearance-change'
 
-  useEffect(() => {
-    setCalm(readCalmPreference())
-    setIsReady(true)
-  }, [])
+function subscribeToCalmPreference(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange)
+  window.addEventListener(APPEARANCE_CHANGE_EVENT, onStoreChange)
+
+  return () => {
+    window.removeEventListener('storage', onStoreChange)
+    window.removeEventListener(APPEARANCE_CHANGE_EVENT, onStoreChange)
+  }
+}
+
+export function AppearanceSettings() {
+  const calm = useSyncExternalStore(subscribeToCalmPreference, readCalmPreference, () => false)
 
   const update = (next: boolean) => {
-    setCalm(next)
     document.documentElement.classList.toggle(CALM_CLASS, next)
     try {
       window.localStorage.setItem(CALM_STORAGE_KEY, next ? 'on' : 'off')
+      window.dispatchEvent(new Event(APPEARANCE_CHANGE_EVENT))
     } catch {
       // Private browsing can refuse storage; the class still applies for this visit.
     }
@@ -46,7 +52,6 @@ export function AppearanceSettings() {
         description="Dims the smoke backdrop and removes panel lift and glow. Easier to read for long stretches, and gentler on low-contrast screens."
         checked={calm}
         onChange={update}
-        disabled={!isReady}
       />
 
       <p className="text-xs leading-5 text-zinc-500">

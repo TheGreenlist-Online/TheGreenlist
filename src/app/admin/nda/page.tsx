@@ -24,7 +24,7 @@ export default async function AdminNdaPage() {
   const { data } = await principal.supabase
     .from('nda_signatures')
     .select('*')
-    .eq('user_id', principal.user.id)
+    .eq('moderator_user_id', principal.user.id)
     .order('signed_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -81,8 +81,7 @@ export default async function AdminNdaPage() {
             </ul>
             <p>
               This agreement (document version {NDA_DOCUMENT_VERSION}) remains in effect for as long as you hold
-              moderator or administrator access. Your acceptance, timestamp, and originating IP address will be
-              recorded for compliance purposes.
+              moderator or administrator access. Your acceptance, document version, and timestamp will be recorded for compliance purposes.
             </p>
           </div>
 
