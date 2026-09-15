@@ -7,17 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { REPORT_TYPES } from '@/lib/report-types'
 
-const REPORT_TYPES = [
-  { value: 'mislabeling', label: 'Mislabeling' },
-  { value: 'contamination', label: 'Contamination' },
-  { value: 'licensing', label: 'Licensing' },
-  { value: 'worker_safety', label: 'Worker Safety' },
-  { value: 'deceptive_marketing', label: 'Deceptive Marketing' },
-  { value: 'other', label: 'Other' },
-]
+type BusinessOption = { id: string; name: string }
 
-export function ReportForm() {
+export function ReportForm({ businesses }: { businesses: BusinessOption[] }) {
   const router = useRouter()
   const [reportType, setReportType] = useState('mislabeling')
   const [title, setTitle] = useState('')
@@ -26,6 +20,7 @@ export function ReportForm() {
   const [locationCity, setLocationCity] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [relatedBusiness, setRelatedBusiness] = useState('')
+  const [businessId, setBusinessId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [restoredAt, setRestoredAt] = useState<Date | null>(null)
@@ -39,6 +34,7 @@ export function ReportForm() {
     locationCity: string
     isAnonymous: boolean
     relatedBusiness: string
+    businessId: string
   }
 
   const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<ReportDraft>('report', {
@@ -49,6 +45,7 @@ export function ReportForm() {
     locationCity,
     isAnonymous,
     relatedBusiness,
+    businessId,
   })
 
   useEffect(() => {
@@ -62,6 +59,7 @@ export function ReportForm() {
       if (draft.locationCity) setLocationCity(draft.locationCity)
       if (draft.isAnonymous) setIsAnonymous(draft.isAnonymous)
       if (draft.relatedBusiness) setRelatedBusiness(draft.relatedBusiness)
+      if (draft.businessId) setBusinessId(draft.businessId)
       setRestoredAt(new Date())
       setShowRestoredBanner(true)
     })
@@ -95,8 +93,8 @@ export function ReportForm() {
           location_state: locationState.trim() || null,
           location_city: locationCity.trim() || null,
           is_anonymous: isAnonymous,
-          // NOTE: related-business linkage is currently free text only. There is
-          // no business picker wired up yet — see TODO in reports/new/page.tsx.
+          business_id: businessId || null,
+          business_name_reported: businessId ? null : relatedBusiness.trim() || null,
         }),
       })
 
@@ -203,16 +201,30 @@ export function ReportForm() {
             </div>
 
             <label className="block space-y-2 text-sm font-medium" htmlFor="report-business">
-              Related business <span className="font-normal text-muted-foreground">(optional, free text for now)</span>
+              Related business <span className="font-normal text-muted-foreground">(optional)</span>
+              <select
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={businessId}
+                onChange={(event) => {
+                  setBusinessId(event.target.value)
+                  if (event.target.value) setRelatedBusiness('')
+                }}
+              >
+                <option value="">Business is not listed</option>
+                {businesses.map((business) => (
+                  <option key={business.id} value={business.id}>{business.name}</option>
+                ))}
+              </select>
               <Input
                 id="report-business"
                 value={relatedBusiness}
                 onChange={(event) => setRelatedBusiness(event.target.value)}
+                disabled={Boolean(businessId)}
+                maxLength={160}
                 placeholder="Business name, if applicable"
               />
               <span className="block text-xs font-normal text-muted-foreground">
-                A business directory picker is not yet available. This field is not saved to a business
-                record — mention the business name in the description above for now.
+                Select a directory business, or enter its name when it is not yet listed.
               </span>
             </label>
 

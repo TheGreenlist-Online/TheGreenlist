@@ -16,6 +16,15 @@ type EducationDetailRow = {
   created_at: string
 }
 
+type EducationAttachment = {
+  id: string
+  file_name: string
+  file_type: string
+  storage_bucket: string
+  storage_path: string
+  url?: string
+}
+
 const CATEGORY_META: Record<string, { label: string; icon: typeof ShieldCheck }> = {
   SAFETY_GUIDE: { label: 'Safety Guide', icon: ShieldCheck },
   REGULATORY_RESOURCE: { label: 'Regulatory Resource', icon: Scale },
@@ -65,6 +74,18 @@ export default async function EducationDetailPage({
   const Icon = meta?.icon ?? BookOpen
   const paragraphs = resource.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
   const sourceUrls = (resource.source_urls ?? []).filter(Boolean)
+  const { data: attachmentRows } = await supabase
+    .from('education_attachments')
+    .select('id, file_name, file_type, storage_bucket, storage_path')
+    .eq('resource_id', resource.id)
+    .order('created_at')
+    .returns<EducationAttachment[]>()
+  const attachments = await Promise.all((attachmentRows ?? []).map(async (attachment) => {
+    const { data } = await supabase.storage
+      .from(attachment.storage_bucket)
+      .createSignedUrl(attachment.storage_path, 3600)
+    return { ...attachment, url: data?.signedUrl }
+  }))
 
   return (
     <PageShell>
@@ -108,6 +129,25 @@ export default async function EducationDetailPage({
                   >
                     {url}
                   </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {attachments.length > 0 ? (
+          <div className="mt-8 border-t border-white/10 pt-6">
+            <h2 className="greenlist-eyebrow">Supporting materials</h2>
+            <ul className="mt-3 space-y-2">
+              {attachments.map((attachment) => (
+                <li key={attachment.id}>
+                  {attachment.url ? (
+                    <a href={attachment.url} className="text-sm text-emerald-300 hover:underline">
+                      {attachment.file_name}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-zinc-400">{attachment.file_name}</span>
+                  )}
                 </li>
               ))}
             </ul>
