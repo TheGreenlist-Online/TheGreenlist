@@ -40,7 +40,7 @@ export default async function AdminModerationPage() {
     const { data: signature } = await principal.supabase
       .from('nda_signatures')
       .select('id')
-      .eq('user_id', principal.user.id)
+      .eq('moderator_user_id', principal.user.id)
       .limit(1)
       .maybeSingle()
 
