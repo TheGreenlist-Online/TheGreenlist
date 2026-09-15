@@ -107,8 +107,7 @@ export const NDA_DOCUMENT_VERSION = 'v1'
 
 export interface NdaSignatureRow {
   id: string
-  user_id: string
+  moderator_user_id: string
   signed_at: string
-  ip_address: string | null
   document_version: string
 }
