@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { gohighlevel } from '@/lib/integrations/gohighlevel'
 
 function slugify(value: string) {
   return value
@@ -111,6 +112,25 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    try {
+      await gohighlevel.businessClaimSubmitted({
+        businessId: business.id,
+        businessName: business.name,
+        businessType: business.business_type,
+        state: business.state ?? undefined,
+        city: business.city ?? undefined,
+        ownerUserId: user.id,
+      })
+
+      await gohighlevel.onboardingQueued({
+        userId: user.id,
+        pathway: 'business-claim',
+        businessId: business.id,
+      })
+    } catch (integrationError) {
+      console.error('[businesses] GoHighLevel sync failed:', integrationError)
+    }
 
     return NextResponse.json(business, { status: 201 })
   } catch (error) {

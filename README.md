@@ -18,6 +18,7 @@ The Green List is a civic-tech platform designed to provide transparency, accoun
 - **User Analytics**: Personal transparency and contribution tracking
 - **AI Moderation**: Automated content moderation with human oversight
 - **Sponsored Disclosures**: FTC-compliant sponsored content and affiliate disclosures
+- **Automation Integrations**: Optional webhook automations for contact intake, onboarding, and partner workflows
 
 ## Legal Compliance
 
@@ -179,6 +180,7 @@ API routes are available under `/api/`:
 - `GET/POST /api/businesses` - Business management
 - `POST /api/reports` - Transparency reports
 - `GET /api/news` - News aggregation
+- `POST /api/contact-intake` - Structured contact, sponsor, and affiliate intake routing
 
 ## Contributing
 
