@@ -11,15 +11,22 @@ function getGoHighLevelConfig() {
   const webhookUrl = (process.env.GOHIGHLEVEL_WEBHOOK_URL || '').trim()
   const locationId = (process.env.GOHIGHLEVEL_LOCATION_ID || '').trim()
   const sourceToken = (process.env.GOHIGHLEVEL_SOURCE_TOKEN || '').trim()
+  let validWebhook = false
+
+  if (webhookUrl && !webhookUrl.startsWith('replace-')) {
+    try {
+      const parsed = new URL(webhookUrl)
+      validWebhook = parsed.protocol === 'https:' && parsed.hostname.length > 0
+    } catch {
+      validWebhook = false
+    }
+  }
 
   return {
     webhookUrl,
     locationId,
     sourceToken,
-    isConfigured:
-      !!webhookUrl &&
-      !webhookUrl.startsWith('replace-') &&
-      !webhookUrl.includes('your-domain.com'),
+    isConfigured: validWebhook,
   }
 }
 
