@@ -71,10 +71,13 @@ This file defines the architecture, security, development, and compliance standa
 - Use `zod` or similar schema validation for incoming API payloads and persisted content.
 
 ## UI Consistency Rules
-- Follow a dark investigative newsroom aesthetic with green accents and premium modern UI.
+- The Green List presents as an independent public-interest records institution, not a cannabis brand, social network, or "town". Calm, legible, source-forward.
+- The global shell (`src/app/globals.css` tokens, `SiteHeader`, `Footer`, `PageShell`, `PageIntro`, `OrnatePanel`) owns colour, type, spacing, radius and status language. Pages supply content only; never introduce page-local colours, fonts, radii, gradients, glows, blur, or decorative motion.
+- Two typefaces only: Archivo (interface, headings) and IBM Plex Mono (record IDs, dates, citations, status labels, eyebrows). One radius: `--gl-radius` (2px).
+- Navigation and section names come from `src/config/navigation.ts` and `src/lib/districts.ts`. Do not hard-code section labels in pages.
+- Status labels use the fixed vocabulary in `/about/methodology` and always pair text with colour. Never use "approved", "safe", "clean", "certified", "best", or "trusted".
+- Copy is direct, source-specific and plain. No social-network framing ("join the community", "your voice", "trending", "members", "town", "district"). No sales language. No claims beyond the record.
 - Make interfaces mobile-first and responsive by default.
-- Use consistent spacing, typography scales, and color contrast across all pages.
-- Keep navigation clear: homepage, forum, reports, news, directory, admin, legal, and policy pages.
 - Build UI components for recurring patterns: cards, tables, buttons, badges, tabs, alerts, modals.
 - Label sponsored content clearly with strong visual indicators.
 - Use design tokens or shared style utilities rather than repeated CSS values.

@@ -33,7 +33,7 @@ export default function LegalHub() {
                 </p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Educational content and industry transparency</li>
-                  <li>Community forums and user discussions</li>
+                  <li>Evidence Desk discussions and public submissions</li>
                   <li>Public reports and user-generated feedback</li>
                   <li>Business information and accountability records</li>
                   <li>News and industry reporting</li>
@@ -120,13 +120,13 @@ export default function LegalHub() {
                 <div>
                   <h3 className="greenlist-card-title mb-2">User-Generated Content</h3>
                   <p className="text-sm text-muted-foreground">
-                    All reviews, forum posts, reports, and community submissions are user-generated. Content is published for community discussion and accountability review.
+                    Discussion posts, reports, and public submissions are user-generated. Reports are private on receipt and are published only as reviewed, source-backed findings. Discussion content is published for documentation and accountability review, not as a finding of The Green List.
                   </p>
                 </div>
                 <div>
                   <h3 className="greenlist-card-title mb-2">Moderation & Safety</h3>
                   <p className="text-sm text-muted-foreground">
-                    We maintain community standards and moderate content to prevent harassment, hate speech, defamation, and illegal activity. See our Terms for details on enforcement.
+                    We maintain published standards and moderate content to prevent harassment, hate speech, defamation, and illegal activity. See our Terms for the enforcement ladder.
                   </p>
                 </div>
               </CardContent>

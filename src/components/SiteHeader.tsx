@@ -2,30 +2,36 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { LogOut, Menu, Settings, UserRound, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { SearchBar } from '@/components/SearchBar'
-import { Button } from '@/components/ui/button'
+import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { UtilityNav } from '@/components/shell/UtilityNav'
+import { DisclosureBar } from '@/components/shell/DisclosureBar'
+import {
+  ACCOUNT_NAV,
+  GOVERNANCE_LINKS,
+  PRIMARY_NAV,
+  SUBMIT_EVIDENCE,
+  activeHref,
+} from '@/config/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
-const navItems = [
-  { label: 'Forums', href: '/forums' },
-  { label: 'Businesses', href: '/businesses' },
-  { label: 'News', href: '/news' },
-  { label: 'Reports', href: '/reports' },
-  { label: 'Evidence', href: '/evidence' },
-  { label: 'Education', href: '/education' },
-  { label: 'Dashboard', href: '/dashboard' },
-]
-
+/**
+ * The one header used on every route.
+ *
+ * Structure, top to bottom: governance utility line, wordmark + global search
+ * + account controls, primary navigation, scope disclosure. Nothing here is
+ * decorative; every element states what the platform is, what it holds, or
+ * how to act on the record.
+ */
 export function SiteHeader() {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = usePathname() ?? '/'
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const currentSection = activeHref(pathname, PRIMARY_NAV)
 
   useEffect(() => {
     let mounted = true
@@ -55,121 +61,134 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="site-header sticky top-[var(--compliance-banner-height)] z-50">
-      <div className="mx-auto max-w-7xl px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="site-brand" aria-label="The Green List home">
-            <span className="site-brand__mark">
-              <Image src="/brand/greenlist-leaf.png" alt="" width={40} height={40} priority />
-            </span>
-            <span className="site-brand__text">
-              <span className="site-brand__name">
+    <>
+      <UtilityNav />
+
+      <header className="gl-header">
+        <div className="gl-container gl-header__inner">
+          <div className="gl-header__row">
+            <Link href="/" className="gl-wordmark" aria-label="The Green List home">
+              <span className="gl-wordmark__name">
                 The <em>Green</em> List
               </span>
-              <span className="site-brand__tag">Transparency &middot; Accountability</span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-[#a3d93b]">
-                {item.label}
-              </Link>
-            ))}
-            <Button asChild size="sm" variant="outline">
-              <Link href={pathname.startsWith('/town') ? '/' : '/town'}>
-                {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
-              </Link>
-            </Button>
-            {isAuthenticated ? (
-              <>
-                {/* Settings was previously only reachable by knowing the URL or
-                    finding a button on the dashboard. */}
-                <Link
-                  href="/settings"
-                  aria-label="Account settings"
-                  className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-300 transition hover:border-[#a3d93b]/40 hover:text-[#a3d93b]"
-                >
-                  <Settings className="h-4 w-4" />
-                </Link>
-                <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {isSigningOut ? 'Signing out...' : 'Sign out'}
-                </Button>
-              </>
-            ) : (
-              <Button asChild size="sm">
-                <Link href="/auth/signin">
-                  <UserRound className="mr-2 h-4 w-4" />
-                  Sign in
-                </Link>
-              </Button>
-            )}
-          </nav>
-
-          <button
-            type="button"
-            className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-100 lg:hidden"
-            onClick={() => setIsOpen((prev) => !prev)}
-            aria-label="Toggle navigation"
-          >
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-
-        <SearchBar className="mt-3 lg:hidden" />
-
-        {isOpen ? (
-          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link
-              href={pathname.startsWith('/town') ? '/' : '/town'}
-              onClick={() => setIsOpen(false)}
-              className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
-            >
-              {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
+              <span className="gl-wordmark__desc">Independent cannabis records</span>
+              <span className="gl-wordmark__rule" aria-hidden="true" />
             </Link>
+
+            <button
+              type="button"
+              className="gl-menu-button"
+              onClick={() => setIsOpen((prev) => !prev)}
+              aria-expanded={isOpen}
+              aria-controls="mobile-navigation"
+              aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+            >
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+
+          <GlobalSearch />
+
+          <div className="gl-header__account">
             {isAuthenticated ? (
               <>
-                <Link
-                  href="/settings"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
+                {ACCOUNT_NAV.map((item) => (
+                  <Link key={item.href} href={item.href} className="greenlist-quiet-button">
+                    {item.label}
+                  </Link>
+                ))}
                 <button
                   type="button"
+                  className="greenlist-quiet-button"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  {isSigningOut ? 'Signing out' : 'Sign out'}
                 </button>
               </>
             ) : (
+              <>
+                <Link href="/auth/signin" className="greenlist-quiet-button">
+                  Sign in
+                </Link>
+                <Link href="/auth/register" className="greenlist-secondary-button">
+                  Request access
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        {isOpen ? (
+          <nav
+            id="mobile-navigation"
+            className="gl-container gl-mobile-nav"
+            aria-label="Site"
+            // Close the menu when any link inside it is followed.
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest('a')) setIsOpen(false)
+            }}
+          >
+            {PRIMARY_NAV.map((item) => (
               <Link
-                href="/auth/signin"
-                onClick={() => setIsOpen(false)}
-                className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
+                key={item.href}
+                href={item.href}
+                aria-current={currentSection === item.href ? 'page' : undefined}
               >
-                Sign in
+                {item.label}
               </Link>
+            ))}
+
+            <p className="gl-mobile-nav__group">Governance</p>
+            {GOVERNANCE_LINKS.map((item) => (
+              <Link key={item.href} href={item.href}>
+                {item.label}
+              </Link>
+            ))}
+            <Link href={SUBMIT_EVIDENCE.href}>{SUBMIT_EVIDENCE.label}</Link>
+
+            <p className="gl-mobile-nav__group">Account</p>
+            {isAuthenticated ? (
+              <>
+                {ACCOUNT_NAV.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    {item.label}
+                  </Link>
+                ))}
+                <button type="button" onClick={handleSignOut} disabled={isSigningOut}>
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  {isSigningOut ? 'Signing out' : 'Sign out'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/signin">Sign in</Link>
+                <Link href="/auth/register">Request access</Link>
+              </>
             )}
           </nav>
         ) : null}
-      </div>
-    </header>
+      </header>
+
+      <nav className="gl-nav" aria-label="Primary">
+        <ul className="gl-container gl-nav__list">
+          {PRIMARY_NAV.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="gl-nav__link"
+                aria-current={currentSection === item.href ? 'page' : undefined}
+                title={item.purpose}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <DisclosureBar />
+    </>
   )
 }

@@ -7,38 +7,38 @@ import { Button } from '@/components/ui/button'
 
 export const metadata = {
   title: 'Evidence Center - The Green List',
-  description: 'Securely submit and manage documentation supporting Green List transparency reports',
+  description: 'Private-by-default document intake supporting accountability reports and correction requests.',
 }
 
 export default function EvidencePage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="greenlist-eyebrow">Reports Bureau</p>
-        <h1 className="greenlist-page-title">Evidence Center</h1>
+        <p className="greenlist-eyebrow">Evidence</p>
+        <h1 className="greenlist-page-title">Evidence intake</h1>
         <p className="greenlist-page-lede">
-          Securely attach photos, receipts, screenshots, PDFs, and written records to a transparency report.
-          Evidence remains private while authorized reviewers evaluate the submission.
+          Attach photographs, receipts, labels, screenshots, PDFs, and written records to a report or a correction
+          request. Submissions are private on receipt and remain private while authorised reviewers assess them.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Button asChild size="lg">
             <Link href="/evidence/upload">
               <FileSearch className="mr-2 h-5 w-5" />
-              Upload Evidence
+              Submit evidence
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/reports/new">Start a Report</Link>
+            <Link href="/reports/new">File a report</Link>
           </Button>
         </div>
       </OrnatePanel>
 
       <section className="mt-8 grid gap-5 md:grid-cols-3" aria-label="Evidence safeguards">
-        <Card className="border-primary/35">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <FolderLock className="h-5 w-5 text-accent" />
-              Private Storage
+              Private storage
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -48,11 +48,11 @@ export default function EvidencePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-primary/35">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ShieldCheck className="h-5 w-5 text-accent" />
-              Controlled Access
+              Controlled access
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -62,11 +62,11 @@ export default function EvidencePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-primary/35">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <FileSearch className="h-5 w-5 text-accent" />
-              Evidence-Led Review
+              Review before publication
             </CardTitle>
           </CardHeader>
           <CardContent>

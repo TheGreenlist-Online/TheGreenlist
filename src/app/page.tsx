@@ -1,178 +1,209 @@
 import Link from 'next/link'
-import Image from 'next/image'
-import {
-  BookOpen,
-  Building2,
-  FileSearch,
-  FileText,
-  Landmark,
-  Leaf,
-  Map,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from 'lucide-react'
+import type { Metadata } from 'next'
 import { PageShell } from '@/components/PageShell'
-import { Button } from '@/components/ui/button'
-import { GraffitiWordmark } from '@/components/GraffitiWordmark'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
 
-const pillars = [
+export const metadata: Metadata = {
+  title: 'The Green List — Cannabis Records & Accountability',
+}
+
+const primaryActions = [
   {
-    title: 'Report It',
-    subtitle: 'Shine a light',
-    href: '/report',
-    icon: Search,
-  },
-  {
-    title: 'Verify It',
-    subtitle: 'Seek the truth',
+    title: 'Search records',
+    body: 'Look up a business, licence, report, or jurisdiction and see what is documented, what is missing, and where each fact came from.',
     href: '/businesses',
-    icon: ShieldCheck,
+    cta: 'Open records',
   },
   {
-    title: 'Build Community',
-    subtitle: 'Stand together',
-    href: '/forums',
-    icon: Users,
-  },
-  {
-    title: 'Drive Change',
-    subtitle: 'Leave a legacy',
-    href: '/town',
-    icon: Leaf,
-  },
-]
-
-const districts = [
-  {
-    title: 'Green List Town',
-    eyebrow: 'Immersive gateway',
-    description: 'Enter a living digital town where every building opens a real transparency, education, or community feature.',
-    href: '/town',
-    icon: Map,
-  },
-  {
-    title: 'Reports Bureau',
-    eyebrow: 'Public accountability',
-    description: 'Document incidents, attach supporting evidence, and follow clear status-based review workflows.',
+    title: 'Read reports',
+    body: 'Structured accountability reports with a visible review status. Allegations are labelled as allegations until a finding is published.',
     href: '/reports',
-    icon: FileText,
+    cta: 'Open reports',
   },
   {
-    title: 'Business District',
-    eyebrow: 'Verified profiles',
-    description: 'Explore trust-first business profiles centered on licensing, transparency history, and reputation.',
-    href: '/businesses',
-    icon: Building2,
-  },
-  {
-    title: 'Community Forum',
-    eyebrow: 'Shared experience',
-    description: 'Discuss safety, accountability, policy, education, and lived cannabis experiences with the community.',
-    href: '/forums',
-    icon: Users,
-  },
-  {
-    title: 'Education Center',
-    eyebrow: 'Public-interest knowledge',
-    description: 'Review policy context, consumer safety guidance, and transparent educational resources.',
-    href: '/education',
-    icon: BookOpen,
-  },
-  {
-    title: 'Evidence Archive',
-    eyebrow: 'Structured documentation',
-    description: 'Submit records, screenshots, and supporting materials through an organized evidence pathway.',
+    title: 'Submit evidence or request a correction',
+    body: 'Provide documents through a private-by-default intake, or dispute a published record with primary documentation.',
     href: '/evidence/upload',
-    icon: FileSearch,
+    cta: 'Open intake',
   },
-]
+] as const
+
+const statusVocabulary = [
+  { tone: 'confirmed', label: 'Official source confirmed', meaning: 'A government or regulator source directly supports the stated fact.' },
+  { tone: 'confirmed', label: 'Primary document verified', meaning: 'A source document was reviewed and linked to the listed record.' },
+  { tone: 'neutral', label: 'Business-reported', meaning: 'The business submitted the information. It has not been independently confirmed.' },
+  { tone: 'review', label: 'Partially documented', meaning: 'Some relevant evidence exists, but meaningful documentation is missing.' },
+  { tone: 'review', label: 'Under review', meaning: 'The information is being assessed. No public conclusion is implied.' },
+  { tone: 'alert', label: 'Official alert active', meaning: 'A source-linked regulator alert, recall, hold, or warning applies.' },
+  { tone: 'neutral', label: 'Cannot verify', meaning: 'The platform cannot substantiate the claim using available evidence.' },
+] as const
+
+const cannotYetVerify = [
+  'Batch-specific laboratory results for products sold at retail, until laboratory and regulator data feeds are connected.',
+  'Whether a certificate of analysis represents the entire batch rather than the submitted sample.',
+  'Ingredient and additive disclosures that manufacturers have not published.',
+  'License status in real time. Records carry the date they were last checked against the official source.',
+] as const
 
 export default function HomePage() {
   return (
     <PageShell className="greenlist-home">
-      <section className="greenlist-hero" aria-labelledby="home-heading">
+      {/* Statement of purpose */}
+      <section aria-labelledby="home-heading" className="border-b border-[var(--gl-border)] pb-10">
+        <p className="greenlist-eyebrow">Independent public-interest records</p>
+        <h1 id="home-heading" className="greenlist-hero-title max-w-4xl">
+          What is documented. What is missing. What needs accountability.
+        </h1>
+        <p className="greenlist-page-lede max-w-3xl text-[1.05rem]">
+          The Green List is an independent records platform for the cannabis market. It makes business, licence,
+          testing, and compliance information readable, comparable, and checkable against its sources — and it says
+          plainly when something cannot be verified.
+        </p>
 
-        <div className="greenlist-hero__inner">
-          <Image
-            src="/brand/greenlist-mark.png"
-            alt="The Green List"
-            width={512}
-            height={512}
-            priority
-            className="greenlist-hero__logo"
-          />
-
-          <p className="greenlist-kicker">Truth &middot; Transparency &middot; Trust</p>
-          <h1 id="home-heading" className="greenlist-wordmark greenlist-wordmark--piece">
-            <span className="sr-only">The Green List</span>
-            <GraffitiWordmark />
-          </h1>
-          <p className="greenlist-hero__tagline">Excellence in every truth.</p>
-          <p className="greenlist-hero__copy">
-            A public-interest platform for verified business reputation, evidence-led reports, education, and community trust.
-            No marketplace. No ordering. No cannabis sales.
+        <div className="mt-8 max-w-3xl">
+          <GlobalSearch placeholder="Business, licence, brand, report, or jurisdiction" />
+          <p className="gl-meta mt-2">
+            <span>Public records only.</span>
+            <span>Private reports and evidence never appear in search.</span>
           </p>
-
-          <div className="greenlist-hero__actions">
-            <Button asChild size="lg" className="greenlist-primary-button">
-              <Link href="/town"><Map className="mr-2 h-5 w-5" />Enter Green List Town</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="greenlist-secondary-button">
-              <Link href="/forums">Explore the platform</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="greenlist-secondary-button">
-              <Link href="/reports">View reports</Link>
-            </Button>
-          </div>
-
-          <div className="greenlist-pillars" aria-label="Core platform pathways">
-            {pillars.map(({ title, subtitle, href, icon: Icon }) => (
-              <Link key={title} href={href} className="greenlist-pillar">
-                <span className="greenlist-pillar__icon"><Icon /></span>
-                <span className="greenlist-pillar__title">{title}</span>
-                <span className="greenlist-pillar__subtitle">{subtitle}</span>
-              </Link>
-            ))}
-          </div>
         </div>
+
+        <ul className="gl-meta mt-6 gap-x-6" aria-label="Platform commitments">
+          <li>No paid verification</li>
+          <li>No paid removal</li>
+          <li>No hidden sponsorship</li>
+          <li>No marketplace</li>
+        </ul>
       </section>
 
-      <section className="greenlist-section" aria-labelledby="district-heading">
-        <div className="greenlist-section__heading">
-          <p><Sparkles className="h-4 w-4" /> Explore the platform</p>
-          <h2 id="district-heading">A digital town built around truth</h2>
-          <span>Every destination is a real platform function—not a storefront or sales tool.</span>
+      {/* Three primary actions */}
+      <section className="gl-section" aria-labelledby="actions-heading">
+        <div className="gl-section__head">
+          <h2 id="actions-heading">Start here</h2>
+          <p>Three ways to use the record.</p>
         </div>
-
-        <div className="greenlist-district-grid">
-          {districts.map(({ title, eyebrow, description, href, icon: Icon }) => (
-            <Link href={href} key={title} className="greenlist-district-card">
-              <div className="greenlist-district-card__topline" />
-              <span className="greenlist-district-card__icon"><Icon /></span>
-              <p>{eyebrow}</p>
-              <h3>{title}</h3>
-              <span>{description}</span>
-              <strong>Enter district →</strong>
-            </Link>
+        <div className="grid gap-4 md:grid-cols-3">
+          {primaryActions.map((action) => (
+            <OrnatePanel key={action.href} className="flex flex-col" innerClassName="flex h-full flex-col">
+              <h3 className="greenlist-card-title">{action.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-[var(--gl-text-secondary)]">{action.body}</p>
+              <Link href={action.href} className="greenlist-secondary-button mt-5 self-start">
+                {action.cta}
+              </Link>
+            </OrnatePanel>
           ))}
         </div>
       </section>
 
-      <section className="greenlist-civic-panel" aria-labelledby="trust-heading">
-        <div>
-          <p className="greenlist-kicker">Transparent by design</p>
-          <h2 id="trust-heading">Built for public trust—not transactions.</h2>
-          <p>
-            The Green List keeps reporting, verification, education, moderation, and governance visible while protecting personal information and sensitive evidence.
-          </p>
+      {/* What we can and cannot verify */}
+      <section className="gl-section" aria-labelledby="scope-heading">
+        <div className="gl-section__head">
+          <h2 id="scope-heading">What the record can and cannot establish</h2>
+          <p>Stated limits are part of the record, not a footnote to it.</p>
         </div>
-        <div className="greenlist-civic-panel__points">
-          <span><ShieldCheck /> Verification standards</span>
-          <span><Landmark /> Community governance</span>
-          <span><FileSearch /> Evidence-led review</span>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="gl-panel">
+            <div className="gl-panel__head">
+              <h3>Status vocabulary</h3>
+              <span className="gl-meta">Used identically on every record</span>
+            </div>
+            <table className="gl-ledger">
+              <tbody>
+                {statusVocabulary.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row">
+                      <span className={`gl-status gl-status--${row.tone}`}>{row.label}</span>
+                    </th>
+                    <td className="text-[var(--gl-text-secondary)]">{row.meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid gap-4">
+            <div className="gl-panel">
+              <div className="gl-panel__head">
+                <h3>What The Green List cannot yet verify</h3>
+              </div>
+              <div className="gl-panel__body">
+                <ul className="grid gap-3 text-sm leading-6 text-[var(--gl-text-secondary)]">
+                  {cannotYetVerify.map((item) => (
+                    <li key={item} className="border-l-2 border-[var(--gl-border-strong)] pl-3">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-sm text-[var(--gl-text-muted)]">
+                  These gaps are the reason the platform exists. Closing them is the work, and progress is reported as
+                  records — not as marketing.
+                </p>
+              </div>
+            </div>
+
+            <div className="gl-panel">
+              <div className="gl-panel__head">
+                <h3>What a record does not mean</h3>
+              </div>
+              <div className="gl-panel__body text-sm leading-6 text-[var(--gl-text-secondary)]">
+                <p>
+                  A record on The Green List is not a certification, an endorsement, a safety rating, or a
+                  recommendation to purchase. A verification label states exactly what was checked, against which
+                  source, and when. Nothing more is implied.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+
+      {/* Sections */}
+      <section className="gl-section" aria-labelledby="sections-heading">
+        <div className="gl-section__head">
+          <h2 id="sections-heading">Sections of the record</h2>
+          <p>Every section uses the same shell, the same status language, and the same correction path.</p>
+        </div>
+        <div className="gl-panel">
+          <table className="gl-ledger">
+            <tbody>
+              {PRIMARY_NAV.map((item) => (
+                <tr key={item.href}>
+                  <th scope="row">
+                    <Link href={item.href} className="text-[var(--gl-text)] normal-case tracking-normal font-sans text-sm font-semibold hover:underline">
+                      {item.label}
+                    </Link>
+                  </th>
+                  <td className="text-[var(--gl-text-secondary)]">{item.purpose}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Governance */}
+      <section className="gl-section" aria-labelledby="governance-heading">
+        <div className="gl-section__head">
+          <h2 id="governance-heading">How the work is governed</h2>
+          <p>Published, permanent, and reachable from every page.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {GOVERNANCE_LINKS.map((item) => (
+            <Link key={item.href} href={item.href} className="gl-panel gl-panel__body block transition-colors hover:border-[var(--gl-border-strong)]">
+              <h3 className="greenlist-card-title">{item.label}</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--gl-text-secondary)]">{item.purpose}</p>
+            </Link>
+          ))}
+        </div>
+
+        <p className="gl-limitations mt-8 max-w-3xl">
+          <strong>Public participation.</strong> The Evidence Desk exists to locate primary documents, identify missing
+          records, ask informed questions, and correct errors. It is not a reputation vote, and discussion never
+          changes a record&apos;s status without documentary review.
+        </p>
       </section>
     </PageShell>
   )

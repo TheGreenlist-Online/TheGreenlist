@@ -1,51 +1,46 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Inter, Permanent_Marker, Bebas_Neue, Anton, Archivo_Black, Fugaz_One, Kaushan_Script, Alfa_Slab_One } from 'next/font/google'
+import { Archivo, IBM_Plex_Mono } from 'next/font/google'
+import { Providers } from './providers'
+import { SiteFrame } from '@/components/SiteFrame'
+import { Footer } from '@/components/Footer'
+import { APPEARANCE_BOOT_SCRIPT } from '@/lib/appearance'
 
-// Inter remains the interface voice. Permanent Marker is scoped to the public
-// hero so the official system can carry a controlled street-art accent.
-const inter = Inter({
+// Two families, site-wide. Archivo carries interface and editorial hierarchy;
+// IBM Plex Mono carries citations, record IDs, dates, and status labels.
+// No display or novelty faces: the shell is the identity.
+const sans = Archivo({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
   display: 'swap',
 })
 
-const expressive = Permanent_Marker({
+const mono = IBM_Plex_Mono({
   subsets: ['latin'],
-  weight: '400',
-  variable: '--font-expressive',
+  weight: ['400', '500'],
+  variable: '--font-mono',
   display: 'swap',
 })
 
-// Hand-painted tag stack: character + slant, still legit.
-const display = Bebas_Neue({ subsets: ['latin'], weight: '400', variable: '--font-display', display: 'swap' })
-const stencil = Anton({ subsets: ['latin'], weight: '400', variable: '--font-stencil', display: 'swap' })
-const heavy = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-heavy', display: 'swap' })
-const mural = Fugaz_One({ subsets: ['latin'], weight: '400', variable: '--font-mural', display: 'swap' })
-const brush = Kaushan_Script({ subsets: ['latin'], weight: '400', variable: '--font-brush', display: 'swap' })
-const slab = Alfa_Slab_One({ subsets: ['latin'], weight: '400', variable: '--font-slab', display: 'swap' })
-import { Providers } from './providers'
-import { ComplianceBanner } from '@/components/ComplianceBanner'
-import { SiteFrame } from '@/components/SiteFrame'
-import { Footer } from '@/components/Footer'
-import { SmokeBackground } from '@/components/SmokeBackground'
-import { APPEARANCE_BOOT_SCRIPT } from '@/lib/appearance'
-
 const siteUrl = 'https://thegreenlist.online'
+const siteDescription =
+  'The Green List is an independent public-interest records platform for the cannabis market. It documents what is known, what is missing, where the evidence came from, and what cannot yet be verified.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'The Green List - Cannabis Transparency and Accountability',
+    default: 'The Green List — Cannabis Records & Accountability',
     template: '%s | The Green List',
   },
-  description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
-  keywords: 'cannabis transparency, cannabis reporting, cannabis news, forums, accountability, community trust',
-  authors: [{ name: 'The Green List Team' }],
+  description: siteDescription,
+  keywords:
+    'cannabis records, cannabis transparency, cannabis accountability, license records, lab testing records, certificate of analysis, recalls, public records',
+  authors: [{ name: 'The Green List' }],
   applicationName: 'The Green List',
   openGraph: {
-    title: 'The Green List',
-    description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
+    title: 'The Green List — Cannabis Records & Accountability',
+    description: siteDescription,
     url: siteUrl,
     siteName: 'The Green List',
     images: [
@@ -64,8 +59,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Green List',
-    description: 'Cannabis transparency, reporting, news, forums, and accountability platform.',
+    title: 'The Green List — Cannabis Records & Accountability',
+    description: siteDescription,
     images: ['/og-image.jpg'],
   },
 }
@@ -76,16 +71,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${expressive.variable} ${display.variable} ${stencil.variable} ${heavy.variable} ${mural.variable} ${brush.variable} ${slab.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <head>
-        {/* Applies the saved calm-background preference before first paint so the
-            backdrop never flashes at full strength. */}
+        {/* Applies saved display preferences before first paint. */}
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
       </head>
       <body className="font-sans">
-        <SmokeBackground />
+        <a href="#main-content" className="gl-skip-link">
+          Skip to content
+        </a>
         <Providers>
-          <ComplianceBanner />
           <SiteFrame footer={<Footer />}>{children}</SiteFrame>
         </Providers>
       </body>

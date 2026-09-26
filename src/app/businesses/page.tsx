@@ -9,7 +9,7 @@ import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
   title: 'Business Directory - The Green List',
-  description: 'A public-facing directory of cannabis businesses with transparency and verification signals',
+  description: 'Business, licence, and documentation records with stated sources and verification status.',
 }
 
 export const revalidate = 0
@@ -91,11 +91,11 @@ export default async function BusinessesPage({
   return (
     <PageShell>
       <PageIntro
-        title="Business Directory"
-        lede="A public-facing directory of cannabis businesses with accountability records, transparency signals, and consumer verification. Not a marketplace — this is a directory built for oversight."
+        title="Business Records"
+        lede="Business, licence, and documentation records. Each record states what has been confirmed, against which source, and when — and what remains undocumented. A record is not an endorsement, and this is not a marketplace."
         actions={
           <Link href="/businesses/claim" className="greenlist-primary-button">
-            Claim a Business
+            Claim a record
           </Link>
         }
       />
@@ -155,7 +155,7 @@ export default async function BusinessesPage({
 
       {error ? (
         <OrnatePanel className="mt-8">
-          <p className="text-sm text-red-300">The directory could not be loaded right now. Please try again shortly.</p>
+          <p className="text-sm text-red-300">Records could not be loaded. Try again shortly.</p>
         </OrnatePanel>
       ) : !businesses || businesses.length === 0 ? (
         <OrnatePanel className="mt-8">

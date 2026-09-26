@@ -24,7 +24,7 @@ import { NotificationList } from '@/components/dashboard/NotificationList'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
-  description: 'Your reports, submissions, notifications and workspace tools.',
+  description: 'Your filings, submissions, notifications, and account tools.',
 }
 
 /**
@@ -84,7 +84,7 @@ const businessCards = [
 const moderatorCards = [
   {
     title: 'Moderation queue',
-    body: 'Work through flagged reports and community content using your moderation permissions.',
+    body: 'Work through flagged reports and public submissions using your review permissions.',
     href: '/admin/moderation',
   },
   {
@@ -92,7 +92,7 @@ const moderatorCards = [
     body: 'Private evidence requires a report-specific signed NDA before access is granted.',
     href: '/reports',
   },
-  { title: 'Community forums', body: 'Review discussions across the community forums.', href: '/forums' },
+  { title: 'Evidence Desk', body: 'Review public discussions and open documentation requests.', href: '/forums' },
 ]
 
 const adminCards = [
@@ -116,7 +116,7 @@ const adminCards = [
     body: 'Clear pending reports, educational resources and other submissions.',
     href: '/admin/submissions',
   },
-  { title: 'Moderation queue', body: 'Handle flagged reports and community content.', href: '/admin/moderation' },
+  { title: 'Moderation queue', body: 'Handle flagged reports and public submissions.', href: '/admin/moderation' },
   { title: 'Audit logs', body: 'Review protected operational and role-management events.', href: '/admin/audit-logs' },
 ]
 
@@ -211,11 +211,11 @@ export default async function DashboardPage() {
     <PageShell>
       <PageIntro
         eyebrow="Dashboard"
-        title={`Welcome back${userName ? `, ${userName}` : ''}`}
+        title={userName ? `${userName}'s filings` : 'Your filings'}
         lede={
           needsAttention > 0
-            ? `You have ${needsAttention} ${needsAttention === 1 ? 'item' : 'items'} needing a look — details below.`
-            : 'Everything you have filed is up to date. Nothing is waiting on you.'
+            ? `${needsAttention} ${needsAttention === 1 ? 'item requires' : 'items require'} your attention. Details below.`
+            : 'All filings are current. Nothing is awaiting your action.'
         }
         actions={
           <>
@@ -295,7 +295,7 @@ export default async function DashboardPage() {
             label="Discussions"
             value={counts.discussions}
             href="/forums"
-            note={counts.discussions > 0 ? 'Threads you started' : 'None started yet'}
+            note={counts.discussions > 0 ? 'Discussions you opened' : 'None opened yet'}
           />
           <StatTile
             label="Notifications"
@@ -324,7 +324,7 @@ export default async function DashboardPage() {
             title="Notifications"
             isEmpty={notifications.length === 0}
             emptyTitle="No notifications"
-            emptyBody="Status changes on your reports and replies to your discussions will show up here."
+            emptyBody="Status changes on your reports and replies to your discussions will be listed here."
           >
             <NotificationList items={notifications} />
           </DashboardPanel>

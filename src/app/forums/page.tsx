@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Lock, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react'
+import { Lock, MessageSquare, ShieldAlert } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
@@ -9,7 +9,7 @@ import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
   title: 'Forums - The Green List',
-  description: 'Community discussion spaces for cannabis transparency and accountability',
+  description: 'Public discussion attached to records, sources, and open documentation requests.',
 }
 
 type ForumRow = {
@@ -55,12 +55,11 @@ export default async function ForumsPage() {
   return (
     <PageShell>
       <PageIntro
-        title="Forums"
-        lede="Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open public oversight."
+        title="Evidence Desk"
+        lede="Public discussion in service of the record: locating primary documents, identifying missing records, asking informed questions, and correcting errors. Discussion does not change a record's status; documentary review does."
         actions={
           <Link href="/forums/new" className="greenlist-primary-button">
-            <Sparkles className="h-4 w-4" />
-            Start a new thread
+            Open a discussion
           </Link>
         }
       />
@@ -73,7 +72,7 @@ export default async function ForumsPage() {
         <OrnatePanel className="mt-8">
           <p className="text-lg font-semibold text-zinc-100">No forums yet</p>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Forums have not been created yet. Check back soon for community discussion spaces.
+            No discussion areas have been opened yet.
           </p>
           {viewerIsAdmin ? (
             <Link

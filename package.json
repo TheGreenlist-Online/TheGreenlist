@@ -1,7 +1,7 @@
 {
   "name": "thegreenlist-online",
   "version": "1.0.0",
-  "description": "A cannabis transparency, accountability, education, reporting, news, forum, and community trust platform",
+  "description": "The Green List — an independent public-interest records and accountability platform for the cannabis market",
   "private": true,
   "scripts": {
     "dev": "next dev",

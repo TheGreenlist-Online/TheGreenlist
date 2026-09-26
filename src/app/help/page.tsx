@@ -8,7 +8,7 @@ export default function HelpPage() {
       sections={[
         {
           heading: 'How to use the site',
-          body: 'Users will be able to browse public information, read accountability content, join discussions, and submit reports through structured workflows.',
+          body: 'Users will be able to browse public information, read accountability content, take part in Evidence Desk discussions, and submit reports through structured workflows.',
         },
         {
           heading: 'Responsible participation',

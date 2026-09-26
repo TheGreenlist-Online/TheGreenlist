@@ -67,7 +67,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
     setSuccess(null)
 
     if (!forumId) {
-      setError('Choose a forum for this thread.')
+      setError('Choose a topic area for this discussion.')
       return
     }
     if (title.trim().length < 4) {
@@ -95,7 +95,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
       const payload = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        throw new Error(payload?.error || 'The thread could not be created.')
+        throw new Error(payload?.error || 'The discussion could not be opened.')
       }
 
       const forum = forums.find((f) => f.id === forumId)
@@ -109,7 +109,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
         router.push(`/forums/${forum.slug}`)
       }
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : 'The thread could not be created.')
+      setError(submissionError instanceof Error ? submissionError.message : 'The discussion could not be opened.')
     } finally {
       setSubmitting(false)
     }
@@ -130,8 +130,8 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
     <div className="mx-auto max-w-2xl">
       <Card className="border-primary/40">
         <CardHeader>
-          <CardTitle>New Thread</CardTitle>
-          <CardDescription>Choose a forum, give your thread a clear title, and share the details.</CardDescription>
+          <CardTitle>New discussion</CardTitle>
+          <CardDescription>Choose a topic area, state the question or documentation request clearly, and cite any sources you have.</CardDescription>
         </CardHeader>
         <CardContent>
           {showRestoredBanner && restoredAt ? (
@@ -174,7 +174,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
                 minLength={4}
                 maxLength={200}
                 required
-                placeholder="Give your thread a clear, specific title"
+                placeholder="State the question or documentation request"
               />
             </label>
 
@@ -217,7 +217,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
                   className="mt-2 inline-block font-semibold text-accent hover:underline"
                   href={`/forums/${success.forumSlug}/${success.threadSlug}`}
                 >
-                  View your thread
+                  View discussion
                 </a>
               </div>
             ) : null}
@@ -229,7 +229,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
             </div>
 
             <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? 'Posting…' : 'Create Thread'}
+              {submitting ? 'Publishing…' : 'Open discussion'}
             </Button>
           </form>
         </CardContent>

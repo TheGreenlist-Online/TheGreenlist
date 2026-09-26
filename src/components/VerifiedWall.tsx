@@ -31,13 +31,15 @@ export function VerifiedWall({ facts }: { facts: VerifiedFact[] }) {
   return (
     <OrnatePanel>
       <div className="flex items-center gap-2">
-        <BadgeCheck className="h-4 w-4 text-emerald-300" />
-        <p className="greenlist-eyebrow">Verified Wall</p>
+        <BadgeCheck className="h-4 w-4 text-[var(--gl-text-muted)]" aria-hidden="true" />
+        <p className="greenlist-eyebrow">Confirmed facts</p>
       </div>
-      <p className="mt-1 text-xs text-zinc-500">Facts and credentials confirmed by Green List moderators.</p>
+      <p className="mt-1 text-xs text-[var(--gl-text-muted)]">
+        Facts reviewed by Green List staff against a stated source. Subjects cannot add or edit these entries.
+      </p>
 
       {facts.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">No verified facts yet.</p>
+        <p className="mt-4 text-sm text-[var(--gl-text-muted)]">No facts have been confirmed for this record.</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {facts.map((fact) => {
@@ -45,13 +47,13 @@ export function VerifiedWall({ facts }: { facts: VerifiedFact[] }) {
             return (
               <li
                 key={fact.id}
-                className="rounded-lg border border-white/10 bg-black/20 p-4"
+                className="border border-[var(--gl-border)] bg-[var(--gl-ink)] p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200">
+                  <span className="gl-status gl-status--confirmed">
                     {formatCategory(fact.category)}
                   </span>
-                  {dateLabel ? <span className="text-xs text-zinc-500">Verified {dateLabel}</span> : null}
+                  {dateLabel ? <span className="gl-meta">Reviewed {dateLabel}</span> : null}
                 </div>
                 <p className="mt-2 text-sm leading-6 text-zinc-200">{fact.fact_text}</p>
                 {fact.source_url ? (

@@ -6,7 +6,7 @@ import { ReportForm } from './report-form'
 
 export const metadata = {
   title: 'Submit a Report - The Green List',
-  description: 'Submit a transparency report with evidence and documentation',
+  description: 'File a structured accountability report with supporting documentation.',
 }
 
 export default async function ReportsNewPage() {
@@ -28,16 +28,14 @@ export default async function ReportsNewPage() {
 
   return (
     <PageShell>
-      <OrnatePanel className="mb-12">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Submit a Report</p>
-        <h1 className="greenlist-page-title max-w-4xl">
-          Transparency Through Documented Accountability
-        </h1>
-        <p className="mt-4 max-w-3xl text-muted-foreground">
-          Share your experience with evidence, context, and documentation to help the cannabis community
-          understand and address accountability issues.
+      <section className="mb-12 border-b border-[var(--gl-border)] pb-8">
+        <p className="greenlist-eyebrow">Reports</p>
+        <h1 className="greenlist-page-title max-w-4xl">File a report</h1>
+        <p className="greenlist-page-lede">
+          State what happened, when, where, and which business it concerns. Attach documentation where you have
+          it. Reports are private on receipt and are reviewed against evidence before anything is published.
         </p>
-      </OrnatePanel>
+      </section>
 
       <ReportForm businesses={businesses ?? []} />
     </PageShell>

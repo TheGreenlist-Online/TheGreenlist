@@ -3,8 +3,8 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { NewThreadForm } from './new-thread-form'
 
 export const metadata = {
-  title: 'Create Forum Thread - The Green List',
-  description: 'Start a discussion in The Green List forums',
+  title: 'Open a discussion',
+  description: 'Open a discussion on the Evidence Desk',
 }
 
 type ForumOption = {
@@ -37,17 +37,16 @@ export default async function ForumsNewPage({
     .returns<ForumOption[]>()
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-12">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Create Forum Thread</p>
-            <h1 className="greenlist-page-title max-w-4xl">Join the Community Conversation</h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">
-              Participate in moderated discussions about cannabis transparency, consumer safety, industry
-              accountability, and community trust.
-            </p>
-          </div>
+        <section className="mb-12 border-b border-[var(--gl-border)] pb-8">
+          <p className="greenlist-eyebrow">Evidence Desk</p>
+          <h1 className="greenlist-page-title max-w-4xl">Open a discussion</h1>
+          <p className="greenlist-page-lede">
+            Discussions are moderated and attached to a topic. Use them to request documentation, question a
+            source, or flag a possible error in a record. Do not publish allegations about identifiable people;
+            file a report instead so it can be reviewed against evidence.
+          </p>
         </section>
 
         <NewThreadForm forums={forums ?? []} defaultForumSlug={forumSlug} />

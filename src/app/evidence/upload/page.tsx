@@ -4,7 +4,7 @@ import { EvidenceUploadForm, type EvidenceReportOption } from './evidence-upload
 
 export const metadata = {
   title: 'Upload Evidence - The Green List',
-  description: 'Upload photos, receipts, and documentation to support your report',
+  description: 'Submit documentation supporting a report or a correction request.',
 }
 
 type EvidenceReportRow = {
@@ -40,19 +40,15 @@ export default async function EvidenceUploadPage() {
   }))
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-12">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Upload Evidence</p>
-            <h1 className="greenlist-page-title max-w-4xl">
-              Document Your Report with Supporting Evidence
-            </h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">
-              Submit photos, receipts, product labels, screenshots, PDFs, or written documentation.
-              Files remain private and enter the platform&apos;s protected review process.
-            </p>
-          </div>
+        <section className="mb-12 border-b border-[var(--gl-border)] pb-8">
+          <p className="greenlist-eyebrow">Evidence</p>
+          <h1 className="greenlist-page-title max-w-4xl">Submit evidence</h1>
+          <p className="greenlist-page-lede">
+            Photographs, receipts, product labels, screenshots, PDFs, or written documentation. Files are stored
+            privately, linked to your report or correction request, and reviewed by authorised staff only.
+          </p>
         </section>
 
         <EvidenceUploadForm

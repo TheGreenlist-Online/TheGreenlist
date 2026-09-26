@@ -22,7 +22,7 @@ export default async function NewsPage() {
     <PageShell>
       <PageIntro
         title="News"
-        lede="Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and transparency-focused reporting — refreshed automatically every two hours from trusted public sources."
+        lede="Industry, policy, enforcement, and recall coverage aggregated from named public outlets and linked to the original publication. Items refresh automatically every two hours. Aggregated coverage is not a Green List finding."
       />
 
       <section className="mt-8">

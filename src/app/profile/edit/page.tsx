@@ -128,8 +128,8 @@ export default function ProfileEditPage() {
   return (
     <div className="min-h-screen smoke-surface flex flex-col">
       <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-8">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
+        <section className="mb-8 border-b border-[var(--gl-border)] pb-8">
+          <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Profile</p>
             <h1 className="greenlist-page-title">Edit Profile</h1>
             {!profile ? (
@@ -168,7 +168,7 @@ export default function ProfileEditPage() {
                   onChange={(e) => setBio(e.target.value)}
                   maxLength={1000}
                   rows={4}
-                  placeholder="Tell the community a bit about yourself"
+                  placeholder="A short public description (optional)"
                   className="w-full px-3 py-2 bg-card border border-primary/40 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent"
                 />
               </div>

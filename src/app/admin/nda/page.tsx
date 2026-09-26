@@ -65,7 +65,7 @@ export default async function AdminNdaPage() {
             <p>
               As a moderator or administrator of The Green List, you may be granted access to sensitive user
               reports, uploaded evidence, personally identifying details, and other restricted content
-              (&ldquo;Confidential Material&rdquo;) submitted by community members, some of whom rely on anonymity or
+              (&ldquo;Confidential Material&rdquo;) submitted by members of the public, some of whom rely on anonymity or
               confidentiality for their safety.
             </p>
             <p>By signing this agreement, you acknowledge and agree that you will:</p>

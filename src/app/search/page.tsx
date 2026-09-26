@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'Search - The Green List',
-  description: 'Search public Green List businesses, discussions, news, and education resources.',
+  description: 'Search public Green List records, reports, discussions, news, and explainers.',
 }
 
 type SearchResult = {
@@ -22,7 +22,7 @@ type SearchResult = {
 
 const labels: Record<SearchResult['entity_type'], string> = {
   business: 'Business',
-  forum_thread: 'Forum',
+  forum_thread: 'Discussion',
   news: 'News',
   education: 'Education',
 }
@@ -58,8 +58,8 @@ export default async function SearchPage({
   return (
     <PageShell>
       <PageIntro
-        title="Search The Green List"
-        lede="Find public businesses, forum discussions, news, and educational resources from one place."
+        title="Search records"
+        lede="Search public business records, discussions, news coverage, and explainers. Private reports and evidence never appear in results."
       />
 
       <OrnatePanel className="mt-8">

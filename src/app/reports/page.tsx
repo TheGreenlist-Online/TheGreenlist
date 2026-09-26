@@ -7,7 +7,7 @@ import { statusToneClass, type StatusTone } from '@/lib/statusTones'
 
 export const metadata = {
   title: 'Reports Bureau - The Green List',
-  description: 'File and track structured accountability reports',
+  description: 'Structured accountability reports and their review status.',
 }
 
 type ReportListRow = {
@@ -70,13 +70,14 @@ export default async function ReportsPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="greenlist-eyebrow">Reports Bureau</p>
+        <p className="greenlist-eyebrow">Reports</p>
         <h1 className="greenlist-page-title">
           Structured accountability reports
         </h1>
         <p className="greenlist-page-lede">
-          File a report documenting mislabeling, contamination, licensing issues, worker safety concerns,
-          deceptive marketing, or other accountability matters. Reports enter a transparent review process.
+          File a report documenting mislabelling, contamination, licensing issues, worker-safety concerns, deceptive
+          marketing, or other accountability matters. Reports are private on receipt, move through a fixed set of
+          review states, and are published only as source-backed findings.
         </p>
         <div className="mt-6">
           <Link
@@ -84,7 +85,7 @@ export default async function ReportsPage() {
             className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
-            File a Report
+            File a report
           </Link>
         </div>
       </OrnatePanel>

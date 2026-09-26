@@ -32,7 +32,7 @@ export async function AdminSectionPage({ title, description }: { title: string; 
           ['News', '/admin/news', 'Manage editorial updates and legal-safe publishing state.'],
           ['Sources', '/admin/sources', 'Audit source credibility and verification metadata.'],
           ['Moderation', '/admin/moderation', 'Inspect flags, safety issues, and due-process actions.'],
-          ['Submissions', '/admin/submissions', 'Evaluate incoming community submissions and intake quality.'],
+          ['Submissions', '/admin/submissions', 'Evaluate incoming public submissions and intake quality.'],
           ['Audit logs', '/admin/audit-logs', 'Track operational events and moderation audit records.'],
           ['NDA agreement', '/admin/nda', 'Sign the confidentiality agreement required to review sensitive content.'],
           ['Verified Wall', '/admin/verified-facts', 'Add or remove moderator-verified facts on profiles and business pages.'],

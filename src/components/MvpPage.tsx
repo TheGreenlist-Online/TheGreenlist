@@ -1,4 +1,11 @@
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { OrnatePanel } from '@/components/OrnatePanel'
 
+/**
+ * Placeholder page for sections whose records are not yet published. States
+ * plainly what the section will hold; makes no claim about what exists today.
+ */
 export function MvpPage({
   eyebrow,
   title,
@@ -11,26 +18,19 @@ export function MvpPage({
   items: string[]
 }) {
   return (
-    <div className="min-h-screen smoke-surface text-foreground">
-      <main className="container mx-auto px-4 py-10">
-        <section className="glow-border rounded-lg p-px">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">{eyebrow}</p>
-            <h1 className="greenlist-page-title max-w-4xl">{title}</h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">{description}</p>
-          </div>
-        </section>
-
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {items.map((item) => (
-            <article key={item} className="glow-border rounded-lg p-px">
-              <div className="h-full rounded-lg bg-card/80 p-5 text-sm leading-6 text-muted-foreground backdrop-blur">
-                {item}
-              </div>
-            </article>
-          ))}
-        </section>
-      </main>
-    </div>
+    <PageShell>
+      <PageIntro eyebrow={eyebrow} title={title} lede={description} />
+      <section className="mt-8 grid gap-4 md:grid-cols-3" aria-label="Planned scope">
+        {items.map((item) => (
+          <OrnatePanel key={item}>
+            <p className="text-sm leading-6 text-[var(--gl-text-secondary)]">{item}</p>
+          </OrnatePanel>
+        ))}
+      </section>
+      <p className="gl-limitations mt-8">
+        <strong>Status:</strong> this section is not yet populated with reviewed records. Nothing on this page should be
+        read as a finding about any business, product, or person.
+      </p>
+    </PageShell>
   )
 }

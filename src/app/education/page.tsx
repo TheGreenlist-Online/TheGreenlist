@@ -59,13 +59,14 @@ export default async function EducationPage({
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="greenlist-eyebrow">Knowledge Library</p>
+        <p className="greenlist-eyebrow">Learn</p>
         <h1 className="greenlist-page-title">
-          Cannabis education & accountability resources
+          Testing, labelling, licensing, and consumer rights
         </h1>
         <p className="greenlist-page-lede">
-          Resources are reviewed for accuracy, sourcing, safety, and compliance before publication. The
-          library does not provide cannabis sales, ordering, delivery, or medical advice.
+          Plain-language explainers on how cannabis testing, labelling, and licensing work, and what a certificate of
+          analysis does and does not tell you. Resources are reviewed for accuracy and sourcing before publication.
+          Nothing here is medical advice.
         </p>
         <div className="mt-6">
           <Link
@@ -73,7 +74,7 @@ export default async function EducationPage({
             className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
-            Submit a Resource
+            Submit a resource
           </Link>
         </div>
       </OrnatePanel>

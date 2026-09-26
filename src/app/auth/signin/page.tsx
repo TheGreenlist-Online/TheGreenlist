@@ -83,11 +83,11 @@ export default function SignInPage() {
   return (
     <main className="auth-stage min-h-screen px-4 py-16 text-foreground">
       <section className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-md items-center">
-        <div className="glow-border w-full rounded-2xl p-px">
-          <div className="rounded-2xl bg-brand-panel/95 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-accent">The Green List</p>
+        <div className="gl-panel w-full">
+          <div className="p-8">
+            <p className="greenlist-eyebrow mb-3">The Green List</p>
             <h1 className="greenlist-page-title">Sign in</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">Access your dashboard, reports, forums, education submissions, and community trust tools.</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Access your filings, evidence submissions, discussions, and account settings.</p>
 
             {isCheckingSession ? <p className="mt-8 text-sm text-zinc-400">Checking your session...</p> : null}
 

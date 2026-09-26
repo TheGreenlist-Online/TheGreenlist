@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BadgeCheck, ExternalLink, MapPin, ShieldCheck, Star } from 'lucide-react'
+import { ExternalLink, MapPin } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
@@ -36,7 +36,7 @@ function formatType(type: string | null) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  return { title: `${slug.replace(/-/g, ' ')} - Business Directory - The Green List` }
+  return { title: `${slug.replace(/-/g, ' ')} — Business record` }
 }
 
 export default async function BusinessDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -109,32 +109,49 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   )
   const approvedDocuments = allDocuments.filter((doc) => doc.status === 'approved')
 
+  const verification = (business.verification_status ?? 'unverified').toLowerCase()
+  const verificationLabel =
+    verification === 'verified'
+      ? { tone: 'confirmed', text: 'Identity verified' }
+      : verification === 'pending'
+        ? { tone: 'review', text: 'Under review' }
+        : { tone: 'neutral', text: business.is_claimed ? 'Business-reported' : 'Not verified' }
+  const jurisdiction = business.state ?? 'Jurisdiction not stated'
+  const recordId = `GL-BUS-${business.id.slice(0, 8).toUpperCase()}`
+  const recordOpened = new Date(business.created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+
   return (
-    <PageShell>
-      <OrnatePanel className="district-page-intro">
+    <PageShell width="record">
+      <header className="district-page-intro border-b border-[var(--gl-border)] pb-8">
+        <div className="gl-meta mb-3">
+          <span>{jurisdiction}</span>
+          <span>/</span>
+          <span>Business record</span>
+          <span>/</span>
+          <span>{recordId}</span>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
-          <p className="greenlist-eyebrow">
-            {formatType(business.business_type)}
-          </p>
-          {business.verification_status === 'verified' ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 text-xs font-semibold text-emerald-200">
-              <BadgeCheck className="h-3.5 w-3.5" /> Verified
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-xs font-semibold text-zinc-300">
-              Unverified
-            </span>
-          )}
+          <p className="greenlist-eyebrow">{formatType(business.business_type)}</p>
+          <span className={`gl-status gl-status--${verificationLabel.tone}`}>{verificationLabel.text}</span>
         </div>
         <h1 className="greenlist-page-title">{business.name}</h1>
         {(business.city || business.state) ? (
-          <p className="mt-3 flex items-center gap-1 text-sm text-zinc-400">
-            <MapPin className="h-4 w-4" />
+          <p className="mt-3 flex items-center gap-1 text-sm text-[var(--gl-text-secondary)]">
+            <MapPin className="h-4 w-4" aria-hidden="true" />
             {[business.city, business.state].filter(Boolean).join(', ')}
           </p>
         ) : null}
         {business.description ? (
-          <p className="greenlist-page-lede">{business.description}</p>
+          <p className="greenlist-page-lede">
+            {business.description}
+            {business.is_claimed ? (
+              <span className="block mt-2 text-xs text-[var(--gl-text-muted)]">Description supplied by the business.</span>
+            ) : null}
+          </p>
         ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -143,49 +160,69 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
               href={business.website_url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:border-emerald-300/60"
+              className="greenlist-quiet-button"
             >
-              <ExternalLink className="h-4 w-4" />
-              Visit website
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              Business website
             </a>
           ) : null}
+          <Link href="/about/corrections" className="greenlist-quiet-button">
+            Request a correction
+          </Link>
         </div>
-      </OrnatePanel>
+      </header>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <OrnatePanel>
-          <p className="greenlist-eyebrow">Trust rating</p>
-          <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-amber-300">
-            <Star className="h-6 w-6 fill-current" />
-            {(business.trust_rating ?? 0).toFixed(1)}
-          </div>
-        </OrnatePanel>
-        <OrnatePanel>
-          <p className="greenlist-eyebrow">Transparency score</p>
-          <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-emerald-200">
-            <ShieldCheck className="h-6 w-6" />
-            {business.transparency_score ?? 0}
-          </div>
-        </OrnatePanel>
+      <div className="gl-panel mt-8">
+        <div className="gl-panel__head">
+          <h2>Documentation ledger</h2>
+          <span className="gl-meta">Record opened {recordOpened}</span>
+        </div>
+        <table className="gl-ledger">
+          <tbody>
+            <tr>
+              <th scope="row">Identity verification</th>
+              <td>
+                <span className={`gl-status gl-status--${verificationLabel.tone}`}>{verificationLabel.text}</span>
+                <span className="mt-2 block text-xs text-[var(--gl-text-muted)]">
+                  {verification === 'verified'
+                    ? 'Licence and registration details were matched to an official source. This is not a judgement of product quality, safety, or conduct.'
+                    : 'Licence and registration details have not been matched to an official source.'}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Record claimed by business</th>
+              <td>{business.is_claimed ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr>
+              <th scope="row">Documents on file (reviewed)</th>
+              <td>{approvedDocuments.length}</td>
+            </tr>
+            <tr>
+              <th scope="row">Facts confirmed by reviewers</th>
+              <td>{verifiedFacts.length}</td>
+            </tr>
+            <tr>
+              <th scope="row">Paid relationship</th>
+              <td>
+                {business.sponsorship_status && business.sponsorship_status !== 'none'
+                  ? `Disclosed: ${business.sponsorship_status}`
+                  : 'None'}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Official enforcement records</th>
+              <td>Not yet checked in reviewed sources</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <OrnatePanel className="mt-8">
-        <p className="greenlist-eyebrow">Profile status</p>
-        <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">Verification</dt>
-            <dd className="mt-1 text-sm text-zinc-200">{business.verification_status ?? 'unverified'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">Sponsorship</dt>
-            <dd className="mt-1 text-sm text-zinc-200">{business.sponsorship_status ?? 'none'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">Profile claimed</dt>
-            <dd className="mt-1 text-sm text-zinc-200">{business.is_claimed ? 'Yes' : 'No'}</dd>
-          </div>
-        </dl>
-      </OrnatePanel>
+      <p className="gl-limitations mt-6">
+        <strong>What this record does not mean.</strong> The Green List does not certify this business, its products,
+        or their safety. Verification of identity states only that licence details matched an official source on the
+        date checked.
+      </p>
 
       <div className="mt-8">
         <VerifiedWall facts={verifiedFacts} />
@@ -203,14 +240,14 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
 
       <OrnatePanel className="mt-8">
         <p className="greenlist-eyebrow">Related reports</p>
-        <p className="mt-2 text-sm leading-6 text-zinc-400">
-          Report linkage for this business is coming in a later phase.
+        <p className="mt-2 text-sm leading-6 text-[var(--gl-text-secondary)]">
+          Published findings concerning this business will be listed here. None are linked at this time.
         </p>
       </OrnatePanel>
 
       <div className="mt-10">
-        <Link href="/businesses" className="text-sm font-semibold text-emerald-300 hover:underline">
-          ← Back to directory
+        <Link href="/businesses" className="text-sm text-[var(--gl-text-secondary)] hover:text-[var(--gl-text)] hover:underline">
+          ← All business records
         </Link>
       </div>
     </PageShell>

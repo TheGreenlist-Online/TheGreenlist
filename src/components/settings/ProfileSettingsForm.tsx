@@ -101,7 +101,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
       <SettingsSection
         id="profile"
         title="Public identity"
-        description="How you appear to the community. Reports you file anonymously never show these details."
+        description="How you appear on public discussions and submissions. Reports you file anonymously never show these details."
       >
         <TextField
           id="username"
@@ -163,7 +163,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
         <Toggle
           id="is_anonymous_allowed"
           label="Allow anonymous submissions"
-          description="Keep the option to file a report or open a thread without your name attached. Moderators still see who submitted it for accountability."
+          description="Keep the option to file a report or open a discussion without your name attached. Reviewers still see who submitted it for accountability."
           checked={form.is_anonymous_allowed}
           onChange={(value) => set('is_anonymous_allowed', value)}
         />

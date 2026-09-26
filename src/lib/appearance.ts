@@ -2,8 +2,9 @@
  * Client display preferences that have no business in the database.
  *
  * These are per-browser, so they live in localStorage and are re-applied to
- * <html> before first paint by ApplyAppearance in the root layout to avoid a
- * flash of the un-dimmed backdrop.
+ * <html> before first paint by the boot script in the root layout. The
+ * storage key and class name are historical ("calm" once dimmed a smoke
+ * backdrop); the class now switches on larger reading text.
  */
 
 export const CALM_STORAGE_KEY = 'greenlist:calm-background'

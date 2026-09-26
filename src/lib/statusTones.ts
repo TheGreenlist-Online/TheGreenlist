@@ -25,8 +25,9 @@ export const statusToneClass: Record<StatusTone, string> = {
   critical: 'border-red-400/55 bg-red-950/45 text-red-100',
 }
 
+/** Rectangular, monospaced, text-first. Colour supports the label; it never replaces it. */
 export const statusBadgeBase =
-  'inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]'
+  'inline-flex items-center rounded-[var(--gl-radius)] border px-2 py-0.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.06em]'
 
 /** Resolves a tone class, falling back to neutral for unknown values. */
 export function toneClass(tone: StatusTone | undefined): string {

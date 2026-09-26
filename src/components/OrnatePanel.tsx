@@ -7,12 +7,17 @@ type OrnatePanelProps = {
   innerClassName?: string
 }
 
+/**
+ * The standard content panel. Despite the historical name there is nothing
+ * ornate about it: one border, one flat surface, 24px padding. Every card and
+ * intro panel on the site is built from this so surfaces cannot drift.
+ */
 export function OrnatePanel({ children, className, innerClassName }: OrnatePanelProps) {
   return (
-    <div className={cn('rounded-xl border border-white/[.09] bg-brand-panel shadow-[0_14px_35px_rgba(0,0,0,0.16)]', className)}>
-      <div className={cn('h-full rounded-[inherit] border-t border-emerald-300/10 bg-gradient-to-br from-white/[.025] to-transparent p-6', innerClassName)}>
-        {children}
-      </div>
+    <div className={cn('gl-panel', className)}>
+      <div className={cn('h-full gl-panel__body', innerClassName)}>{children}</div>
     </div>
   )
 }
+
+export { OrnatePanel as Panel }

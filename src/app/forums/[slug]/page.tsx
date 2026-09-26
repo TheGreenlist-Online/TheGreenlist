@@ -111,20 +111,20 @@ export default async function ForumDetailPage({
             className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
-            New Thread
+            New discussion
           </Link>
         </div>
       </OrnatePanel>
 
       {error ? (
         <OrnatePanel className="mt-8">
-          <p className="text-sm text-red-300">Threads could not be loaded right now. Please try again shortly.</p>
+          <p className="text-sm text-red-300">Discussions could not be loaded. Try again shortly.</p>
         </OrnatePanel>
       ) : !threads || threads.length === 0 ? (
         <OrnatePanel className="mt-8">
-          <p className="text-lg font-semibold text-zinc-100">No threads yet</p>
+          <p className="text-lg font-semibold text-zinc-100">No discussions yet</p>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Be the first to start a discussion in {forum.name}.
+            No discussions have been opened in {forum.name}.
           </p>
         </OrnatePanel>
       ) : (
@@ -132,7 +132,7 @@ export default async function ForumDetailPage({
           {threads.map((thread) => {
             const authorLabel = thread.is_anonymous
               ? 'Anonymous'
-              : (thread.author_id && authorNames.get(thread.author_id)) || 'Member'
+              : (thread.author_id && authorNames.get(thread.author_id)) || 'Account holder'
             return (
               <Link key={thread.id} href={`/forums/${forum.slug}/${thread.slug}`} className="block">
                 <OrnatePanel className="transition hover:-translate-y-0.5 hover:border-emerald-300/35">

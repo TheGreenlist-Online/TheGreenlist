@@ -1,27 +1,43 @@
+/**
+ * Section registry.
+ *
+ * Historically these were "districts" of a town metaphor. The platform now
+ * presents as a records institution, so each entry is a plain section with a
+ * record-type label and a one-line scope statement. The eyebrow on every page
+ * reads from this list, so a page can never advertise a different section
+ * than the navigation above it.
+ *
+ * The `District` name and `getDistrict` export are retained so existing call
+ * sites keep compiling.
+ */
 export type District = {
   prefixes: readonly string[]
   slug: string
+  /** Section label shown as the page eyebrow. */
   name: string
+  /** Scope statement: what the section holds. */
   description: string
 }
 
-/**
- * Single source of truth for the district shell. The ribbon under the header
- * and the eyebrow label on each page both read from this list, so a page can
- * never advertise a different district than the ribbon above it.
- */
+export type Section = District
+
 export const districts: readonly District[] = [
-  { prefixes: ['/reports', '/report', '/evidence'], slug: 'reports', name: 'Reports Bureau', description: 'Evidence · Review · Accountability' },
-  { prefixes: ['/forums'], slug: 'forums', name: 'Forum Hall', description: 'Community · Discussion · Due process' },
-  { prefixes: ['/businesses'], slug: 'businesses', name: 'Business District', description: 'Verification · Licensing · Public trust' },
-  { prefixes: ['/news', '/trending'], slug: 'news', name: 'Newsroom', description: 'Reporting · Sources · Public interest' },
-  { prefixes: ['/education', '/help', '/api-docs'], slug: 'knowledge', name: 'Knowledge Library', description: 'Education · Guidance · Open resources' },
-  { prefixes: ['/legal', '/contact'], slug: 'civic', name: 'Civic Center', description: 'Policy · Governance · Public record' },
-  { prefixes: ['/admin'], slug: 'watchtower', name: 'The Watchtower', description: 'Moderation · Safety · Oversight' },
-  { prefixes: ['/dashboard', '/profile', '/settings', '/auth', '/login', '/register', '/sign-in', '/sign-up'], slug: 'resident', name: 'Resident Services', description: 'Account · Preferences · Participation' },
-  { prefixes: ['/town'], slug: 'town', name: 'Green List Town', description: 'One community · Every district' },
+  { prefixes: ['/reports', '/report'], slug: 'reports', name: 'Reports', description: 'Structured accountability reports and review status' },
+  { prefixes: ['/evidence'], slug: 'evidence', name: 'Evidence', description: 'Private-by-default document intake' },
+  { prefixes: ['/forums'], slug: 'evidence-desk', name: 'Evidence Desk', description: 'Public discussion attached to records and sources' },
+  { prefixes: ['/businesses'], slug: 'records', name: 'Records', description: 'Business, licence, and documentation records' },
+  { prefixes: ['/news', '/trending'], slug: 'news', name: 'News', description: 'Source-linked industry, policy, and enforcement coverage' },
+  { prefixes: ['/education', '/help', '/api-docs'], slug: 'learn', name: 'Learn', description: 'Testing, labelling, licensing, and consumer-rights explainers' },
+  { prefixes: ['/about'], slug: 'governance', name: 'Governance', description: 'Methodology, sources, funding, and corrections' },
+  { prefixes: ['/legal', '/contact'], slug: 'policy', name: 'Policy', description: 'Terms, privacy, disclosures, and contact' },
+  { prefixes: ['/admin'], slug: 'review', name: 'Review Operations', description: 'Role-protected review, moderation, and oversight' },
+  { prefixes: ['/dashboard', '/profile', '/settings', '/auth', '/login', '/register', '/sign-in', '/sign-up'], slug: 'account', name: 'Account', description: 'Your filings, submissions, and preferences' },
 ] as const
+
+export const sections = districts
 
 export function getDistrict(pathname: string): District | undefined {
   return districts.find((district) => district.prefixes.some((prefix) => pathname.startsWith(prefix)))
 }
+
+export const getSection = getDistrict

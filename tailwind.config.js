@@ -107,13 +107,23 @@ module.exports = {
           950: '#06110a',
         },
       },
+      // The records shell uses one 2px radius everywhere. Pages that still
+      // carry rounded-xl / rounded-2xl utilities resolve to the same edge, so
+      // the whole site squares up without touching every route.
       borderRadius: {
+        none: '0',
+        sm: 'var(--radius)',
+        DEFAULT: 'var(--radius)',
+        md: 'var(--radius)',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        xl: 'var(--radius)',
+        '2xl': 'var(--radius)',
+        '3xl': 'var(--radius)',
+        full: '9999px',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Archivo', 'Arial', 'sans-serif'],
+        mono: ['var(--font-mono)', 'IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
     },
   },
