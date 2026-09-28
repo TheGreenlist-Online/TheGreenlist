@@ -4,9 +4,8 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
 import { PageIntro } from '@/components/PageIntro'
-import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
-import { TrustBadge } from '@/components/TrustBadge'
+import { LimitationsPanel, Notice, RecordList, RecordRow, Section } from '@/components/record'
 import {
   canReviewBusinessClaims,
   isAdmin as isAdminRole,
@@ -15,7 +14,7 @@ import {
   roleCategory,
   type PlatformRole,
 } from '@/lib/roles'
-import { statusBadgeBase, toneClass, type StatusTone } from '@/lib/statusTones'
+import { toneClass, type StatusTone } from '@/lib/statusTones'
 import { getDashboardData, getPendingClaimCount } from '@/lib/dashboard'
 import { StatTile } from '@/components/dashboard/StatTile'
 import { DashboardPanel } from '@/components/dashboard/DashboardPanel'
@@ -23,7 +22,7 @@ import { ActivityList } from '@/components/dashboard/ActivityList'
 import { NotificationList } from '@/components/dashboard/NotificationList'
 
 export const metadata: Metadata = {
-  title: 'Dashboard',
+  title: 'Your desk - The Green List',
   description: 'Your filings, submissions, notifications, and account tools.',
 }
 
@@ -46,78 +45,30 @@ const quickActions = [
 ]
 
 const personalCards = [
-  {
-    title: 'Business directory',
-    body: 'Look up verified businesses, check their accountability record, or start a claim on your own listing.',
-    href: '/businesses',
-  },
-  {
-    title: 'Claim a business',
-    body: 'Provide the identity and authorization details required to verify a business you represent.',
-    href: '/businesses/claim',
-  },
-  {
-    title: 'Published reports',
-    body: 'Read the accountability reports that have completed review and been published.',
-    href: '/reports',
-  },
+  { title: 'Business records', body: 'Look up a business, read its documentation ledger, or start a claim on a record you represent.', href: '/businesses' },
+  { title: 'Claim a record', body: 'Provide the identity and authorisation details needed to match a record to an official source.', href: '/businesses/claim' },
+  { title: 'Reports', body: 'The review states a report moves through, and the reports you have filed.', href: '/reports' },
 ]
 
 const businessCards = [
-  {
-    title: 'Business workspace',
-    body: 'Review the public directory and the profile attached to your verified account.',
-    href: '/businesses',
-  },
-  {
-    title: 'Business verification',
-    body: 'Check the documentation and authorization requirements for a verified profile.',
-    href: '/businesses/claim',
-  },
-  {
-    title: 'Reports & responses',
-    body: 'Read published reports before preparing a factual business response.',
-    href: '/reports',
-  },
+  { title: 'Business records', body: 'The public record attached to your account and the records of other licensees.', href: '/businesses' },
+  { title: 'Identity verification', body: 'Documentation required before a record is labelled Identity verified.', href: '/businesses/claim' },
+  { title: 'Reports and responses', body: 'Published findings that name your business, and the right of reply on the record.', href: '/reports' },
 ]
 
 const moderatorCards = [
-  {
-    title: 'Moderation queue',
-    body: 'Work through flagged reports and public submissions using your review permissions.',
-    href: '/admin/moderation',
-  },
-  {
-    title: 'Published reports',
-    body: 'Private evidence requires a report-specific signed NDA before access is granted.',
-    href: '/reports',
-  },
-  { title: 'Evidence Desk', body: 'Review public discussions and open documentation requests.', href: '/forums' },
+  { title: 'Moderation queue', body: 'Flagged reports and public submissions awaiting a decision under your review permissions.', href: '/admin/moderation' },
+  { title: 'Reports', body: 'Private evidence requires a report-specific signed NDA before access is granted.', href: '/reports' },
+  { title: 'Evidence Desk', body: 'Public discussions and open documentation requests.', href: '/forums' },
 ]
 
 const adminCards = [
-  {
-    title: 'Business claims',
-    body: 'Verify that a claimant represents the business, then approve or deny. The owner is notified either way.',
-    href: '/admin/claims',
-  },
-  {
-    title: 'Admin command center',
-    body: 'Moderation, review, submissions, sources and audit tooling in one place.',
-    href: '/admin',
-  },
-  {
-    title: 'Evidence review queue',
-    body: 'Review private evidence and report context under administrator access controls.',
-    href: '/admin/review',
-  },
-  {
-    title: 'Submission queue',
-    body: 'Clear pending reports, educational resources and other submissions.',
-    href: '/admin/submissions',
-  },
-  { title: 'Moderation queue', body: 'Handle flagged reports and public submissions.', href: '/admin/moderation' },
-  { title: 'Audit logs', body: 'Review protected operational and role-management events.', href: '/admin/audit-logs' },
+  { title: 'Business claims', body: 'Confirm that a claimant represents the business, then accept or decline. The claimant is notified either way.', href: '/admin/claims' },
+  { title: 'Review operations', body: 'Moderation, review, submissions, sources, and audit tooling.', href: '/admin' },
+  { title: 'Evidence review queue', body: 'Private evidence and report context under administrator access controls.', href: '/admin/review' },
+  { title: 'Submission queue', body: 'Pending reports, resources, and other submissions.', href: '/admin/submissions' },
+  { title: 'Moderation queue', body: 'Flagged reports and public submissions.', href: '/admin/moderation' },
+  { title: 'Audit logs', body: 'Protected operational and role-management events.', href: '/admin/audit-logs' },
 ]
 
 type DashboardProfile = {
@@ -159,7 +110,7 @@ function getWorkspaceTitle(role: PlatformRole, isAdmin: boolean, isPlatformOwner
   if (isAdmin) return 'Administrator tools'
   if (isModerator(role)) return 'Moderator tools'
   if (roleCategory(role) === 'OPERATOR') return 'Business tools'
-  return 'Explore the platform'
+  return 'Sections of the record'
 }
 
 function getWorkspaceDescription(role: PlatformRole, isAdmin: boolean, isPlatformOwner: boolean) {
@@ -169,8 +120,8 @@ function getWorkspaceDescription(role: PlatformRole, isAdmin: boolean, isPlatfor
   if (isModerator(role))
     return 'Private evidence stays unavailable until you have signed an NDA scoped to that specific report.'
   if (roleCategory(role) === 'OPERATOR')
-    return 'Profile management, report awareness and factual accountability responses.'
-  return 'Where to go next beyond your own submissions.'
+    return 'Record management, awareness of published findings, and factual responses on the record.'
+  return 'Where your submissions sit in the wider record.'
 }
 
 export default async function DashboardPage() {
@@ -210,93 +161,72 @@ export default async function DashboardPage() {
   return (
     <PageShell>
       <PageIntro
-        eyebrow="Dashboard"
-        title={userName ? `${userName}'s filings` : 'Your filings'}
+        eyebrow="Account"
+        title={userName ? `${userName}: your desk` : 'Your desk'}
         lede={
           needsAttention > 0
             ? `${needsAttention} ${needsAttention === 1 ? 'item requires' : 'items require'} your attention. Details below.`
             : 'All filings are current. Nothing is awaiting your action.'
         }
+        meta={
+          <>
+            <span>{isPlatformOwner ? 'Platform owner' : role.replace(/_/g, ' ')}</span>
+            {user.email ? <span>{user.email}</span> : null}
+          </>
+        }
         actions={
           <>
-            <RoleBadge role={role} />
-            {accountStatus !== 'active' ? (
-              <span className={`${statusBadgeBase} ${toneClass(ACCOUNT_STATUS_TONES[accountStatus])}`}>
-                {accountStatus.replace(/_/g, ' ')}
-              </span>
-            ) : null}
-            {user.email ? <span className="text-sm text-zinc-400">{user.email}</span> : null}
+            <RoleBadge role={isPlatformOwner ? 'platform owner' : role} />
+            {accountStatus !== 'active' ? <span className={toneClass(ACCOUNT_STATUS_TONES[accountStatus])}>{accountStatus.replace(/_/g, ' ')}</span> : null}
           </>
         }
       >
-        {/* The four things people come here to do, above everything else. */}
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-2">
           {quickActions.map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className={action.primary ? 'greenlist-primary-button' : 'greenlist-quiet-button'}
-            >
+            <Link key={action.href} href={action.href} className={action.primary ? 'greenlist-primary-button' : 'greenlist-quiet-button'}>
               {action.label}
             </Link>
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs">
-          <Link href="/settings" className="text-zinc-400 transition hover:text-emerald-300">
+        <div className="gl-meta mt-4">
+          <Link href="/settings" className="gl-link">
             Account settings
           </Link>
           {profile?.username ? (
-            <Link href={`/profile/${profile.username}`} className="text-zinc-400 transition hover:text-emerald-300">
-              View public profile
+            <Link href={`/profile/${profile.username}`} className="gl-link">
+              Public profile
             </Link>
           ) : null}
-          <Link href="/help" className="text-zinc-400 transition hover:text-emerald-300">
-            Get help
+          <Link href="/help" className="gl-link">
+            Help
           </Link>
         </div>
       </PageIntro>
 
       {data.degraded ? (
-        <p className="mt-6 rounded-lg border border-amber-300/30 bg-amber-950/20 px-4 py-3 text-sm text-amber-200">
-          Some of your activity could not be loaded just now. The counts below may be incomplete — refresh to try again.
-        </p>
+        <Notice tone="review" className="mt-6">
+          Some of your activity could not be loaded. The counts below may be incomplete; refresh to try again.
+        </Notice>
       ) : null}
 
       <section className="mt-8" aria-label="Your activity at a glance">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatTile
-            label="My reports"
+            label="Your reports"
             value={counts.reports}
             href="/reports"
-            note={
-              counts.reportsAwaitingReview > 0
-                ? `${counts.reportsAwaitingReview} awaiting review`
-                : counts.reports > 0
-                  ? 'All reviewed'
-                  : 'None filed yet'
-            }
+            note={counts.reportsAwaitingReview > 0 ? `${counts.reportsAwaitingReview} awaiting review` : counts.reports > 0 ? 'All reviewed' : 'None filed'}
             emphasis={counts.reportsAwaitingReview > 0}
           />
           <StatTile
-            label="My submissions"
+            label="Your submissions"
             value={counts.submissions}
             href="/education"
-            note={
-              counts.submissionsAwaitingReview > 0
-                ? `${counts.submissionsAwaitingReview} awaiting review`
-                : counts.submissions > 0
-                  ? 'All reviewed'
-                  : 'None submitted yet'
-            }
+            note={counts.submissionsAwaitingReview > 0 ? `${counts.submissionsAwaitingReview} awaiting review` : counts.submissions > 0 ? 'All reviewed' : 'None submitted'}
             emphasis={counts.submissionsAwaitingReview > 0}
           />
-          <StatTile
-            label="Discussions"
-            value={counts.discussions}
-            href="/forums"
-            note={counts.discussions > 0 ? 'Discussions you opened' : 'None opened yet'}
-          />
+          <StatTile label="Discussions" value={counts.discussions} href="/forums" note={counts.discussions > 0 ? 'Discussions you opened' : 'None opened'} />
           <StatTile
             label="Notifications"
             value={counts.unreadNotifications}
@@ -309,74 +239,55 @@ export default async function DashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <DashboardPanel
-          title="Your recent activity"
+          title="Your recent filings"
           action={counts.reports > 0 ? { label: 'All reports', href: '/reports' } : undefined}
           isEmpty={activity.length === 0}
-          emptyTitle="Nothing filed yet"
-          emptyBody="Reports, resources and discussions you submit will appear here with the status a reviewer has put them in."
-          emptyAction={{ label: 'File your first report', href: '/reports/new' }}
+          emptyTitle="Nothing filed"
+          emptyBody="Reports, resources, and discussions you submit are listed here with the review state a reviewer has put them in."
+          emptyAction={{ label: 'File a report', href: '/reports/new' }}
         >
           <ActivityList items={activity} />
         </DashboardPanel>
 
         <div id="notifications" className="scroll-mt-28">
-          <DashboardPanel
-            title="Notifications"
-            isEmpty={notifications.length === 0}
-            emptyTitle="No notifications"
-            emptyBody="Status changes on your reports and replies to your discussions will be listed here."
-          >
+          <DashboardPanel title="Notifications" isEmpty={notifications.length === 0} emptyTitle="No notifications" emptyBody="Status changes on your reports and replies to your discussions are listed here.">
             <NotificationList items={notifications} />
           </DashboardPanel>
         </div>
       </div>
 
       {pendingClaims && pendingClaims > 0 ? (
-        <section className="mt-6">
-          <Link
-            href="/admin/claims"
-            className="block rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-5 transition hover:border-emerald-400/60"
-          >
-            <p className="text-sm font-semibold text-emerald-100">
-              {pendingClaims} business {pendingClaims === 1 ? 'claim' : 'claims'} waiting on review
-            </p>
-            <p className="mt-1 text-sm text-emerald-200/75">
-              Approve or deny each claim. The owner is notified either way.
-            </p>
+        <Notice tone="review" className="mt-6">
+          <strong>
+            {pendingClaims} business {pendingClaims === 1 ? 'claim' : 'claims'} awaiting review.
+          </strong>{' '}
+          <Link href="/admin/claims" className="gl-link">
+            Open the claims queue
           </Link>
-        </section>
+          . The claimant is notified of either outcome.
+        </Notice>
       ) : null}
 
       {counts.openTickets > 0 ? (
-        <section className="mt-6">
-          <Link
-            href="/contact"
-            className="block rounded-xl border border-amber-300/30 bg-amber-950/20 p-5 transition hover:border-amber-300/50"
-          >
-            <p className="text-sm font-semibold text-amber-100">
-              {counts.openTickets} open support {counts.openTickets === 1 ? 'ticket' : 'tickets'}
-            </p>
-            <p className="mt-1 text-sm text-amber-200/75">Check the status of your conversation with the support team.</p>
+        <Notice tone="info" className="mt-6">
+          <strong>
+            {counts.openTickets} open support {counts.openTickets === 1 ? 'request' : 'requests'}.
+          </strong>{' '}
+          <Link href="/contact" className="gl-link">
+            Check status
           </Link>
-        </section>
+        </Notice>
       ) : null}
 
-      <section className="mt-10">
-        <p className="greenlist-eyebrow">{isPlatformOwner ? 'Platform owner' : role.toLowerCase().replace(/_/g, ' ')}</p>
-        <h2 className="greenlist-section-title">{getWorkspaceTitle(role, isAdmin, isPlatformOwner)}</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-          {getWorkspaceDescription(role, isAdmin, isPlatformOwner)}
-        </p>
-        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <Section title={getWorkspaceTitle(role, isAdmin, isPlatformOwner)} aside={<span>{getWorkspaceDescription(role, isAdmin, isPlatformOwner)}</span>}>
+        <RecordList ariaLabel={getWorkspaceTitle(role, isAdmin, isPlatformOwner)}>
           {workspaceCards.map((card) => (
-            <FeatureCard key={card.href} title={card.title} description={card.body} href={card.href} />
+            <RecordRow key={card.href} href={card.href} title={card.title} body={card.body} />
           ))}
-        </div>
-      </section>
+        </RecordList>
+      </Section>
 
-      <section className="mt-10 flex justify-center">
-        <TrustBadge />
-      </section>
+      <LimitationsPanel subject="profile" />
     </PageShell>
   )
 }

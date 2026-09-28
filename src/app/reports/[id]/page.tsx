@@ -2,12 +2,11 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { ArrowLeft, MapPin, ShieldAlert } from 'lucide-react'
-import { statusToneClass, type StatusTone } from '@/lib/statusTones'
+import { Ledger, LimitationsPanel, Notice, Panel, RecordHeader, RecordTimeline } from '@/components/record'
+import { formatDate, humanize, recordId, recordStatus } from '@/lib/recordStatus'
 
 export const metadata = {
-  title: 'Report Detail - The Green List',
+  title: 'Report - The Green List',
 }
 
 type ReportDetailRow = {
@@ -30,28 +29,10 @@ type ReportDetailRow = {
   updated_at: string
 }
 
-const REPORT_STATUS_TONES: Record<string, StatusTone> = {
-  submitted: 'pending',
-  under_review: 'progress',
-  business_response_requested: 'progress',
-  substantiated: 'success',
-  unsubstantiated: 'neutral',
-  inconclusive: 'neutral',
-  resolved: 'success',
-}
-
-const STATUS_STYLES: Record<string, string> = Object.fromEntries(
-  Object.entries(REPORT_STATUS_TONES).map(([status, tone]) => [status, statusToneClass[tone]]),
-)
-
-// NOTE (phase 2 TODO): public visibility for resolved/substantiated reports (via
+// NOTE (phase 2 TODO): public visibility for substantiated reports (via
 // public_summary, for non-owners / unauthenticated visitors) is not implemented yet.
 // This page is gated to the owning reporter only for now.
-export default async function ReportDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createSupabaseServerClient()
   const {
@@ -65,7 +46,7 @@ export default async function ReportDetailPage({
   const { data: report, error } = await supabase
     .from('reports')
     .select(
-      'id, reporter_id, business_id, business_name_reported, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
+      'id, reporter_id, business_id, business_name_reported, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at',
     )
     .eq('id', id)
     .maybeSingle<ReportDetailRow>()
@@ -74,62 +55,76 @@ export default async function ReportDetailPage({
     notFound()
   }
 
-  const statusStyle = STATUS_STYLES[report.status] ?? 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200'
+  const location = [report.location_city, report.location_state].filter(Boolean).join(', ')
+  const status = recordStatus(report.status)
 
   return (
-    <PageShell>
-      <Link href="/reports" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:underline">
-        <ArrowLeft className="h-4 w-4" />
-        Back to Reports Bureau
-      </Link>
+    <PageShell width="record">
+      <RecordHeader
+        eyebrow="Reports"
+        kind="Accountability report"
+        recordId={recordId('RPT', report.id)}
+        jurisdiction={report.location_state ?? undefined}
+        title={report.title}
+        lede="This page is visible only to the account that filed the report. Review status is updated here; no resubmission is needed."
+        status={status}
+        meta={[
+          { label: 'Filed', value: formatDate(report.created_at) },
+          { label: 'Last updated', value: formatDate(report.updated_at) },
+        ]}
+        actions={
+          <Link href="/reports" className="greenlist-quiet-button">
+            All your reports
+          </Link>
+        }
+      />
 
-      <OrnatePanel className="mt-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="greenlist-eyebrow">
-              {report.report_type.replace(/_/g, ' ')}
-            </p>
-            <h1 className="greenlist-page-title">{report.title}</h1>
-          </div>
-          <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.12em] ${statusStyle}`}>
-            {report.status.replace(/_/g, ' ')}
-          </span>
-        </div>
+      <Ledger
+        title="Report details"
+        aside="As submitted"
+        className="mt-8"
+        rows={[
+          { label: 'Report type', value: humanize(report.report_type) },
+          { label: 'Business named', value: report.business_name_reported ?? 'Not named' },
+          { label: 'Location', value: location || 'Not stated' },
+          { label: 'Public anonymity', value: report.is_anonymous ? 'Requested' : 'Not requested', note: 'Anonymity applies to any published finding. Reviewers can see the filing account.' },
+          { label: 'Review state', value: status.label, note: status.meaning },
+          { label: 'Documentary status', value: humanize(report.verification_status) },
+          { label: 'Risk classification', value: humanize(report.risk_level), note: 'Internal triage category set by reviewers. Not a public finding.' },
+        ]}
+      />
 
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-zinc-400">
-          {report.location_city || report.location_state ? (
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
-              {[report.location_city, report.location_state].filter(Boolean).join(', ')}
-            </span>
-          ) : null}
-          <span>Filed {new Date(report.created_at).toLocaleDateString()}</span>
-          <span>Verification: {report.verification_status.replace(/_/g, ' ')}</span>
-          <span className="inline-flex items-center gap-1.5">
-            <ShieldAlert className="h-4 w-4" />
-            Risk: {report.risk_level}
-          </span>
-          {report.is_anonymous ? <span>Public anonymity requested</span> : null}
-          {report.business_name_reported ? <span>Business reported: {report.business_name_reported}</span> : null}
-        </div>
+      <Panel title="Account as filed" className="mt-6">
+        <p className="gl-article">{report.description}</p>
+      </Panel>
 
-        <div className="mt-6 border-t border-white/10 pt-6">
-          <h2 className="greenlist-eyebrow">Description</h2>
-          <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-300">{report.description}</p>
-        </div>
-
+      <Panel title="Public summary" aside={report.public_summary ? 'Published' : 'None published'} className="mt-6">
         {report.public_summary ? (
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <h2 className="greenlist-eyebrow">Public summary</h2>
-            <p className="mt-3 leading-7 text-zinc-300">{report.public_summary}</p>
-          </div>
-        ) : null}
+          <p className="text-sm leading-7 text-[var(--gl-text-secondary)]">{report.public_summary}</p>
+        ) : (
+          <p className="text-sm leading-6 text-[var(--gl-text-muted)]">
+            No public summary exists for this report. A summary is published only when the review reaches a source-backed finding.
+          </p>
+        )}
+      </Panel>
 
-        <div className="mt-6 rounded-lg border border-amber-300/25 bg-amber-950/15 p-4 text-sm text-amber-100">
-          Status updates from moderators and reviewers will be reflected here as your report moves through
-          review. You do not need to resubmit — check back on this page for progress.
-        </div>
-      </OrnatePanel>
+      <Panel title="Record history" className="mt-6">
+        <RecordTimeline
+          events={[
+            { at: report.created_at, what: <><strong>Report received.</strong> Entered private intake.</> },
+            ...(report.updated_at !== report.created_at
+              ? [{ at: report.updated_at, what: <><strong>Record updated.</strong> Current state: {status.label}.</> }]
+              : []),
+          ]}
+        />
+      </Panel>
+
+      <Notice tone="info" className="mt-6">
+        Reviewer actions are recorded on this page as the report moves through review. You will not be asked to resubmit. To add
+        documents, use <Link href="/evidence/upload" className="gl-link">evidence intake</Link> and reference {recordId('RPT', report.id)}.
+      </Notice>
+
+      <LimitationsPanel subject="report" className="mt-8" />
     </PageShell>
   )
 }

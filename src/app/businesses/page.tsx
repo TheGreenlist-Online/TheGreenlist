@@ -1,14 +1,14 @@
 import Link from 'next/link'
-import { BadgeCheck, MapPin, Star } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { LimitationsPanel, Notice, Pagination, Panel, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
+import { recordId } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
 import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
-  title: 'Business Directory - The Green List',
+  title: 'Business Records - The Green List',
   description: 'Business, licence, and documentation records with stated sources and verification status.',
 }
 
@@ -93,6 +93,12 @@ export default async function BusinessesPage({
       <PageIntro
         title="Business Records"
         lede="Business, licence, and documentation records. Each record states what has been confirmed, against which source, and when — and what remains undocumented. A record is not an endorsement, and this is not a marketplace."
+        meta={
+          <>
+            <span>{count ?? 0} active records</span>
+            <span>Public records only</span>
+          </>
+        }
         actions={
           <Link href="/businesses/claim" className="greenlist-primary-button">
             Claim a record
@@ -100,25 +106,19 @@ export default async function BusinessesPage({
         }
       />
 
-      <OrnatePanel className="mt-8">
+      <Panel title="Filter records" aside="Filters narrow the list; they do not rank it" className="mt-8">
         <form method="get" className="grid gap-4 sm:grid-cols-4">
-          <label className="block text-sm font-medium text-zinc-300 sm:col-span-2">
-            Search
-            <input
-              type="text"
-              name="q"
-              defaultValue={q}
-              placeholder="Search by name"
-              className="mt-2 h-10 w-full rounded-md border border-accent/25 bg-background/70 px-3 text-sm text-foreground placeholder:text-muted-foreground"
-            />
-          </label>
-          <label className="block text-sm font-medium text-zinc-300">
-            State
-            <select
-              name="state"
-              defaultValue={state ?? ''}
-              className="mt-2 h-10 w-full rounded-md border border-accent/25 bg-background/70 px-3 text-sm text-foreground"
-            >
+          <div className="gl-field sm:col-span-2">
+            <label className="gl-label" htmlFor="q">
+              Name
+            </label>
+            <input id="q" type="text" name="q" defaultValue={q} placeholder="Business name" className="gl-input" />
+          </div>
+          <div className="gl-field">
+            <label className="gl-label" htmlFor="state">
+              State
+            </label>
+            <select id="state" name="state" defaultValue={state ?? ''} className="gl-select">
               <option value="">All states</option>
               {uniqueStates.map((s) => (
                 <option key={s} value={s}>
@@ -126,14 +126,12 @@ export default async function BusinessesPage({
                 </option>
               ))}
             </select>
-          </label>
-          <label className="block text-sm font-medium text-zinc-300">
-            Business type
-            <select
-              name="business_type"
-              defaultValue={businessType ?? ''}
-              className="mt-2 h-10 w-full rounded-md border border-accent/25 bg-background/70 px-3 text-sm text-foreground"
-            >
+          </div>
+          <div className="gl-field">
+            <label className="gl-label" htmlFor="business_type">
+              Business type
+            </label>
+            <select id="business_type" name="business_type" defaultValue={businessType ?? ''} className="gl-select">
               <option value="">All types</option>
               {uniqueTypes.map((t) => (
                 <option key={t} value={t}>
@@ -141,103 +139,77 @@ export default async function BusinessesPage({
                 </option>
               ))}
             </select>
-          </label>
-          <div className="sm:col-span-4">
-            <button
-              type="submit"
-              className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:border-emerald-300/60"
-            >
+          </div>
+          <div className="sm:col-span-4 flex items-center gap-2">
+            <button type="submit" className="greenlist-secondary-button">
               Apply filters
             </button>
+            {state || businessType || q ? (
+              <Link href="/businesses" className="greenlist-quiet-button">
+                Clear
+              </Link>
+            ) : null}
           </div>
         </form>
-      </OrnatePanel>
+      </Panel>
 
-      {error ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-sm text-red-300">Records could not be loaded. Try again shortly.</p>
-        </OrnatePanel>
-      ) : !businesses || businesses.length === 0 ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-lg font-semibold text-zinc-100">No businesses yet</p>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
-            {state || businessType || q
-              ? 'No businesses match those filters. Try broadening your search.'
-              : 'The business directory is empty right now.'}
-          </p>
-          <Link
-            href="/businesses/claim"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:border-emerald-300/60"
-          >
-            Claim a business profile
-          </Link>
-          {viewerIsAdmin ? (
-            <p className="mt-3 text-xs text-zinc-500">You are an admin — businesses claimed by owners will appear here automatically.</p>
-          ) : null}
-        </OrnatePanel>
-      ) : (
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {businesses.map((business) => (
-            <Link key={business.id} href={`/businesses/${business.slug}`} className="block">
-              <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35">
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="greenlist-card-title">{business.name}</h2>
-                  {business.verification_status === 'verified' ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 text-xs font-semibold text-emerald-200">
-                      <BadgeCheck className="h-3.5 w-3.5" /> Verified
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300">
-                  {formatType(business.business_type)}
-                </p>
-                {(business.city || business.state) ? (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-zinc-500">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {[business.city, business.state].filter(Boolean).join(', ')}
-                  </p>
-                ) : null}
-                {business.description ? (
-                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-400">{business.description}</p>
-                ) : null}
-                <div className="mt-4 flex items-center gap-1 text-sm text-amber-300">
-                  <Star className="h-4 w-4 fill-current" />
-                  <span>{(business.trust_rating ?? 0).toFixed(1)}</span>
-                  <span className="text-zinc-500">trust score</span>
-                </div>
-              </OrnatePanel>
-            </Link>
-          ))}
-        </div>
-      )}
+      <Section
+        title="Records"
+        aside={
+          <>
+            <span>Newest first</span>
+            <span>Verification status shown per record</span>
+          </>
+        }
+      >
 
-      {totalPages > 1 ? (
-        <div className="mt-8 flex items-center justify-between text-sm">
-          <Link
-            href={`/businesses?${buildQueryString({})}&page=${Math.max(1, page - 1)}`}
-            aria-disabled={page <= 1}
-            className={`rounded-lg border border-emerald-300/25 px-4 py-2 font-semibold text-emerald-200 ${page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-emerald-300/60'}`}
-          >
-            ← Previous
-          </Link>
-          <span className="text-zinc-500">
-            Page {page} of {totalPages}
-          </span>
-          <Link
-            href={`/businesses?${buildQueryString({})}&page=${Math.min(totalPages, page + 1)}`}
-            aria-disabled={page >= totalPages}
-            className={`rounded-lg border border-emerald-300/25 px-4 py-2 font-semibold text-emerald-200 ${page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-emerald-300/60'}`}
-          >
-            Next →
-          </Link>
-        </div>
-      ) : null}
+        {error ? (
+          <Notice tone="alert">Records could not be loaded. Try again shortly.</Notice>
+        ) : !businesses || businesses.length === 0 ? (
+          <Panel>
+            <p className="text-sm font-semibold text-[var(--gl-text)]">No records match</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--gl-text-secondary)]">
+              {state || businessType || q
+                ? 'No business records match those filters. Broaden the search or clear the filters.'
+                : 'No business records have been published yet.'}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/businesses/claim" className="greenlist-secondary-button">
+                Claim a record
+              </Link>
+              <Link href="/evidence/upload" className="greenlist-quiet-button">
+                Submit evidence
+              </Link>
+            </div>
+            {viewerIsAdmin ? (
+              <p className="mt-3 text-xs text-[var(--gl-text-muted)]">Reviewer note: records claimed by owners appear here once active.</p>
+            ) : null}
+          </Panel>
+        ) : (
+          <RecordList ariaLabel="Business records">
+            {businesses.map((business) => (
+              <RecordRow
+                key={business.id}
+                href={`/businesses/${business.slug}`}
+                title={business.name}
+                body={business.description ? business.description.slice(0, 180) + (business.description.length > 180 ? '…' : '') : undefined}
+                meta={
+                  <>
+                    <span>{recordId('BUS', business.id)}</span>
+                    <span>{formatType(business.business_type)}</span>
+                    <span>{[business.city, business.state].filter(Boolean).join(', ') || 'Location not stated'}</span>
+                  </>
+                }
+                aside={<StatusLabel value={business.verification_status} fallback={{ label: 'Not verified', tone: 'neutral' }} />}
+              />
+            ))}
+          </RecordList>
+        )}
 
-      <div className="mt-10">
-        <Link href="/" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to homepage
-        </Link>
-      </div>
+        <Pagination page={page} totalPages={totalPages} hrefFor={(p) => `/businesses?${buildQueryString({})}&page=${p}`} />
+      </Section>
+
+      <LimitationsPanel subject="business" className="mt-10" />
     </PageShell>
   )
 }

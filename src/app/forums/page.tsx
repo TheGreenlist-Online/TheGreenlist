@@ -1,14 +1,13 @@
 import Link from 'next/link'
-import { Lock, MessageSquare, ShieldAlert } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { LimitationsPanel, Notice, Panel, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
 import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
-  title: 'Forums - The Green List',
+  title: 'Evidence Desk - The Green List',
   description: 'Public discussion attached to records, sources, and open documentation requests.',
 }
 
@@ -57,6 +56,12 @@ export default async function ForumsPage() {
       <PageIntro
         title="Evidence Desk"
         lede="Public discussion in service of the record: locating primary documents, identifying missing records, asking informed questions, and correcting errors. Discussion does not change a record's status; documentary review does."
+        meta={
+          <>
+            <span>{forums?.length ?? 0} desks</span>
+            <span>Moderated for sourcing</span>
+          </>
+        }
         actions={
           <Link href="/forums/new" className="greenlist-primary-button">
             Open a discussion
@@ -65,75 +70,46 @@ export default async function ForumsPage() {
       />
 
       {error ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-sm text-red-300">Forums could not be loaded right now. Please try again shortly.</p>
-        </OrnatePanel>
+        <Notice tone="alert" className="mt-8">
+          Desks could not be loaded. Try again shortly.
+        </Notice>
       ) : grouped.size === 0 ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-lg font-semibold text-zinc-100">No forums yet</p>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
-            No discussion areas have been opened yet.
-          </p>
+        <Panel className="mt-8">
+          <p className="text-sm font-semibold text-[var(--gl-text)]">No desks open.</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">No discussion desks have been opened yet.</p>
           {viewerIsAdmin ? (
-            <Link
-              href="/admin/moderation"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:border-emerald-300/60"
-            >
-              Create the first forum
-            </Link>
+            <div className="mt-4">
+              <Link href="/admin/moderation" className="greenlist-secondary-button">
+                Open the first desk
+              </Link>
+            </div>
           ) : null}
-        </OrnatePanel>
+        </Panel>
       ) : (
-        <div className="mt-8 space-y-10">
-          {Array.from(grouped.entries()).map(([category, categoryForums]) => (
-            <section key={category}>
-              <h2 className="greenlist-eyebrow">{category}</h2>
-              <div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {categoryForums.map((forum) => (
-                  <Link key={forum.id} href={`/forums/${forum.slug}`} className="block">
-                    <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: forum.accent_color || '#34d399' }}
-                        />
-                        <h3 className="greenlist-card-title">{forum.name}</h3>
-                      </div>
-                      {forum.description ? (
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-400">{forum.description}</p>
-                      ) : null}
-                      <div className="mt-4 flex items-center gap-3 text-xs text-zinc-500">
-                        <span className="inline-flex items-center gap-1">
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          Discussion space
-                        </span>
-                        {forum.is_sensitive ? (
-                          <span className="inline-flex items-center gap-1 text-amber-300">
-                            <ShieldAlert className="h-3.5 w-3.5" />
-                            Sensitive
-                          </span>
-                        ) : null}
-                        {forum.requires_auth ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Lock className="h-3.5 w-3.5" />
-                            Sign-in required
-                          </span>
-                        ) : null}
-                      </div>
-                    </OrnatePanel>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        Array.from(grouped.entries()).map(([category, categoryForums]) => (
+          <Section key={category} title={category} aside={<span>{categoryForums.length} desk{categoryForums.length === 1 ? '' : 's'}</span>}>
+            <RecordList ariaLabel={`${category} desks`}>
+              {categoryForums.map((forum) => (
+                <RecordRow
+                  key={forum.id}
+                  href={`/forums/${forum.slug}`}
+                  title={forum.name}
+                  body={forum.description ?? undefined}
+                  meta={
+                    <>
+                      <span>Discussion desk</span>
+                      <span>{forum.requires_auth ? 'Sign-in required to post' : 'Public'}</span>
+                    </>
+                  }
+                  aside={forum.is_sensitive ? <StatusLabel label="Sensitive topics" tone="review" title="Posts in this desk are reviewed before publication" /> : undefined}
+                />
+              ))}
+            </RecordList>
+          </Section>
+        ))
       )}
 
-      <div className="mt-10">
-        <Link href="/" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to homepage
-        </Link>
-      </div>
+      <LimitationsPanel subject="discussion" className="mt-10" />
     </PageShell>
   )
 }

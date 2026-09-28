@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Lock, MessageSquare, Pin, Plus } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { LimitationsPanel, Notice, Pagination, Panel, RecordHeader, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
+import { formatDate, humanize } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export const revalidate = 0
@@ -34,7 +33,7 @@ const PAGE_SIZE = 20
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   return {
-    title: `${slug.replace(/-/g, ' ')} - Forums - The Green List`,
+    title: `${slug.replace(/-/g, ' ')} - Evidence Desk - The Green List`,
   }
 }
 
@@ -91,106 +90,65 @@ export default async function ForumDetailPage({
 
   return (
     <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <p className="greenlist-eyebrow">
-          {forum.category ? forum.category.replace(/[_-]+/g, ' ') : 'Forum'}
-        </p>
-        <div className="mt-3 flex items-center gap-3">
-          <span
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: forum.accent_color || '#34d399' }}
-          />
-          <h1 className="greenlist-page-title">{forum.name}</h1>
-        </div>
-        {forum.description ? (
-          <p className="greenlist-page-lede">{forum.description}</p>
-        ) : null}
-        <div className="mt-6">
-          <Link
-            href={`/forums/new?forum=${forum.slug}`}
-            className="greenlist-primary-button"
-          >
-            <Plus className="h-4 w-4" />
-            New discussion
-          </Link>
-        </div>
-      </OrnatePanel>
+      <RecordHeader
+        eyebrow="Evidence Desk"
+        kind="Discussion desk"
+        jurisdiction={forum.category ? humanize(forum.category) : undefined}
+        title={forum.name}
+        lede={forum.description ?? 'Discussion in service of the record. Posts are moderated for sourcing.'}
+        meta={[{ label: 'Discussions', value: String(count ?? 0) }]}
+        actions={
+          <>
+            <Link href="/forums" className="greenlist-quiet-button">
+              All desks
+            </Link>
+            <Link href={`/forums/new?forum=${forum.slug}`} className="greenlist-primary-button">
+              New discussion
+            </Link>
+          </>
+        }
+      />
 
-      {error ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-sm text-red-300">Discussions could not be loaded. Try again shortly.</p>
-        </OrnatePanel>
-      ) : !threads || threads.length === 0 ? (
-        <OrnatePanel className="mt-8">
-          <p className="text-lg font-semibold text-zinc-100">No discussions yet</p>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
-            No discussions have been opened in {forum.name}.
-          </p>
-        </OrnatePanel>
-      ) : (
-        <div className="mt-8 space-y-4">
-          {threads.map((thread) => {
-            const authorLabel = thread.is_anonymous
-              ? 'Anonymous'
-              : (thread.author_id && authorNames.get(thread.author_id)) || 'Account holder'
-            return (
-              <Link key={thread.id} href={`/forums/${forum.slug}/${thread.slug}`} className="block">
-                <OrnatePanel className="transition hover:-translate-y-0.5 hover:border-emerald-300/35">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {thread.is_pinned ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-xs font-semibold text-amber-200">
-                            <Pin className="h-3 w-3" /> Pinned
-                          </span>
-                        ) : null}
-                        {thread.is_locked ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-xs font-semibold text-zinc-300">
-                            <Lock className="h-3 w-3" /> Locked
-                          </span>
-                        ) : null}
-                      </div>
-                      <h2 className="mt-2 truncate text-lg font-semibold text-zinc-100">{thread.title}</h2>
-                      <p className="mt-1 text-sm text-zinc-500">
-                        by {authorLabel} · {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <MessageSquare className="h-5 w-5 shrink-0 text-zinc-600" />
-                  </div>
-                </OrnatePanel>
-              </Link>
-            )
-          })}
-        </div>
-      )}
+      <Section title="Discussions" aside={<><span>Pinned first</span><span>Then newest</span></>}>
+        {error ? (
+          <Notice tone="alert">Discussions could not be loaded. Try again shortly.</Notice>
+        ) : !threads || threads.length === 0 ? (
+          <Panel>
+            <p className="text-sm font-semibold text-[var(--gl-text)]">No discussions open.</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">No discussions have been opened in {forum.name}.</p>
+          </Panel>
+        ) : (
+          <RecordList ariaLabel={`Discussions in ${forum.name}`}>
+            {threads.map((thread) => {
+              const authorLabel = thread.is_anonymous ? 'Anonymous' : (thread.author_id && authorNames.get(thread.author_id)) || 'Account holder'
+              return (
+                <RecordRow
+                  key={thread.id}
+                  href={`/forums/${forum.slug}/${thread.slug}`}
+                  title={thread.title}
+                  meta={
+                    <>
+                      <span>Opened {formatDate(thread.created_at)}</span>
+                      <span>By {authorLabel}</span>
+                    </>
+                  }
+                  aside={
+                    thread.is_pinned || thread.is_locked ? (
+                      <>
+                        {thread.is_pinned ? <StatusLabel label="Pinned" tone="neutral" /> : null}
+                        {thread.is_locked ? <StatusLabel label="Locked" tone="neutral" title="No further replies accepted" /> : null}
+                      </>
+                    ) : undefined
+                  }
+                />
+              )
+            })}
+          </RecordList>
+        )}
+        <Pagination page={page} totalPages={totalPages} hrefFor={(p) => `/forums/${forum.slug}?page=${p}`} />
+      </Section>
 
-      {totalPages > 1 ? (
-        <div className="mt-8 flex items-center justify-between text-sm">
-          <Link
-            href={`/forums/${forum.slug}?page=${Math.max(1, page - 1)}`}
-            aria-disabled={page <= 1}
-            className={`rounded-lg border border-emerald-300/25 px-4 py-2 font-semibold text-emerald-200 ${page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-emerald-300/60'}`}
-          >
-            ← Previous
-          </Link>
-          <span className="text-zinc-500">
-            Page {page} of {totalPages}
-          </span>
-          <Link
-            href={`/forums/${forum.slug}?page=${Math.min(totalPages, page + 1)}`}
-            aria-disabled={page >= totalPages}
-            className={`rounded-lg border border-emerald-300/25 px-4 py-2 font-semibold text-emerald-200 ${page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-emerald-300/60'}`}
-          >
-            Next →
-          </Link>
-        </div>
-      ) : null}
-
-      <div className="mt-10">
-        <Link href="/forums" className="text-sm font-semibold text-emerald-300 hover:underline">
-          ← Back to all forums
-        </Link>
-      </div>
+      <LimitationsPanel subject="discussion" />
     </PageShell>
   )
 }

@@ -1,9 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { EvidenceUploadForm, type EvidenceReportOption } from './evidence-upload-form'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { LimitationsPanel } from '@/components/record'
+import Link from 'next/link'
 
 export const metadata = {
-  title: 'Upload Evidence - The Green List',
+  title: 'Submit evidence - The Green List',
   description: 'Submit documentation supporting a report or a correction request.',
 }
 
@@ -40,23 +44,33 @@ export default async function EvidenceUploadPage() {
   }))
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="mb-12 border-b border-[var(--gl-border)] pb-8">
-          <p className="greenlist-eyebrow">Evidence</p>
-          <h1 className="greenlist-page-title max-w-4xl">Submit evidence</h1>
-          <p className="greenlist-page-lede">
-            Photographs, receipts, product labels, screenshots, PDFs, or written documentation. Files are stored
-            privately, linked to your report or correction request, and reviewed by authorised staff only.
-          </p>
-        </section>
+    <PageShell>
+      <PageIntro
+        eyebrow="Evidence"
+        title="Submit evidence"
+        lede="Photographs, receipts, product labels, screenshots, PDFs, or written documentation. Files are stored privately, linked to your report or correction request, and reviewed by authorised staff only."
+        meta={
+          <>
+            <span>Private on receipt</span>
+            <span>Linked to a report</span>
+          </>
+        }
+        actions={
+          <Link href="/evidence" className="greenlist-quiet-button">
+            How intake works
+          </Link>
+        }
+      />
 
+      <div className="mt-8">
         <EvidenceUploadForm
           userId={user.id}
           reports={reportOptions}
           reportsLoadError={error ? 'Your existing reports could not be loaded. You can still create a new report below.' : null}
         />
-      </main>
-    </div>
+      </div>
+
+      <LimitationsPanel subject="report" className="mt-8" />
+    </PageShell>
   )
 }

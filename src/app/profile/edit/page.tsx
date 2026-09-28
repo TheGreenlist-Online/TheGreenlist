@@ -3,7 +3,9 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { Field, FormActions, Input, Notice, Panel, Textarea } from '@/components/record'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 type ProfileRow = {
@@ -106,131 +108,82 @@ export default function ProfileEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen smoke-surface flex items-center justify-center">
-        <p className="text-muted-foreground">Loading profile...</p>
-      </div>
+      <PageShell width="record">
+        <PageIntro eyebrow="Account" title="Edit profile" />
+        <p className="gl-meta mt-8">
+          <span>Loading profile…</span>
+        </p>
+      </PageShell>
     )
   }
 
   if (notSignedIn) {
     return (
-      <div className="min-h-screen smoke-surface flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-foreground">Please sign in to edit your profile.</p>
-          <Link href="/auth/signin?callbackUrl=/profile/edit" className="mt-3 inline-block text-accent hover:underline">
+      <PageShell width="record">
+        <PageIntro eyebrow="Account" title="Edit profile" />
+        <Notice tone="info" className="mt-8">
+          <Link href="/auth/signin?callbackUrl=/profile/edit" className="gl-link">
             Sign in
-          </Link>
-        </div>
-      </div>
+          </Link>{' '}
+          to edit your profile.
+        </Notice>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="mb-8 border-b border-[var(--gl-border)] pb-8">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Profile</p>
-            <h1 className="greenlist-page-title">Edit Profile</h1>
-            {!profile ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                You don&apos;t have a profile row yet — saving will create one.
-              </p>
-            ) : null}
-          </div>
-        </section>
+    <PageShell width="record">
+      <PageIntro
+        eyebrow="Account"
+        title="Edit profile"
+        lede={profile ? undefined : 'No profile row exists for this account yet. Saving will create one.'}
+        meta={<span>{profile?.username ? `@${profile.username}` : 'Username assigned by an administrator'}</span>}
+        actions={
+          <Link href="/profile" className="greenlist-quiet-button">
+            Cancel
+          </Link>
+        }
+      />
 
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-          <Card className="border-primary/40">
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
-                {profile?.username ? `@${profile.username}` : 'Your username is set by an administrator and cannot be changed here.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Display Name</label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={80}
-                  placeholder="Your display name"
-                  className="w-full px-3 py-2 bg-card border border-primary/40 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent"
-                />
-              </div>
+      <form onSubmit={handleSubmit} className="mt-8 grid gap-6">
+        <Panel title="Public details" aside={<span>Shown on your account record</span>}>
+          <Field label="Display name" htmlFor="display-name" help="Up to 80 characters.">
+            <Input id="display-name" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} />
+          </Field>
+          <Field label="Statement" htmlFor="bio" help="A short factual description. Optional; up to 1,000 characters.">
+            <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} maxLength={1000} rows={4} className="min-h-28" />
+          </Field>
+          <Field label="Avatar URL" htmlFor="avatar-url" help="Link to an image. File uploads are not supported.">
+            <Input id="avatar-url" type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://" />
+          </Field>
+        </Panel>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  maxLength={1000}
-                  rows={4}
-                  placeholder="A short public description (optional)"
-                  className="w-full px-3 py-2 bg-card border border-primary/40 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent"
-                />
-              </div>
+        <Panel title="Visibility">
+          <label className="flex items-start gap-3 text-sm text-[var(--gl-text-secondary)]">
+            <input type="checkbox" className="mt-1" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+            <span>
+              <span className="block font-medium text-[var(--gl-text)]">Public profile</span>
+              <span>Show your statement, role, and confirmed facts at your public profile address. When off, only your username and avatar are shown.</span>
+            </span>
+          </label>
+        </Panel>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Avatar URL</label>
-                <input
-                  type="url"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
-                  className="w-full px-3 py-2 bg-card border border-primary/40 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Paste a link to an image. File uploads aren&apos;t supported yet.</p>
-              </div>
-            </CardContent>
-          </Card>
+        {message ? (
+          <Notice tone="confirmed" role="status">
+            {message}
+          </Notice>
+        ) : null}
+        {error ? <Notice tone="alert">{error}</Notice> : null}
 
-          <Card className="border-primary/40">
-            <CardHeader>
-              <CardTitle>Privacy</CardTitle>
-              <CardDescription>Control your profile visibility</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="w-4 h-4 rounded border-primary/40 bg-card text-accent accent-accent"
-                />
-                <div>
-                  <span className="font-medium text-foreground">Public Profile</span>
-                  <p className="text-xs text-muted-foreground">Allow others to view your bio, badges, and scores at your public profile URL</p>
-                </div>
-              </label>
-            </CardContent>
-          </Card>
-
-          {message && (
-            <div className="p-4 rounded-lg bg-accent/10 border border-accent/30 text-accent text-sm">{message}</div>
-          )}
-          {error && (
-            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">{error}</div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-6 py-3 bg-accent text-accent-foreground rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <Link href="/profile" className="flex-1">
-              <button type="button" className="w-full px-6 py-3 bg-muted text-muted-foreground rounded-lg font-semibold hover:bg-muted/80 transition-colors">
-                Cancel
-              </button>
-            </Link>
-          </div>
-        </form>
-      </main>
-    </div>
+        <FormActions className="mt-0">
+          <button type="submit" disabled={saving} className="greenlist-primary-button disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+          <Link href="/profile" className="greenlist-quiet-button">
+            Cancel
+          </Link>
+        </FormActions>
+      </form>
+    </PageShell>
   )
 }

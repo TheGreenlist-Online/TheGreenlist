@@ -172,7 +172,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
       {result ? <StatusMessage tone={result.tone}>{result.text}</StatusMessage> : null}
 
       {/* Sticky so the save button is reachable without scrolling back down. */}
-      <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-white/[.09] bg-brand-panel/95 px-4 py-3 backdrop-blur">
+      <div className="gl-form-actions">
         <button type="submit" disabled={!isDirty || isSaving} className="greenlist-primary-button disabled:opacity-45">
           {isSaving ? 'Saving…' : 'Save changes'}
         </button>
@@ -191,7 +191,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
           </button>
         ) : null}
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--gl-text-muted)]">
           {isDirty
             ? `${changed.length} unsaved ${changed.length === 1 ? 'change' : 'changes'}`
             : 'All changes saved'}

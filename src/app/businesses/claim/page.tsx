@@ -1,9 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { ClaimBusinessForm } from './claim-business-form'
+import Link from 'next/link'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { Ledger, LimitationsPanel } from '@/components/record'
 
 export const metadata = {
-  title: 'Claim Business Profile - The Green List',
+  title: 'Claim a business record - The Green List',
   description: 'Claim your business record to submit documentation and respond on the record.',
 }
 
@@ -18,30 +22,40 @@ export default async function BusinessesClaimPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="mb-12 border-b border-[var(--gl-border)] pb-8">
-          <p className="greenlist-eyebrow">Records</p>
-          <h1 className="greenlist-page-title max-w-4xl">Claim a business record</h1>
-          <p className="greenlist-page-lede">
-            Claiming a record lets a business submit licence and documentation records, respond to published
-            findings, and request corrections. Claims are reviewed against official sources before any change
-            to the public record.
-          </p>
-        </section>
+    <PageShell>
+      <PageIntro
+        eyebrow="Records"
+        title="Claim a business record"
+        lede="Claiming a record lets a business submit licence and documentation records, respond to published findings, and request corrections. Claims are reviewed against official sources before any change to the public record."
+        meta={
+          <>
+            <span>Reviewed against official sources</span>
+            <span>Cannot be purchased</span>
+          </>
+        }
+        actions={
+          <Link href="/businesses" className="greenlist-quiet-button">
+            All records
+          </Link>
+        }
+      />
 
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)]">
         <ClaimBusinessForm />
+        <Ledger
+          title="What a claimed record means"
+          className="content-start"
+          rows={[
+            { label: 'Business-reported', value: 'The label applied on receipt. Details were supplied by the business and have not been independently confirmed.' },
+            { label: 'Identity verified', value: 'Applied only after licence and registration details are matched to an official source on a stated date.' },
+            { label: 'Not an endorsement', value: 'Verification of identity is not a judgement of product quality, safety, or conduct.' },
+            { label: 'Not a marketplace', value: 'Records do not facilitate sales, orders, or transactions.' },
+            { label: 'Right of reply', value: 'A claimed record can respond to published findings on the record.' },
+          ]}
+        />
+      </div>
 
-        <section className="mt-12 max-w-2xl mx-auto text-sm text-muted-foreground">
-          <h2 className="greenlist-card-title mb-2">What a claimed record does and does not mean</h2>
-          <p>
-            A claimed record is labelled “business-reported” until licence and registration details are matched to an
-            official source, at which point the identity is labelled as verified. Verification of identity is not a
-            judgement of product quality, safety, or conduct, and cannot be purchased. Records are not a marketplace
-            and do not facilitate sales, orders, or transactions.
-          </p>
-        </section>
-      </main>
-    </div>
+      <LimitationsPanel subject="business" className="mt-8" />
+    </PageShell>
   )
 }

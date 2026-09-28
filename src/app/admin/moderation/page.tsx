@@ -1,15 +1,11 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/authz'
-import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { RoleBadge } from '@/components/RoleBadge'
+import { AdminPageFrame } from '@/components/AdminPageFrame'
 import type { ModerationQueueRow } from '@/types/moderation'
 import { ModerationQueueTable } from './moderation-queue-table'
-import { ShieldAlert } from 'lucide-react'
 
 export const metadata = {
-  title: 'Moderation Queue - Admin',
+  title: 'Moderation queue - Review operations - The Green List',
 }
 
 const HIGH_RISK_LEVELS = new Set(['high', 'critical'])
@@ -50,33 +46,14 @@ export default async function AdminModerationPage() {
   }
 
   return (
-    <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="greenlist-page-title">Moderation queue</h1>
-        <p className="greenlist-page-lede">
-          Review flagged reports, forum content, evidence files, and education submissions. AI can flag
-          content, but admin review controls the final decision.
-        </p>
-        <div className="mt-5 flex items-center gap-3">
-          <RoleBadge role="ADMIN" />
-          {error ? (
-            <span className="inline-flex items-center gap-1.5 text-sm text-red-300">
-              <ShieldAlert className="h-4 w-4" /> Failed to load queue: {error.message}
-            </span>
-          ) : null}
-        </div>
-      </OrnatePanel>
-
-      <section className="mt-8">
-        <ModerationQueueTable initialItems={items} />
-      </section>
-
-      <section className="mt-8 text-center">
-        <Link href="/admin" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to admin command center
-        </Link>
-      </section>
-    </PageShell>
+    <AdminPageFrame
+      title="Moderation queue"
+      lede="Flagged reports, discussion content, evidence files, and Learn submissions. Automated checks can flag content; a reviewer makes the decision, and it is logged."
+      current="/admin/moderation"
+      error={error ? `Queue could not be loaded: ${error.message}` : null}
+      meta={<span>{items.length} in queue</span>}
+    >
+      <ModerationQueueTable initialItems={items} />
+    </AdminPageFrame>
   )
 }

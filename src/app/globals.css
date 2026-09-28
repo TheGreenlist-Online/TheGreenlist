@@ -647,6 +647,7 @@
 
 /* Section heading pattern used on the home and about pages */
 .gl-section { padding-top: var(--gl-space-6); }
+.gl-section + .gl-limitations { margin-top: var(--gl-space-6); }
 .gl-section__head {
   display: flex;
   flex-wrap: wrap;
@@ -672,6 +673,134 @@
 .gl-prose a { color: var(--gl-text); text-decoration: underline; }
 .gl-prose a:hover { color: var(--gl-accent-strong); }
 .gl-prose strong { color: var(--gl-text); }
+
+
+/* =====================================================================
+   FORMS, LISTS, TABLES, NOTICES — shared by every page
+   ===================================================================== */
+
+.gl-field { display: block; }
+.gl-field + .gl-field { margin-top: var(--gl-space-3); }
+.gl-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--gl-font-mono);
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gl-text-muted);
+}
+.gl-input, .gl-select, .gl-textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--gl-border-strong);
+  border-radius: var(--gl-radius);
+  background: var(--gl-ink);
+  color: var(--gl-text);
+  font-size: .9rem;
+  line-height: 1.4;
+  transition: border-color .15s ease;
+}
+.gl-textarea { min-height: 120px; resize: vertical; }
+.gl-input:focus, .gl-select:focus, .gl-textarea:focus { outline: none; border-color: var(--gl-accent-strong); }
+.gl-input:disabled, .gl-select:disabled, .gl-textarea:disabled { opacity: .55; }
+.gl-help { margin-top: 6px; font-size: .78rem; color: var(--gl-text-muted); }
+.gl-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gl-space-2);
+  margin-top: var(--gl-space-4);
+  padding-top: var(--gl-space-3);
+  border-top: 1px solid var(--gl-border);
+}
+
+/* Notices: text-first, one left rule. */
+.gl-notice {
+  padding: 12px var(--gl-space-3);
+  border: 1px solid var(--gl-border);
+  border-left-width: 3px;
+  border-radius: var(--gl-radius);
+  background: var(--gl-surface);
+  font-size: .875rem;
+  color: var(--gl-text-secondary);
+}
+.gl-notice strong { color: var(--gl-text); }
+.gl-notice--info { border-left-color: var(--gl-border-strong); }
+.gl-notice--confirmed { border-left-color: var(--gl-status-confirmed); }
+.gl-notice--review { border-left-color: var(--gl-status-review); }
+.gl-notice--alert { border-left-color: var(--gl-status-alert); }
+
+/* Record rows: the one list format. */
+.gl-rows { display: grid; gap: 0; border: 1px solid var(--gl-border); border-radius: var(--gl-radius); background: var(--gl-surface); }
+.gl-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gl-space-1) var(--gl-space-4);
+  padding: var(--gl-space-3) var(--gl-space-4);
+  border-bottom: 1px solid var(--gl-border);
+  color: inherit;
+  text-decoration: none;
+  transition: background .15s ease;
+}
+.gl-row:last-child { border-bottom: 0; }
+a.gl-row:hover, .gl-row--link:hover { background: var(--gl-surface-raised); }
+@media (min-width: 768px) { .gl-row--split { grid-template-columns: minmax(0, 1fr) auto; align-items: start; } }
+.gl-row__title { font-size: 1rem; font-weight: 600; color: var(--gl-text); line-height: 1.3; }
+.gl-row__title a { color: inherit; text-decoration: none; }
+.gl-row__title a:hover { text-decoration: underline; }
+.gl-row__body { margin-top: 4px; font-size: .875rem; line-height: 1.55; color: var(--gl-text-secondary); }
+.gl-row__meta { margin-top: 8px; }
+.gl-row__aside { display: flex; flex-wrap: wrap; gap: var(--gl-space-2); align-items: center; justify-content: flex-start; }
+@media (min-width: 768px) { .gl-row__aside { justify-content: flex-end; } }
+
+/* Data tables. */
+.gl-table-wrap { overflow-x: auto; border: 1px solid var(--gl-border); border-radius: var(--gl-radius); background: var(--gl-surface); }
+.gl-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: .875rem; }
+.gl-table th {
+  padding: 10px var(--gl-space-3);
+  border-bottom: 1px solid var(--gl-border);
+  background: var(--gl-surface-raised);
+  text-align: left;
+  font-family: var(--gl-font-mono);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gl-text-muted);
+  white-space: nowrap;
+}
+.gl-table td { padding: 12px var(--gl-space-3); border-bottom: 1px solid var(--gl-border); vertical-align: top; color: var(--gl-text-secondary); }
+.gl-table tr:last-child td { border-bottom: 0; }
+.gl-table td:first-child { color: var(--gl-text); }
+
+/* Stat tile: a number with a stated scope. */
+.gl-stat { padding: var(--gl-space-3) var(--gl-space-4); border: 1px solid var(--gl-border); border-radius: var(--gl-radius); background: var(--gl-surface); }
+.gl-stat__value { font-family: var(--gl-font-mono); font-size: 1.6rem; font-weight: 500; color: var(--gl-text); line-height: 1.1; }
+.gl-stat__label { margin-top: 6px; font-size: .8rem; color: var(--gl-text-secondary); }
+.gl-stat__note { margin-top: 2px; font-size: .72rem; color: var(--gl-text-muted); }
+
+/* Timeline of dated events. */
+.gl-timeline { list-style: none; margin: 0; padding: 0; }
+.gl-timeline li { position: relative; padding: 0 0 var(--gl-space-3) var(--gl-space-4); border-left: 1px solid var(--gl-border-strong); }
+.gl-timeline li:last-child { padding-bottom: 0; }
+.gl-timeline li::before { content: ""; position: absolute; left: -4px; top: 6px; width: 7px; height: 7px; background: var(--gl-text-muted); }
+.gl-timeline time, .gl-timeline .gl-timeline__when { display: block; font-family: var(--gl-font-mono); font-size: .7rem; letter-spacing: .04em; color: var(--gl-text-muted); }
+.gl-timeline__what { margin-top: 2px; font-size: .875rem; color: var(--gl-text-secondary); }
+.gl-timeline__what strong { color: var(--gl-text); font-weight: 600; }
+
+/* Pagination. */
+.gl-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--gl-space-3); margin-top: var(--gl-space-5); font-size: .875rem; }
+.gl-pagination a[aria-disabled="true"] { pointer-events: none; opacity: .4; }
+
+/* Inline text link inside body copy. */
+.gl-link { color: var(--gl-text); text-decoration: underline; text-underline-offset: 3px; }
+.gl-link:hover { color: var(--gl-accent-strong); }
+
+/* Article body for education and thread posts. */
+.gl-article { max-width: var(--gl-reading-width); font-size: 1rem; line-height: 1.75; color: var(--gl-text-secondary); white-space: pre-wrap; }
 
 /* ---- Display preference: larger reading text ---- */
 html.gl-calm body { font-size: 17px; line-height: 1.7; }

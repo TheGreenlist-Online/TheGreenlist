@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { Search } from 'lucide-react'
-import { OrnatePanel } from '@/components/OrnatePanel'
 import { PageIntro } from '@/components/PageIntro'
+import { LimitationsPanel, Notice, Panel, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
+import { formatDate } from '@/lib/recordStatus'
 import { PageShell } from '@/components/PageShell'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -21,10 +21,10 @@ type SearchResult = {
 }
 
 const labels: Record<SearchResult['entity_type'], string> = {
-  business: 'Business',
+  business: 'Business record',
   forum_thread: 'Discussion',
-  news: 'News',
-  education: 'Education',
+  news: 'Outlet coverage',
+  education: 'Learn resource',
 }
 
 export default async function SearchPage({
@@ -60,67 +60,87 @@ export default async function SearchPage({
       <PageIntro
         title="Search records"
         lede="Search public business records, discussions, news coverage, and explainers. Private reports and evidence never appear in results."
+        meta={
+          <>
+            <span>Public records only</span>
+            <span>Ranked by text match, not by rating</span>
+          </>
+        }
       />
 
-      <OrnatePanel className="mt-8">
+      <Panel className="mt-8">
         <form action="/search" method="get" className="flex flex-col gap-3 sm:flex-row">
-          <label className="sr-only" htmlFor="site-search">Search</label>
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-300/70" />
-            <input
-              id="site-search"
-              name="q"
-              type="search"
-              defaultValue={query}
-              minLength={2}
-              placeholder="Search businesses, forums, news..."
-              className="h-11 w-full rounded-lg border border-white/10 bg-white/[.035] pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/10"
-            />
+          <div className="gl-field flex-1">
+            <label className="gl-label" htmlFor="site-search">
+              Search term
+            </label>
+            <input id="site-search" name="q" type="search" defaultValue={query} minLength={2} placeholder="Business, licence, report, jurisdiction" className="gl-input" />
           </div>
-          <button type="submit" className="greenlist-primary-button">Search</button>
+          <div className="flex items-end">
+            <button type="submit" className="greenlist-primary-button">
+              Search
+            </button>
+          </div>
         </form>
-      </OrnatePanel>
+      </Panel>
 
-      {query.length < 2 ? (
-        <OrnatePanel className="mt-6">
-          <p className="text-sm text-zinc-400">Enter at least two characters to search.</p>
-        </OrnatePanel>
-      ) : loadError ? (
-        <OrnatePanel className="mt-6">
-          <p role="alert" className="text-sm text-red-300">Search could not be loaded. Please try again.</p>
-        </OrnatePanel>
-      ) : visibleResults.length === 0 ? (
-        <OrnatePanel className="mt-6">
-          <p className="font-semibold text-zinc-100">No public results found for “{query}”.</p>
-        </OrnatePanel>
-      ) : (
-        <section className="mt-8 space-y-4" aria-label="Search results">
-          <p className="text-sm text-zinc-400">Results for “{query}”</p>
-          {visibleResults.map((result) => (
-            <Link key={`${result.entity_type}:${result.entity_id}`} href={result.href} className="block">
-              <OrnatePanel className="transition hover:-translate-y-0.5 hover:border-emerald-300/35">
-                <p className="greenlist-eyebrow">{labels[result.entity_type]}</p>
-                <h2 className="greenlist-card-title mt-1">{result.title}</h2>
-                {result.summary ? (
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-400">{result.summary}</p>
-                ) : null}
-              </OrnatePanel>
-            </Link>
-          ))}
-          <nav className="flex items-center justify-between pt-4" aria-label="Search result pages">
-            {page > 1 ? (
-              <Link href={pageHref(page - 1)} className="text-sm font-semibold text-emerald-300 hover:underline">
-                ← Previous
+      <Section title={query.length >= 2 ? `Results for “${query}”` : 'Results'} aside={query.length >= 2 && !loadError ? <span>{visibleResults.length}{hasNext ? '+' : ''} shown</span> : undefined}>
+        {query.length < 2 ? (
+          <Notice tone="info">Enter at least two characters to search.</Notice>
+        ) : loadError ? (
+          <Notice tone="alert">Search could not be completed. Try again shortly.</Notice>
+        ) : visibleResults.length === 0 ? (
+          <Panel>
+            <p className="text-sm font-semibold text-[var(--gl-text)]">No public records match “{query}”.</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">
+              Absence from search does not mean absence from the market. If a business or licence should be on record,{' '}
+              <Link href="/evidence/upload" className="gl-link">
+                submit evidence
               </Link>
-            ) : <span />}
-            {hasNext ? (
-              <Link href={pageHref(page + 1)} className="text-sm font-semibold text-emerald-300 hover:underline">
-                Next →
-              </Link>
-            ) : null}
-          </nav>
-        </section>
-      )}
+              .
+            </p>
+          </Panel>
+        ) : (
+          <>
+            <RecordList ariaLabel="Search results">
+              {visibleResults.map((result) => (
+                <RecordRow
+                  key={`${result.entity_type}:${result.entity_id}`}
+                  href={result.href}
+                  title={result.title}
+                  body={result.summary ?? undefined}
+                  meta={
+                    <>
+                      <span>{labels[result.entity_type]}</span>
+                      <span>{formatDate(result.published_at)}</span>
+                    </>
+                  }
+                  aside={<StatusLabel label={labels[result.entity_type]} tone="neutral" />}
+                />
+              ))}
+            </RecordList>
+            <nav className="gl-pagination" aria-label="Search result pages">
+              {page > 1 ? (
+                <Link href={pageHref(page - 1)} className="greenlist-quiet-button">
+                  Previous
+                </Link>
+              ) : (
+                <span />
+              )}
+              <span className="gl-meta">Page {page}</span>
+              {hasNext ? (
+                <Link href={pageHref(page + 1)} className="greenlist-quiet-button">
+                  Next
+                </Link>
+              ) : (
+                <span />
+              )}
+            </nav>
+          </>
+        )}
+      </Section>
+
+      <LimitationsPanel />
     </PageShell>
   )
 }

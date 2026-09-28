@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ActivityItem } from '@/lib/dashboard'
-import { statusBadgeBase, toneClass } from '@/lib/statusTones'
+import { toneClass } from '@/lib/statusTones'
 
 const KIND_LABEL: Record<ActivityItem['kind'], string> = {
   Report: 'Report',
@@ -44,24 +44,14 @@ function relativeTime(iso: string): string {
  */
 export function ActivityList({ items }: { items: ActivityItem[] }) {
   return (
-    <ul className="divide-y divide-white/[.06]">
+    <ul className="divide-y divide-[var(--gl-border)]">
       {items.map((item) => (
         <li key={item.id}>
-          <Link
-            href={item.href}
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 py-4 transition hover:bg-white/[.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/50"
-          >
-            {/* Wide enough for "Discussion" at this tracking; narrower and it
-                collides with the title. */}
-            <span className="w-[6.5rem] shrink-0 pr-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              {KIND_LABEL[item.kind]}
-            </span>
-
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-100">{item.title}</span>
-
-            <span className={`${statusBadgeBase} ${toneClass(item.tone)} shrink-0`}>{item.status}</span>
-
-            <span className="shrink-0 text-xs tabular-nums text-zinc-500">{relativeTime(item.createdAt)}</span>
+          <Link href={item.href} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 py-3 transition hover:bg-[var(--gl-surface-raised)]">
+            <span className="gl-label mb-0 w-[6.5rem] shrink-0">{KIND_LABEL[item.kind]}</span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--gl-text)]">{item.title}</span>
+            <span className={`${toneClass(item.tone)} shrink-0`}>{item.status}</span>
+            <span className="shrink-0 font-mono text-xs tabular-nums text-[var(--gl-text-muted)]">{relativeTime(item.createdAt)}</span>
           </Link>
         </li>
       ))}

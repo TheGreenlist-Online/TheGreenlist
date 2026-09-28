@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { FileText, Plus } from 'lucide-react'
-import { statusToneClass, type StatusTone } from '@/lib/statusTones'
+import { PageIntro } from '@/components/PageIntro'
+import { Ledger, LimitationsPanel, Notice, Panel, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
+import { formatDate, humanize, recordId } from '@/lib/recordStatus'
 
 export const metadata = {
-  title: 'Reports Bureau - The Green List',
+  title: 'Reports - The Green List',
   description: 'Structured accountability reports and their review status.',
 }
 
@@ -20,28 +20,13 @@ type ReportListRow = {
   created_at: string
 }
 
-const REPORT_STATUS_TONES: Record<string, StatusTone> = {
-  submitted: 'pending',
-  under_review: 'progress',
-  business_response_requested: 'progress',
-  substantiated: 'success',
-  unsubstantiated: 'neutral',
-  inconclusive: 'neutral',
-  resolved: 'success',
-}
-
-const STATUS_STYLES: Record<string, string> = Object.fromEntries(
-  Object.entries(REPORT_STATUS_TONES).map(([status, tone]) => [status, statusToneClass[tone]]),
-)
-
-function StatusPill({ status }: { status: string }) {
-  const style = STATUS_STYLES[status] ?? 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200'
-  return (
-    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${style}`}>
-      {status.replace(/_/g, ' ')}
-    </span>
-  )
-}
+const REVIEW_STATES = [
+  { label: 'Received', value: 'The report exists in the private intake. Nothing is public.' },
+  { label: 'Under review', value: 'Staff are checking the account against available documentation.' },
+  { label: 'Business response requested', value: 'The named business has been asked to respond with documents.' },
+  { label: 'Substantiated / Unsubstantiated / Inconclusive', value: 'The documentary outcome. Only source-backed findings are published.' },
+  { label: 'Closed', value: 'No further action. The record of the review is retained.' },
+]
 
 export default async function ReportsPage() {
   const supabase = await createSupabaseServerClient()
@@ -61,7 +46,7 @@ export default async function ReportsPage() {
       .returns<ReportListRow[]>()
 
     if (error) {
-      loadError = 'Your reports could not be loaded right now.'
+      loadError = 'Your reports could not be loaded. Try again shortly.'
     } else {
       reports = data ?? []
     }
@@ -69,83 +54,66 @@ export default async function ReportsPage() {
 
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Reports</p>
-        <h1 className="greenlist-page-title">
-          Structured accountability reports
-        </h1>
-        <p className="greenlist-page-lede">
-          File a report documenting mislabelling, contamination, licensing issues, worker-safety concerns, deceptive
-          marketing, or other accountability matters. Reports are private on receipt, move through a fixed set of
-          review states, and are published only as source-backed findings.
-        </p>
-        <div className="mt-6">
-          <Link
-            href="/reports/new"
-            className="greenlist-primary-button"
-          >
-            <Plus className="h-4 w-4" />
+      <PageIntro
+        title="Accountability reports"
+        lede="A report documents mislabelling, contamination, licensing issues, worker-safety concerns, deceptive marketing, or another accountability matter. Reports are private on receipt, move through a fixed set of review states, and are published only as source-backed findings."
+        meta={
+          <>
+            <span>Private intake</span>
+            <span>Fixed review states</span>
+          </>
+        }
+        actions={
+          <Link href="/reports/new" className="greenlist-primary-button">
             File a report
           </Link>
-        </div>
-      </OrnatePanel>
+        }
+      />
 
-      <section className="mt-8">
-        <p className="greenlist-eyebrow">Your reports</p>
-        <h2 className="greenlist-section-title">My filed reports</h2>
+      <Section title="Review states" aside="Applied identically to every report">
+        <Ledger rows={REVIEW_STATES} />
+      </Section>
 
+      <Section title="Your filed reports" aside={user ? <span>Visible only to you</span> : <span>Requires sign-in</span>}>
         {!user ? (
-          <OrnatePanel className="mt-5">
-            <p className="text-zinc-300">Sign in to file a report or view the reports you have submitted.</p>
-            <Link
-              href="/auth/signin?callbackUrl=/reports"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-amber-300/35 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:border-emerald-300 hover:text-emerald-200"
-            >
-              Sign in to continue
-            </Link>
-          </OrnatePanel>
-        ) : loadError ? (
-          <OrnatePanel className="mt-5">
-            <p role="alert" className="text-amber-200">{loadError}</p>
-          </OrnatePanel>
-        ) : reports.length === 0 ? (
-          <OrnatePanel className="mt-5">
-            <div className="flex items-start gap-3">
-              <FileText className="mt-1 h-6 w-6 text-emerald-300" />
-              <div>
-                <p className="text-zinc-200 font-semibold">No reports filed yet.</p>
-                <p className="mt-1 text-sm text-zinc-400">
-                  Once you file a report, it will appear here along with its review status.
-                </p>
-              </div>
-            </div>
-          </OrnatePanel>
-        ) : (
-          <div className="mt-5 grid gap-4">
-            {reports.map((report) => (
-              <Link key={report.id} href={`/reports/${report.id}`} className="block">
-                <OrnatePanel className="transition hover:-translate-y-0.5 hover:border-emerald-300/35">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="greenlist-card-title">{report.title}</h3>
-                      <p className="mt-1 text-sm text-zinc-400">
-                        {report.report_type.replace(/_/g, ' ')}
-                        {report.location_city || report.location_state
-                          ? ` · ${[report.location_city, report.location_state].filter(Boolean).join(', ')}`
-                          : ''}
-                      </p>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        Filed {new Date(report.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <StatusPill status={report.status} />
-                  </div>
-                </OrnatePanel>
+          <Panel>
+            <p className="text-sm leading-6 text-[var(--gl-text-secondary)]">Sign in to file a report or to see the review status of reports you have submitted.</p>
+            <div className="mt-4">
+              <Link href="/auth/signin?callbackUrl=/reports" className="greenlist-secondary-button">
+                Sign in
               </Link>
+            </div>
+          </Panel>
+        ) : loadError ? (
+          <Notice tone="alert">{loadError}</Notice>
+        ) : reports.length === 0 ? (
+          <Panel>
+            <p className="text-sm font-semibold text-[var(--gl-text)]">No reports filed.</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">Reports you file will be listed here with their current review state.</p>
+          </Panel>
+        ) : (
+          <RecordList ariaLabel="Your reports">
+            {reports.map((report) => (
+              <RecordRow
+                key={report.id}
+                href={`/reports/${report.id}`}
+                title={report.title}
+                meta={
+                  <>
+                    <span>{recordId('RPT', report.id)}</span>
+                    <span>{humanize(report.report_type)}</span>
+                    <span>{[report.location_city, report.location_state].filter(Boolean).join(', ') || 'Location not stated'}</span>
+                    <span>Filed {formatDate(report.created_at)}</span>
+                  </>
+                }
+                aside={<StatusLabel value={report.status} />}
+              />
             ))}
-          </div>
+          </RecordList>
         )}
-      </section>
+      </Section>
+
+      <LimitationsPanel subject="report" />
     </PageShell>
   )
 }

@@ -1,33 +1,36 @@
 /**
  * The one status colour system for the whole app.
  *
- * Four separate maps had each invented their own palette, so the same meaning
- * wore a different colour depending on the page: "under review" was sky blue in
- * StatusBadge and cyan on the reports pages, and "resolved" was violet in one
- * place and green in two others. Blue, cyan, violet and orange are all off the
- * brand palette. Pages now map their domain value to a tone and the tone owns
- * the colour.
+ * Pages map their domain value to a tone; the tone owns the presentation.
+ * Tones resolve to the shell's `.gl-status` classes so a status looks the
+ * same in a badge, a table cell, a ledger row, or a notice. Colour supports
+ * the text label and never replaces it.
  */
 export type StatusTone = 'pending' | 'progress' | 'success' | 'neutral' | 'danger' | 'critical'
 
-export const statusToneClass: Record<StatusTone, string> = {
-  /** Waiting to be picked up. Brand gold. */
-  pending: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  /** Actively being worked. Brand lime — bright, but not a verdict. */
-  progress: 'border-lime-300/35 bg-lime-950/30 text-lime-200',
-  /** Verified, substantiated, resolved, succeeded. Brand green. */
-  success: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
-  /** No verdict: unverified, inconclusive, low risk. */
-  neutral: 'border-zinc-400/35 bg-zinc-800/35 text-zinc-300',
-  /** Needs attention. */
-  danger: 'border-red-300/30 bg-red-950/25 text-red-200',
-  /** Needs attention now — the strong end of the same red. */
-  critical: 'border-red-400/55 bg-red-950/45 text-red-100',
+/** Shell tone names used by `.gl-status--*` and `.gl-notice--*`. */
+export type ShellTone = 'confirmed' | 'review' | 'alert' | 'neutral'
+
+export const toneToShell: Record<StatusTone, ShellTone> = {
+  pending: 'review',
+  progress: 'review',
+  success: 'confirmed',
+  neutral: 'neutral',
+  danger: 'alert',
+  critical: 'alert',
 }
 
-/** Rectangular, monospaced, text-first. Colour supports the label; it never replaces it. */
-export const statusBadgeBase =
-  'inline-flex items-center rounded-[var(--gl-radius)] border px-2 py-0.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.06em]'
+export const statusToneClass: Record<StatusTone, string> = {
+  pending: 'gl-status gl-status--review',
+  progress: 'gl-status gl-status--review',
+  success: 'gl-status gl-status--confirmed',
+  neutral: 'gl-status gl-status--neutral',
+  danger: 'gl-status gl-status--alert',
+  critical: 'gl-status gl-status--alert',
+}
+
+/** Kept for call sites that compose the badge themselves. Empty on purpose: `.gl-status` carries the shape. */
+export const statusBadgeBase = ''
 
 /** Resolves a tone class, falling back to neutral for unknown values. */
 export function toneClass(tone: StatusTone | undefined): string {

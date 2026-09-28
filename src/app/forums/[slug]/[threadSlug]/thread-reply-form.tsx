@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Field, FormActions, Notice, Textarea } from '@/components/record'
 
 type ThreadReplyFormProps = {
   threadId: string
@@ -56,50 +57,36 @@ export function ThreadReplyForm({ threadId, isSignedIn, signInHref }: ThreadRepl
 
   if (!isSignedIn) {
     return (
-      <div className="rounded-xl border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">
-        <Link className="font-semibold text-lime-300 underline" href={signInHref}>
+      <Notice tone="info">
+        <Link className="gl-link" href={signInHref}>
           Sign in
         </Link>{' '}
-        to reply to this thread.
-      </div>
+        to reply. Replies are published under your display name unless you choose anonymity.
+      </Notice>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <label className="block text-sm font-semibold text-zinc-200" htmlFor="reply-body">
-        Add a reply
-        <textarea
-          id="reply-body"
-          className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          placeholder="Share your response…"
-          required
-        />
-      </label>
-      <label className="flex items-center gap-2 text-sm text-zinc-400">
-        <input
-          type="checkbox"
-          checked={isAnonymous}
-          onChange={(event) => setIsAnonymous(event.target.checked)}
-        />
-        Post anonymously
+    <form onSubmit={handleSubmit}>
+      <Field label="Reply" htmlFor="reply-body" help="State what you know, and where it comes from. Claims about a business without a source may be held for review.">
+        <Textarea id="reply-body" className="min-h-28" value={body} onChange={(event) => setBody(event.target.value)} required />
+      </Field>
+      <label className="mt-3 flex items-center gap-2 text-sm text-[var(--gl-text-secondary)]">
+        <input type="checkbox" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} />
+        Post anonymously (your account remains visible to reviewers)
       </label>
 
       {error ? (
-        <p role="alert" className="rounded-lg border border-red-400/40 bg-red-950/35 p-3 text-sm text-red-100">
+        <Notice tone="alert" className="mt-4">
           {error}
-        </p>
+        </Notice>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="greenlist-primary-button disabled:opacity-50"
-      >
-        {submitting ? 'Posting…' : 'Post reply'}
-      </button>
+      <FormActions>
+        <button type="submit" disabled={submitting} className="greenlist-primary-button disabled:opacity-50">
+          {submitting ? 'Posting…' : 'Post reply'}
+        </button>
+      </FormActions>
     </form>
   )
 }

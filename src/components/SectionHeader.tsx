@@ -1,9 +1,12 @@
-export function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
+/** Legacy section header; renders the standard section rule. Prefer `Section` from components/record. */
+export function SectionHeader({ eyebrow, title, description }: { eyebrow?: string; title: string; description?: string }) {
   return (
-    <header className="mb-6 border-b border-[var(--gl-border)] pb-4">
-      <p className="greenlist-eyebrow">{eyebrow}</p>
-      <h2 className="greenlist-section-title">{title}</h2>
-      {description && <p className="mt-2 max-w-2xl text-sm text-[var(--gl-text-secondary)]">{description}</p>}
-    </header>
+    <div className="gl-section__head">
+      <div>
+        {eyebrow ? <p className="greenlist-eyebrow">{eyebrow}</p> : null}
+        <h2>{title}</h2>
+      </div>
+      {description ? <p className="max-w-md">{description}</p> : null}
+    </div>
   )
 }

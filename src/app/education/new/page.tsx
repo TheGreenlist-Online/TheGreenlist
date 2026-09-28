@@ -2,18 +2,23 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, FlaskConical, Scale, ShieldCheck, Users } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { Field, FormActions, Input, Ledger, LimitationsPanel, Notice, Panel, Select, Textarea } from '@/components/record'
+import { EDUCATION_CATEGORIES } from '@/lib/educationCategories'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
-const categories = [
-  { value: 'SAFETY_GUIDE', title: 'Safety Guide', description: 'Testing standards, contamination prevention, consumer protection, labeling, and responsible-use information.', icon: ShieldCheck },
-  { value: 'REGULATORY_RESOURCE', title: 'Regulatory Resource', description: 'Licensing rules, compliance requirements, agency guidance, policy changes, and legal frameworks.', icon: Scale },
-  { value: 'WORKER_RIGHTS', title: 'Worker Rights', description: 'Workplace safety, wage protections, labor rights, fair practices, reporting channels, and industry standards.', icon: Users },
-  { value: 'RESEARCH_SUMMARY', title: 'Research Summary', description: 'Plain-language summaries of studies, datasets, testing findings, public-health evidence, and accountability research.', icon: FlaskConical },
+const categories = Object.entries(EDUCATION_CATEGORIES).map(([value, meta]) => ({ value, title: meta.label, description: meta.scope }))
+
+const STANDARDS = [
+  { label: 'Evidence-led', value: 'Use primary sources, public records, or published research. Firsthand experience must be identified as such.' },
+  { label: 'Accessible', value: 'Explain technical terms and give practical context for a general reader.' },
+  { label: 'Non-commercial', value: 'Resources are not advertising, product promotion, or a sales funnel. Promotional submissions are not published.' },
+  { label: 'Dated and scoped', value: 'Include dates, jurisdictions, and source links wherever regulations or findings may change.' },
+  { label: 'Reviewed before publication', value: 'New submissions are held as Pending review. Publication does not constitute legal or medical endorsement.' },
 ]
 
 const EDUCATION_BUCKET = 'education-materials'
@@ -103,7 +108,7 @@ export default function EducationNewPage() {
     setError('')
 
     if (!userId) {
-      setError('Please sign in before submitting educational content.')
+      setError('Sign in before submitting a resource.')
       return
     }
 
@@ -178,102 +183,127 @@ export default function EducationNewPage() {
     const fileInput = document.getElementById('education-materials') as HTMLInputElement | null
     if (fileInput) fileInput.value = ''
     await clearDraft()
-    setMessage('Submission received. It is now marked Pending Review and will not be published until approved.')
+    setMessage('Submission received. It is held as Pending review and will not be published until a reviewer has checked its sourcing.')
   }
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col platform-stage">
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-10 md:py-14">
-        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-brand-panel/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(147,51,234,.2),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(132,204,22,.18),transparent_35%)]" />
-          <div className="relative max-w-4xl">
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-lime-300">Education Center</p>
-            <h1 className="greenlist-hero-title">Share knowledge that strengthens the community.</h1>
-            <p className="mt-5 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg">Submit evidence-based guides, regulatory resources, worker-rights information, or research summaries. Every submission enters a transparent review queue before publication.</p>
+    <PageShell>
+      <PageIntro
+        eyebrow="Learn"
+        title="Submit a resource"
+        lede="Submit an explainer, regulatory resource, worker-rights guide, or research summary. Every submission is held for review of accuracy and sourcing before it is published."
+        meta={
+          <>
+            <span>Held for review</span>
+            <span>Sources required</span>
+          </>
+        }
+        actions={
+          <Link href="/education" className="greenlist-quiet-button">
+            Published resources
+          </Link>
+        }
+      />
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)]">
+        <form onSubmit={handleSubmit} className="gl-panel">
+          <div className="gl-panel__head">
+            <h2>Resource submission</h2>
+            <span className="gl-meta">
+              {isSaving ? <span>Saving draft…</span> : savedAt ? <span>Draft saved {formatDistanceToNow(savedAt, { addSuffix: true })}</span> : <span>Draft autosaves</span>}
+            </span>
           </div>
-        </section>
-
-        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {categories.map((item) => {
-            const Icon = item.icon
-            const active = category === item.value
-            return (
-              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-brand-panel/85 hover:border-emerald-300/45'}`}>
-                <Icon className="h-7 w-7 text-lime-300" />
-                <h2 className="greenlist-section-title">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-400">{item.description}</p>
-              </button>
-            )
-          })}
-        </section>
-
-        <section className="mt-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr]">
-          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-brand-panel/92 p-6 shadow-xl shadow-black/30 md:p-8">
-            <div className="flex items-center gap-3">
-              <BookOpen className="h-6 w-6 text-lime-300" />
-              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="greenlist-section-title">{categories.find((item) => item.value === category)?.title}</h2></div>
-            </div>
-
+          <div className="gl-panel__body">
             {!checkingSession && !userId ? (
-              <div className="mt-6 rounded-xl border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">You are not signed in. The form stays visible so you can review what is required, but submission requires authentication. <Link className="font-bold text-lime-300 underline" href="/auth/signin?callbackUrl=/education/new">Sign in here</Link>.</div>
+              <Notice tone="review" className="mb-5">
+                You are not signed in. The form stays visible so you can see what is required, but submission requires an account.{' '}
+                <Link className="gl-link" href="/auth/signin?callbackUrl=/education/new">
+                  Sign in
+                </Link>
+                .
+              </Notice>
             ) : null}
 
             {showRestoredBanner && restoredAt ? (
-              <div className="mt-6 flex items-start justify-between gap-3 rounded-xl border border-lime-300/30 bg-lime-950/20 p-4 text-sm text-lime-100">
-                <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
-                <button
-                  type="button"
-                  onClick={() => setShowRestoredBanner(false)}
-                  className="shrink-0 text-xs font-medium text-zinc-400 hover:text-zinc-200"
-                  aria-label="Dismiss"
-                >
-                  Dismiss
-                </button>
-              </div>
+              <Notice tone="info" className="mb-5">
+                <span className="flex items-start justify-between gap-3">
+                  <span>Unsaved draft restored from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+                  <button type="button" onClick={() => setShowRestoredBanner(false)} className="gl-link shrink-0 text-xs" aria-label="Dismiss">
+                    Dismiss
+                  </button>
+                </span>
+              </Notice>
             ) : null}
 
-            <div className="mt-7 space-y-5">
-              <label className="block text-sm font-semibold text-zinc-200">Title<Input className="mt-2" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required placeholder="A specific, factual title" /></label>
-              <label className="block text-sm font-semibold text-zinc-200">Summary<textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={summary} onChange={(event) => setSummary(event.target.value)} minLength={20} maxLength={500} required placeholder="Explain what readers will learn and why it matters." /></label>
-              <label className="block text-sm font-semibold text-zinc-200">Full resource<textarea className="mt-2 min-h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={content} onChange={(event) => setContent(event.target.value)} minLength={100} maxLength={20000} required placeholder="Provide the complete educational content. Separate verified facts, interpretation, and personal experience." /></label>
-              <label className="block text-sm font-semibold text-zinc-200">Source links <span className="font-normal text-zinc-500">(one per line)</span><textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={sources} onChange={(event) => setSources(event.target.value)} placeholder="https://agency.gov/resource\nhttps://journal.org/study" /></label>
-              <label className="block text-sm font-semibold text-zinc-200" htmlFor="education-materials">
-                Supporting materials <span className="font-normal text-zinc-500">(optional)</span>
-                <Input
-                  id="education-materials"
-                  className="mt-2"
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/jpeg,image/png,image/webp,text/plain"
-                  onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
-                />
-                <span className="mt-1 block text-xs font-normal text-zinc-500">Up to 5 files, 15 MB each. PDF, JPG, PNG, WebP, or TXT.</span>
-              </label>
-            </div>
+            <Field label="Category" htmlFor="education-category" help={categories.find((item) => item.value === category)?.description}>
+              <Select id="education-category" value={category} onChange={(event) => setCategory(event.target.value)}>
+                {categories.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
 
-            {error ? <div className="mt-5 rounded-xl border border-red-400/35 bg-red-950/30 p-4 text-sm text-red-100">{error}</div> : null}
-            {message ? <div className="mt-5 rounded-xl border border-emerald-300/35 bg-emerald-950/30 p-4 text-sm text-emerald-100">{message}</div> : null}
+            <Field label="Title" htmlFor="education-title" required help="Specific and factual. 8–160 characters.">
+              <Input id="education-title" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required />
+            </Field>
 
-            <div className="mt-4 text-right text-xs text-zinc-500">
-              {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
-            </div>
+            <Field label="Summary" htmlFor="education-summary" required help="What the reader will learn. 20–500 characters.">
+              <Textarea id="education-summary" className="min-h-24" value={summary} onChange={(event) => setSummary(event.target.value)} minLength={20} maxLength={500} required />
+            </Field>
 
-            <Button className="mt-2 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
-          </form>
+            <Field label="Full resource" htmlFor="education-content" required help="Separate documented facts, interpretation, and firsthand experience. 100–20,000 characters.">
+              <Textarea id="education-content" className="min-h-64" value={content} onChange={(event) => setContent(event.target.value)} minLength={100} maxLength={20000} required />
+            </Field>
 
-          <aside className="rounded-3xl border border-amber-300/25 bg-brand-panel/88 p-6 md:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-lime-300">Publication standards</p>
-            <h2 className="greenlist-section-title">Useful. Verifiable. Non-commercial.</h2>
-            <div className="mt-6 space-y-5 text-sm leading-6 text-zinc-300">
-              <div><strong className="text-emerald-300">Evidence-led</strong><p>Use primary sources, public records, research, or clearly identified firsthand experience.</p></div>
-              <div><strong className="text-emerald-300">Accessible</strong><p>Explain technical terms and provide practical context for a general audience.</p></div>
-              <div><strong className="text-emerald-300">Impartial</strong><p>Do not use education submissions as advertising, product promotion, or a sales funnel.</p></div>
-              <div><strong className="text-emerald-300">Current</strong><p>Include dates, jurisdictions, and source links when regulations or findings may change.</p></div>
-              <div><strong className="text-emerald-300">Transparent review</strong><p>New submissions begin as Pending Review. Approval does not imply legal or medical endorsement.</p></div>
-            </div>
-          </aside>
-        </section>
-      </main>
-    </div>
+            <Field label="Source links" htmlFor="education-sources" help="One URL per line. Primary sources preferred.">
+              <Textarea id="education-sources" className="min-h-24" value={sources} onChange={(event) => setSources(event.target.value)} placeholder={'https://agency.gov/resource\nhttps://journal.org/study'} />
+            </Field>
+
+            <Field label="Supporting materials" htmlFor="education-materials" help="Optional. Up to 5 files, 15 MB each. PDF, JPG, PNG, WebP, or TXT.">
+              <Input
+                id="education-materials"
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/jpeg,image/png,image/webp,text/plain"
+                onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+              />
+            </Field>
+
+            {error ? (
+              <Notice tone="alert" className="mt-5">
+                {error}
+              </Notice>
+            ) : null}
+            {message ? (
+              <Notice tone="confirmed" className="mt-5">
+                {message}
+              </Notice>
+            ) : null}
+
+            <FormActions>
+              <Button type="submit" disabled={submitting || checkingSession || !userId}>
+                {submitting ? 'Submitting…' : userId ? 'Submit for review' : 'Sign in required'}
+              </Button>
+              <span className="text-xs text-[var(--gl-text-muted)]">Held as Pending review on receipt.</span>
+            </FormActions>
+          </div>
+        </form>
+
+        <div className="grid gap-6 content-start">
+          <Ledger title="Publication standards" rows={STANDARDS} />
+          <Panel title="Review process">
+            <ol className="grid gap-2 text-sm leading-6 text-[var(--gl-text-secondary)]">
+              <li>1. Submission received and held as Pending review.</li>
+              <li>2. A reviewer checks each cited source and the claims it is said to support.</li>
+              <li>3. Published with sources listed, or returned with a stated reason.</li>
+            </ol>
+          </Panel>
+        </div>
+      </div>
+
+      <LimitationsPanel subject="resource" className="mt-8" />
+    </PageShell>
   )
 }

@@ -2,7 +2,8 @@
 
 import { FormEvent, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FormActions, Ledger, Notice, Select, Textarea } from '@/components/record'
+import { recordStatus } from '@/lib/recordStatus'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
@@ -211,201 +212,144 @@ export function EvidenceUploadForm({
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Card className="border-primary/40">
-        <CardHeader>
-          <CardTitle>Evidence Upload Center</CardTitle>
-          <CardDescription>
-            Signed in securely. Attach files to one of your reports or create a new report with this evidence.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {reportsLoadError ? (
-              <p role="alert" className="rounded-lg border border-amber-400/40 bg-amber-950/30 p-3 text-sm text-amber-100">
-                {reportsLoadError}
-              </p>
-            ) : null}
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)]">
+      <form className="gl-panel" onSubmit={handleSubmit}>
+        <div className="gl-panel__head">
+          <h2>Evidence submission</h2>
+          <span className="gl-meta">
+            <span>Signed in</span>
+            <span>Private storage</span>
+          </span>
+        </div>
+        <div className="gl-panel__body">
+          {reportsLoadError ? (
+            <Notice tone="review" className="mb-5">
+              {reportsLoadError}
+            </Notice>
+          ) : null}
 
-            {reports.length ? (
-              <fieldset className="space-y-3">
-                <legend className="text-sm font-semibold text-foreground">Report destination</legend>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex cursor-pointer gap-3 rounded-lg border border-primary/30 p-4">
-                    <input
-                      type="radio"
-                      name="report-mode"
-                      checked={reportMode === 'existing'}
-                      onChange={() => setReportMode('existing')}
-                    />
-                    <span>
-                      <span className="block font-semibold">Existing report</span>
-                      <span className="text-xs text-muted-foreground">Add evidence to a report you already filed.</span>
-                    </span>
-                  </label>
-                  <label className="flex cursor-pointer gap-3 rounded-lg border border-primary/30 p-4">
-                    <input
-                      type="radio"
-                      name="report-mode"
-                      checked={reportMode === 'new'}
-                      onChange={() => setReportMode('new')}
-                    />
-                    <span>
-                      <span className="block font-semibold">New report</span>
-                      <span className="text-xs text-muted-foreground">Create the report and attach evidence together.</span>
-                    </span>
-                  </label>
-                </div>
-              </fieldset>
-            ) : null}
-
-            {reportMode === 'existing' ? (
-              <label className="block space-y-2 text-sm font-medium" htmlFor="report-id">
-                Choose a report
-                <select
-                  id="report-id"
-                  className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={selectedReportId}
-                  onChange={(event) => setSelectedReportId(event.target.value)}
-                  required
-                >
-                  {reports.map((report) => (
-                    <option key={report.id} value={report.id}>
-                      {report.title} — {report.status.replace(/_/g, ' ')}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <div className="space-y-4 rounded-lg border border-primary/25 p-4">
-                <h2 className="greenlist-card-title">New report context</h2>
-                <label className="block space-y-2 text-sm font-medium" htmlFor="report-type">
-                  Report type
-                  <select
-                    id="report-type"
-                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    value={reportType}
-                    onChange={(event) => setReportType(event.target.value)}
-                  >
-                    {REPORT_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block space-y-2 text-sm font-medium" htmlFor="report-title">
-                  Report title
-                  <Input
-                    id="report-title"
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    minLength={8}
-                    maxLength={160}
-                    required
-                    placeholder="Briefly identify the concern"
-                  />
-                </label>
-                <label className="block space-y-2 text-sm font-medium" htmlFor="report-description">
-                  What happened?
-                  <textarea
-                    id="report-description"
-                    className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    minLength={20}
-                    maxLength={5000}
-                    required
-                    placeholder="Describe the facts, dates, location, and why the attached evidence matters."
-                  />
-                </label>
-                <label className="flex items-start gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={isAnonymous}
-                    onChange={(event) => setIsAnonymous(event.target.checked)}
-                  />
+          {reports.length ? (
+            <fieldset className="gl-field">
+              <legend className="gl-label">Attach to</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex cursor-pointer gap-3 border border-[var(--gl-border)] p-4 text-sm">
+                  <input type="radio" name="report-mode" checked={reportMode === 'existing'} onChange={() => setReportMode('existing')} />
                   <span>
-                    <span className="block font-medium">Request public anonymity</span>
-                    <span className="text-muted-foreground">
-                      Authorized reviewers can still identify the submitting account for safety and due process.
-                    </span>
+                    <span className="block font-medium text-[var(--gl-text)]">Existing report</span>
+                    <span className="text-[var(--gl-text-muted)]">Add documentation to a report you already filed.</span>
+                  </span>
+                </label>
+                <label className="flex cursor-pointer gap-3 border border-[var(--gl-border)] p-4 text-sm">
+                  <input type="radio" name="report-mode" checked={reportMode === 'new'} onChange={() => setReportMode('new')} />
+                  <span>
+                    <span className="block font-medium text-[var(--gl-text)]">New report</span>
+                    <span className="text-[var(--gl-text-muted)]">Open the report and attach documentation together.</span>
                   </span>
                 </label>
               </div>
-            )}
+            </fieldset>
+          ) : null}
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="evidence-files">
-              Evidence files
-              <Input
-                id="evidence-files"
-                type="file"
-                multiple
-                required
-                accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain"
-                onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
-              />
-              <span className="block text-xs font-normal text-muted-foreground">
-                Up to {MAX_FILES} JPG, PNG, WebP, GIF, PDF, or TXT files. Maximum 15 MB each.
-              </span>
-            </label>
-
-            {files.length ? (
-              <ul className="space-y-2 rounded-lg border border-primary/20 p-3 text-sm" aria-label="Selected files">
-                {files.map((file) => (
-                  <li key={`${file.name}-${file.lastModified}`} className="flex justify-between gap-4">
-                    <span className="truncate">{file.name}</span>
-                    <span className="shrink-0 text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                  </li>
+          {reportMode === 'existing' ? (
+            <Field label="Report" htmlFor="report-id">
+              <Select id="report-id" value={selectedReportId} onChange={(event) => setSelectedReportId(event.target.value)} required>
+                {reports.map((report) => (
+                  <option key={report.id} value={report.id}>
+                    {report.title} — {recordStatus(report.status).label}
+                  </option>
                 ))}
-              </ul>
-            ) : null}
-
-            <div className="rounded-lg border border-primary/20 bg-black/15 p-4 text-sm text-muted-foreground">
-              Evidence is stored in a private bucket. Only you and authorized platform reviewers can access it.
-              Do not upload passwords, payment-card details, or unrelated private information.
+              </Select>
+            </Field>
+          ) : (
+            <div className="mt-3 border border-[var(--gl-border)] p-4">
+              <p className="gl-label mb-3">New report</p>
+              <Field label="Report type" htmlFor="report-type">
+                <Select id="report-type" value={reportType} onChange={(event) => setReportType(event.target.value)}>
+                  {REPORT_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Report title" htmlFor="report-title" required help="Identify the matter in one line. 8–160 characters.">
+                <Input id="report-title" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required />
+              </Field>
+              <Field label="Account" htmlFor="report-description" required help="Facts, dates, location, and what the attached documentation shows. 20–5,000 characters.">
+                <Textarea id="report-description" className="min-h-32" value={description} onChange={(event) => setDescription(event.target.value)} minLength={20} maxLength={5000} required />
+              </Field>
+              <label className="mt-3 flex items-start gap-3 text-sm text-[var(--gl-text-secondary)]">
+                <input type="checkbox" className="mt-1" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} />
+                <span>
+                  <span className="block font-medium text-[var(--gl-text)]">Request public anonymity</span>
+                  <span>Authorised reviewers can still identify the submitting account for safety and due process.</span>
+                </span>
+              </label>
             </div>
+          )}
 
-            {error ? (
-              <p role="alert" className="rounded-lg border border-red-400/40 bg-red-950/35 p-3 text-sm text-red-100">
-                {error}
-              </p>
-            ) : null}
+          <Field label="Files" htmlFor="evidence-files" required help={`Up to ${MAX_FILES} JPG, PNG, WebP, GIF, PDF, or TXT files. Maximum 15 MB each.`}>
+            <Input
+              id="evidence-files"
+              type="file"
+              multiple
+              required
+              accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain"
+              onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+            />
+          </Field>
 
-            {success ? (
-              <div role="status" className="rounded-lg border border-emerald-400/40 bg-emerald-950/35 p-4 text-sm text-emerald-100">
-                <p className="font-semibold">
-                  {success.fileCount} {success.fileCount === 1 ? 'file was' : 'files were'} uploaded securely.
-                </p>
-                <p className="mt-1">Report reference: {success.reportId}</p>
-                <Link className="mt-3 inline-block font-semibold text-accent hover:underline" href="/dashboard">
-                  Return to dashboard
-                </Link>
-              </div>
-            ) : null}
+          {files.length ? (
+            <ul className="mt-3 grid gap-1 border border-[var(--gl-border)] p-3 text-sm" aria-label="Selected files">
+              {files.map((file) => (
+                <li key={`${file.name}-${file.lastModified}`} className="flex justify-between gap-4">
+                  <span className="truncate text-[var(--gl-text)]">{file.name}</span>
+                  <span className="shrink-0 text-[var(--gl-text-muted)]">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Uploading securely…' : 'Submit Evidence for Review'}
+          <Notice tone="info" className="mt-5">
+            Files are stored in a private bucket. Only you and authorised reviewers can access them. Do not upload passwords, payment-card details, or unrelated private information.
+          </Notice>
+
+          {error ? (
+            <Notice tone="alert" className="mt-4">
+              {error}
+            </Notice>
+          ) : null}
+
+          {success ? (
+            <Notice tone="confirmed" className="mt-4" role="status">
+              <strong>
+                {success.fileCount} {success.fileCount === 1 ? 'file' : 'files'} received.
+              </strong>{' '}
+              Report reference: {success.reportId}.{' '}
+              <Link className="gl-link" href="/dashboard">
+                Return to your desk
+              </Link>
+            </Notice>
+          ) : null}
+
+          <FormActions>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Uploading…' : 'Submit for review'}
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </FormActions>
+        </div>
+      </form>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-3">
-        {[
-          ['Private by default', 'Files are not exposed through public URLs.'],
-          ['Human review', 'Evidence is reviewed before any public action.'],
-          ['Anonymity controls', 'Public attribution stays separate from reviewer access.'],
-        ].map(([titleText, body]) => (
-          <Card key={titleText} className="border-primary/30">
-            <CardHeader>
-              <CardTitle className="text-base">{titleText}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{body}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+      <Ledger
+        title="Handling"
+        className="content-start"
+        rows={[
+          { label: 'Private by default', value: 'Files are not exposed through public URLs.' },
+          { label: 'Human review', value: 'Documentation is reviewed before any public action.' },
+          { label: 'Anonymity', value: 'Public attribution is separate from reviewer access.' },
+          { label: 'Reference', value: 'Quote the report reference in any follow-up.' },
+        ]}
+      />
     </div>
   )
 }
