@@ -13,8 +13,10 @@ const buttonVariants = cva(
       variant: {
         // Flat, rectilinear, one accent. Matches .greenlist-primary-button so a
         // hand-rolled link and a <Button> never look like different systems.
+        // Dark ink foreground: white on --gl-accent is ~3.0:1, below AA for
+        // 0.875rem text; --gl-accent-ink clears 4.5:1 in both states.
         default:
-          "border-[var(--gl-accent)] bg-[var(--gl-accent)] text-white hover:border-[#45963a] hover:bg-[#45963a]",
+          "border-[var(--gl-accent)] bg-[var(--gl-accent)] text-[var(--gl-accent-ink)] hover:border-[#45963a] hover:bg-[#45963a] hover:text-[var(--gl-accent-ink)]",
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

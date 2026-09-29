@@ -55,6 +55,23 @@ export const LEGAL_NAV: readonly NavItem[] = [
 ] as const
 
 /**
+ * The nav item that owns a section root, looked up from `PRIMARY_NAV` so a
+ * page can title itself with the same words the header and footer use.
+ * Throws when the section is missing: a page importing a non-existent section
+ * is a build-time mistake, not something to paper over at runtime.
+ */
+export function getPrimaryNavItem(href: NavItem['href']): NavItem {
+  const item = PRIMARY_NAV.find((entry) => entry.href === href)
+  if (!item) {
+    throw new Error(`No PRIMARY_NAV entry owns "${href}". Add it to src/config/navigation.ts.`)
+  }
+  return item
+}
+
+/** The public discussion section. Pages under /forums read their title from here. */
+export const EVIDENCE_DESK_NAV_ITEM: NavItem = getPrimaryNavItem('/forums')
+
+/**
  * Returns true when `href` is the section that owns `pathname`. Section roots
  * match their sub-routes; the homepage only matches itself.
  */

@@ -7,7 +7,7 @@ import { recordStatus } from '@/lib/recordStatus'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
-import { REPORT_TYPES } from '@/lib/report-types'
+import { CORRECTION_REQUEST_TYPE, REPORT_TYPES, type ReportType } from '@/lib/report-types'
 
 const EVIDENCE_BUCKET = 'evidence'
 const MAX_FILE_SIZE = 15 * 1024 * 1024
@@ -32,6 +32,12 @@ type EvidenceUploadFormProps = {
   userId: string
   reports: EvidenceReportOption[]
   reportsLoadError: string | null
+  /**
+   * Preselected report type, already validated against the registry by the
+   * page. A correction request is always a new report, so the "attach to an
+   * existing report" choice is skipped when this is `correction_request`.
+   */
+  initialReportType?: ReportType | null
 }
 
 type UploadResult = {
@@ -73,13 +79,18 @@ export function EvidenceUploadForm({
   userId,
   reports,
   reportsLoadError,
+  initialReportType = null,
 }: EvidenceUploadFormProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [reportMode, setReportMode] = useState<'existing' | 'new'>(reports.length ? 'existing' : 'new')
+  const startsAsCorrection = initialReportType === CORRECTION_REQUEST_TYPE
+  const [reportMode, setReportMode] = useState<'existing' | 'new'>(
+    startsAsCorrection || !reports.length ? 'new' : 'existing',
+  )
   const [selectedReportId, setSelectedReportId] = useState(reports[0]?.id ?? '')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [reportType, setReportType] = useState('mislabeling')
+  const [reportType, setReportType] = useState<string>(initialReportType ?? 'mislabeling')
+  const isCorrection = reportMode === 'new' && reportType === CORRECTION_REQUEST_TYPE
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -215,10 +226,11 @@ export function EvidenceUploadForm({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)]">
       <form className="gl-panel" onSubmit={handleSubmit}>
         <div className="gl-panel__head">
-          <h2>Evidence submission</h2>
+          <h2>{startsAsCorrection ? 'Correction request' : 'Evidence submission'}</h2>
           <span className="gl-meta">
             <span>Signed in</span>
             <span>Private storage</span>
+            {startsAsCorrection ? <span>Corrections queue</span> : null}
           </span>
         </div>
         <div className="gl-panel__body">
@@ -228,7 +240,7 @@ export function EvidenceUploadForm({
             </Notice>
           ) : null}
 
-          {reports.length ? (
+          {reports.length && !startsAsCorrection ? (
             <fieldset className="gl-field">
               <legend className="gl-label">Attach to</legend>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -262,7 +274,13 @@ export function EvidenceUploadForm({
             </Field>
           ) : (
             <div className="mt-3 border border-[var(--gl-border)] p-4">
-              <p className="gl-label mb-3">New report</p>
+              <p className="gl-label mb-3">{isCorrection ? 'Correction request' : 'New report'}</p>
+              {isCorrection ? (
+                <p className="mb-3 text-sm text-[var(--gl-text-secondary)]">
+                  Name the record and the specific statement in dispute, state what it should say, and attach the
+                  official record, licence, laboratory document, or correspondence that supports the change.
+                </p>
+              ) : null}
               <Field label="Report type" htmlFor="report-type">
                 <Select id="report-type" value={reportType} onChange={(event) => setReportType(event.target.value)}>
                   {REPORT_TYPES.map((type) => (
@@ -272,10 +290,24 @@ export function EvidenceUploadForm({
                   ))}
                 </Select>
               </Field>
-              <Field label="Report title" htmlFor="report-title" required help="Identify the matter in one line. 8–160 characters.">
+              <Field
+                label={isCorrection ? 'Record and statement in dispute' : 'Report title'}
+                htmlFor="report-title"
+                required
+                help={isCorrection ? 'Identify the record and the statement in one line. 8–160 characters.' : 'Identify the matter in one line. 8–160 characters.'}
+              >
                 <Input id="report-title" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required />
               </Field>
-              <Field label="Account" htmlFor="report-description" required help="Facts, dates, location, and what the attached documentation shows. 20–5,000 characters.">
+              <Field
+                label={isCorrection ? 'What the record should say, and why' : 'Account'}
+                htmlFor="report-description"
+                required
+                help={
+                  isCorrection
+                    ? 'Quote the statement you dispute, give the correct information, and say which attached document establishes it. 20–5,000 characters.'
+                    : 'Facts, dates, location, and what the attached documentation shows. 20–5,000 characters.'
+                }
+              >
                 <Textarea id="report-description" className="min-h-32" value={description} onChange={(event) => setDescription(event.target.value)} minLength={20} maxLength={5000} required />
               </Field>
               <label className="mt-3 flex items-start gap-3 text-sm text-[var(--gl-text-secondary)]">
@@ -334,7 +366,7 @@ export function EvidenceUploadForm({
 
           <FormActions>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Uploading…' : 'Submit for review'}
+              {isSubmitting ? 'Uploading…' : isCorrection ? 'Submit correction request' : 'Submit for review'}
             </Button>
           </FormActions>
         </div>

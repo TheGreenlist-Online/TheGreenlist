@@ -542,9 +542,10 @@
 .greenlist-primary-button {
   border-color: var(--gl-accent);
   background: var(--gl-accent);
-  color: #ffffff;
+  /* Ink, not white: #fff on --gl-accent is ~3.0:1 and fails AA at .875rem. */
+  color: var(--gl-accent-ink);
 }
-.greenlist-primary-button:hover { background: #45963a; border-color: #45963a; }
+.greenlist-primary-button:hover { background: #45963a; border-color: #45963a; color: var(--gl-accent-ink); }
 .greenlist-secondary-button {
   border-color: var(--gl-border-strong);
   background: transparent;
@@ -594,7 +595,8 @@
 .gl-meta strong { font-weight: 500; color: var(--gl-text-secondary); }
 
 /* Definition ledger: label / value rows. */
-.gl-ledger { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.gl-ledger { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .9rem; }
+.gl-ledger th, .gl-ledger td { min-width: 0; overflow-wrap: break-word; }
 .gl-ledger th, .gl-ledger td {
   padding: 12px var(--gl-space-3);
   border-bottom: 1px solid var(--gl-border);
@@ -611,6 +613,15 @@
   color: var(--gl-text-muted);
 }
 .gl-ledger tr:last-child th, .gl-ledger tr:last-child td { border-bottom: 0; }
+/* Narrow screens: the label / value pair stacks so a status label keeps whole
+   words and the ledger never grows wider than the (clipped) viewport. */
+@media (max-width: 40rem) {
+  .gl-ledger, .gl-ledger tbody, .gl-ledger tr, .gl-ledger th, .gl-ledger td { display: block; width: 100%; }
+  .gl-ledger tr { border-bottom: 1px solid var(--gl-border); }
+  .gl-ledger tr:last-child { border-bottom: 0; }
+  .gl-ledger th { border-bottom: 0; padding-bottom: 4px; }
+  .gl-ledger td { padding-top: 0; }
+}
 
 /* Status label: text + colour, rectangular, mono. */
 .gl-status {
@@ -622,12 +633,19 @@
   border-radius: var(--gl-radius);
   font-family: var(--gl-font-mono);
   font-size: .68rem;
+  line-height: 1.35;
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--gl-text-secondary);
-  white-space: nowrap;
+  /* Labels wrap inside narrow ledger cells (320px) instead of pushing the
+     table past the clipped viewport. The indicator keeps its size. */
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: left;
 }
-.gl-status::before { content: ""; width: 6px; height: 6px; background: var(--gl-status-neutral); }
+.gl-status::before { content: ""; flex: 0 0 6px; width: 6px; height: 6px; background: var(--gl-status-neutral); }
 .gl-status--confirmed { border-color: rgba(61, 138, 51, .6); color: #9fd693; }
 .gl-status--confirmed::before { background: var(--gl-status-confirmed); }
 .gl-status--review { border-color: rgba(181, 138, 30, .6); color: #e3c56b; }

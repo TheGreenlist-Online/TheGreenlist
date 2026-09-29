@@ -5,10 +5,11 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
 import { PageIntro } from '@/components/PageIntro'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const metadata = {
-  title: 'Evidence Desk - The Green List',
-  description: 'Public discussion attached to records, sources, and open documentation requests.',
+  title: EVIDENCE_DESK_NAV_ITEM.label,
+  description: EVIDENCE_DESK_NAV_ITEM.purpose,
 }
 
 type ForumRow = {
@@ -54,7 +55,7 @@ export default async function ForumsPage() {
   return (
     <PageShell>
       <PageIntro
-        title="Evidence Desk"
+        title={EVIDENCE_DESK_NAV_ITEM.label}
         lede="Public discussion in service of the record: locating primary documents, identifying missing records, asking informed questions, and correcting errors. Discussion does not change a record's status; documentary review does."
         meta={
           <>

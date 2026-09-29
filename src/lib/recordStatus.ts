@@ -17,12 +17,11 @@ const TABLE: Record<string, RecordStatus> = {
   unverified: { label: 'Not verified', tone: 'neutral', meaning: 'Not matched to an official source.' },
   'business-reported': { label: 'Business-reported', tone: 'neutral', meaning: 'Submitted by the business; not independently confirmed.' },
 
-  // Reports
-  submitted: { label: 'Received', tone: 'neutral', meaning: 'The report exists in the private intake.' },
+  // Reports: persisted states come from REPORT_STATUSES below (spread in
+  // after the table); these are aliases and legacy tokens only.
   received: { label: 'Received', tone: 'neutral' },
   needs_info: { label: 'Needs information', tone: 'review' },
   'needs-info': { label: 'Needs information', tone: 'review' },
-  under_review: { label: 'Under review', tone: 'review' },
   'under-review': { label: 'Under review', tone: 'review' },
   in_review: { label: 'Under review', tone: 'review' },
   escalated: { label: 'Escalated', tone: 'review' },
@@ -30,12 +29,8 @@ const TABLE: Record<string, RecordStatus> = {
   substantiated: { label: 'Substantiated', tone: 'confirmed', meaning: 'Reviewed documentation supports the account.' },
   unsubstantiated: { label: 'Unsubstantiated', tone: 'neutral', meaning: 'Available documentation does not support the account.' },
   inconclusive: { label: 'Inconclusive', tone: 'neutral', meaning: 'Documentation reviewed; no conclusion could be drawn.' },
-  published: { label: 'Published finding', tone: 'confirmed', meaning: 'A source-backed finding has been published.' },
-  resolved: { label: 'Closed', tone: 'neutral' },
   closed: { label: 'Closed', tone: 'neutral' },
   dismissed: { label: 'Closed', tone: 'neutral' },
-  rejected: { label: 'Not accepted', tone: 'neutral' },
-  corrected: { label: 'Corrected', tone: 'confirmed' },
 
   // Documents / resources / moderation
   approved: { label: 'Reviewed', tone: 'confirmed', meaning: 'Reviewed and accepted for the record.' },
@@ -60,6 +55,39 @@ const TABLE: Record<string, RecordStatus> = {
   high: { label: 'High risk', tone: 'alert' },
   critical: { label: 'Critical', tone: 'alert' },
   none: { label: 'None', tone: 'neutral' },
+}
+
+/**
+ * The persisted report states, in the order /about/methodology documents
+ * them. This is the single definition behind three things that used to drift:
+ * the labels a reporter sees, the states /api/admin/reports will write, and
+ * the list published on the methodology page. Mirrors `reports_status_check`
+ * in supabase/migrations.
+ *
+ * `resolved` and `rejected` both publish as "Closed"; the distinction stays in
+ * the private record and the reporter's notification.
+ */
+export const REPORT_STATUSES = [
+  { value: 'submitted', label: 'Received', tone: 'neutral', meaning: 'The report exists in the private intake.' },
+  { value: 'needs_more_info', label: 'Needs information', tone: 'review', meaning: 'Reviewers have asked for documentation or clarification.' },
+  { value: 'under_review', label: 'Under review', tone: 'review', meaning: 'The report is being assessed against available evidence.' },
+  { value: 'published', label: 'Published finding', tone: 'confirmed', meaning: 'A source-backed finding has been published. Only this state and “Corrected” produce public content.' },
+  { value: 'corrected', label: 'Corrected', tone: 'confirmed', meaning: 'A published finding was amended; the change is logged.' },
+  { value: 'resolved', label: 'Closed', tone: 'neutral', meaning: 'Review is complete and no further action will be taken.' },
+  { value: 'rejected', label: 'Closed', tone: 'neutral', meaning: 'The report could not be substantiated or falls outside scope.' },
+] as const satisfies readonly ({ value: string } & RecordStatus)[]
+
+export type ReportStatus = (typeof REPORT_STATUSES)[number]['value']
+
+/** Every status the admin route may write and the database will accept. */
+export const REPORT_STATUS_VALUES: readonly ReportStatus[] = REPORT_STATUSES.map(({ value }) => value)
+
+export function isReportStatus(value: unknown): value is ReportStatus {
+  return typeof value === 'string' && (REPORT_STATUS_VALUES as readonly string[]).includes(value)
+}
+
+for (const { value, label, tone, meaning } of REPORT_STATUSES) {
+  TABLE[value] = { label, tone, meaning }
 }
 
 export function recordStatus(value: string | null | undefined, fallback?: RecordStatus): RecordStatus {

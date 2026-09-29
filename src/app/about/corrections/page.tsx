@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { GovernancePage } from '@/components/GovernancePage'
+import { CORRECTION_REQUEST_TYPE } from '@/lib/report-types'
 
 export const metadata: Metadata = {
   title: 'Corrections',
@@ -27,7 +28,11 @@ export default function CorrectionsPage() {
         <li>Identify the record and the specific statement in dispute.</li>
         <li>State what you believe the record should say.</li>
         <li>Attach primary documentation where possible — an official record, a licence, a laboratory document, or formal correspondence.</li>
-        <li>Submit through the <Link href="/evidence/upload">evidence intake</Link>, selecting “correction request”, or through <Link href="/contact">Contact</Link>.</li>
+        <li>
+          Submit through the{' '}
+          <Link href={`/evidence/upload?type=${CORRECTION_REQUEST_TYPE}`}>correction-request intake</Link>. The
+          form opens with the “Correction request” type selected; attach your documentation there.
+        </li>
       </ol>
       <p>Requests are private. The fact that a correction has been requested is not published until a decision is made.</p>
 

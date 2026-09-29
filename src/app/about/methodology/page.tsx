@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { GovernancePage } from '@/components/GovernancePage'
+import { REPORT_STATUSES } from '@/lib/recordStatus'
+import { StatusLabel } from '@/components/record'
 
 export const metadata: Metadata = {
   title: 'Methodology and Standards',
@@ -74,15 +76,31 @@ export default function MethodologyPage() {
       </p>
 
       <h2>Report review</h2>
-      <p>Reports move through a fixed set of states, visible to the person who filed them:</p>
-      <ol>
-        <li><strong>Received</strong> — the report exists in the private intake.</li>
-        <li><strong>Needs information</strong> — reviewers have asked for documentation or clarification.</li>
-        <li><strong>Under review</strong> — the report is being assessed against available evidence.</li>
-        <li><strong>Published finding</strong> — a source-backed finding has been published. Only this state produces public content.</li>
-        <li><strong>Closed</strong> — the report could not be substantiated or falls outside scope.</li>
-        <li><strong>Corrected</strong> — a published finding was amended; the change is logged.</li>
-      </ol>
+      <p>
+        Reports move through a fixed set of states, visible to the person who filed them. The list below is
+        rendered from the same definition the reports pages use, so the words here are the words on the record.
+      </p>
+      <div className="gl-panel my-6">
+        <table className="gl-ledger">
+          <tbody>
+            {REPORT_STATUSES.map(({ value, label, tone, meaning }) => (
+              <tr key={value}>
+                <th scope="row">
+                  <StatusLabel label={label} tone={tone} />
+                </th>
+                <td>
+                  {meaning}{' '}
+                  <span className="font-mono text-xs text-[var(--gl-text-muted)]">({value})</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Two stored states — <code>resolved</code> and <code>rejected</code> — both publish as “Closed”. The
+        distinction is kept in the private record and the reporter&apos;s notification, not in the public label.
+      </p>
       <p>
         Incoming reports are private by default. An allegation is never published as a finding. When a finding
         concerns an identifiable business, that business is offered a right of reply before or at publication.

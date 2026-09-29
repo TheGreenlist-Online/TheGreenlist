@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/supabase/authz'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+import { REPORT_STATUS_VALUES, isReportStatus } from '@/lib/recordStatus'
 
 /**
  * Report status review.
@@ -15,14 +16,10 @@ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
  * says.
  */
 
-const STATUSES = [
-  'submitted',
-  'under_review',
-  'needs_more_info',
-  'published',
-  'resolved',
-  'rejected',
-] as const
+// Allowed persisted statuses come from the same registry that labels them in
+// the UI and documents them on /about/methodology, so this route cannot accept
+// a state the reader will never see (or reject one the database allows).
+const STATUSES = REPORT_STATUS_VALUES
 
 const VERIFICATION_STATUSES = [
   'unverified',
@@ -66,7 +63,7 @@ export async function PATCH(request: NextRequest) {
   const update: Record<string, unknown> = {}
 
   if (status !== undefined) {
-    if (typeof status !== 'string' || !STATUSES.includes(status as (typeof STATUSES)[number])) {
+    if (typeof status !== 'string' || !isReportStatus(status)) {
       return NextResponse.json(
         { error: `Status must be one of: ${STATUSES.join(', ')}` },
         { status: 400 },
