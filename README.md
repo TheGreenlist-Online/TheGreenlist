@@ -18,6 +18,7 @@ The Green List is a civic-tech platform designed to provide transparency, accoun
 - **User Analytics**: Personal transparency and contribution tracking
 - **AI Moderation**: Automated content moderation with human oversight
 - **Sponsored Disclosures**: FTC-compliant sponsored content and affiliate disclosures
+- **Automation Integrations**: Optional webhook automations for contact intake, onboarding, and partner workflows
 
 ## Legal Compliance
 
@@ -35,7 +36,7 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 
 - **Frontend**: Next.js App Router, React, TypeScript, TailwindCSS, Framer Motion
 - **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL
-- **Auth**: NextAuth.js with OAuth providers
+- **Auth**: Supabase Auth with server-verified sessions and PostgreSQL RLS
 - **Database**: Supabase/PostgreSQL with Prisma
 - **Storage**: Supabase
 - **AI**: OpenAI API for moderation and summarization
@@ -174,11 +175,12 @@ When configuring auth providers or Supabase redirect allowlists, include:
 
 API routes are available under `/api/`:
 
-- `POST /api/auth/[...nextauth]` - Authentication
+- Supabase Auth client/server flows under `/auth/*`
 - `GET/POST /api/posts` - Forum posts
 - `GET/POST /api/businesses` - Business management
 - `POST /api/reports` - Transparency reports
 - `GET /api/news` - News aggregation
+- `POST /api/contact-intake` - Structured contact, sponsor, and affiliate intake routing
 
 ## Contributing
 

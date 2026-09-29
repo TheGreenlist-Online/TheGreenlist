@@ -1,63 +1,176 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
+import { LogOut, Menu, Settings, UserRound, X } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 const navItems = [
   { label: 'Forums', href: '/forums' },
   { label: 'Businesses', href: '/businesses' },
   { label: 'News', href: '/news' },
   { label: 'Reports', href: '/reports' },
+  { label: 'Evidence', href: '/evidence' },
+  { label: 'Education', href: '/education' },
   { label: 'Dashboard', href: '/dashboard' },
 ]
 
 export function SiteHeader() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isOpen, setIsOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthenticated(Boolean(data.session))
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setIsAuthenticated(Boolean(session))
+    })
+
+    return () => {
+      mounted = false
+      listener.subscription.unsubscribe()
+    }
+  }, [supabase])
+
+  async function handleSignOut() {
+    setIsSigningOut(true)
+    await supabase.auth.signOut()
+    setIsAuthenticated(false)
+    setIsOpen(false)
+    setIsSigningOut(false)
+    router.replace('/')
+    router.refresh()
+  }
 
   return (
-    <header className="sticky top-[var(--compliance-banner-height)] z-50 border-b border-amber-300/20 bg-[#080e0b]/90 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 py-4">
+    <header className="site-header sticky top-[var(--compliance-banner-height)] z-50">
+      <div className="mx-auto max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="font-display text-2xl text-amber-100">
-            The Green List
+          <Link href="/" className="site-brand" aria-label="The Green List home">
+            <span className="site-brand__mark">
+              <Image src="/brand/greenlist-leaf.png" alt="" width={40} height={40} priority />
+            </span>
+            <span className="site-brand__text">
+              <span className="site-brand__name">
+                The <em>Green</em> List
+              </span>
+              <span className="site-brand__tag">Transparency &middot; Accountability</span>
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium text-zinc-200 lg:flex">
+          <div className="hidden flex-1 px-4 lg:block">
+            <SearchBar className="mx-auto max-w-md" />
+          </div>
+
+          <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-emerald-300">
+              <Link key={item.href} href={item.href} className="rounded-md transition hover:text-[#a3d93b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a3d93b]">
                 {item.label}
               </Link>
             ))}
-            <Button asChild size="sm">
-              <Link href="/auth/signin">Sign in</Link>
+            <Button asChild size="sm" variant="outline">
+              <Link href={pathname.startsWith('/town') ? '/' : '/town'}>
+                {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
+              </Link>
             </Button>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/settings"
+                  aria-label="Account settings"
+                  className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-300 transition hover:border-[#a3d93b]/40 hover:text-[#a3d93b]"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
+                <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </Button>
+              </>
+            ) : (
+              <Button asChild size="sm">
+                <Link href="/auth/signin">
+                  <UserRound className="mr-2 h-4 w-4" />
+                  Sign in
+                </Link>
+              </Button>
+            )}
           </nav>
 
           <button
             type="button"
-            className="rounded-lg border border-amber-300/30 p-2 text-amber-100 lg:hidden"
+            className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-100 lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label="Toggle navigation"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        <SearchBar className="mt-4" />
+        <SearchBar className="mt-3 lg:hidden" />
 
         {isOpen ? (
-          <nav className="mt-4 grid gap-2 rounded-xl border border-amber-300/20 bg-[#0f1512] p-4 text-sm lg:hidden">
+          <nav id="mobile-navigation" className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-md px-2 py-1 text-zinc-200 transition hover:bg-emerald-300/10 hover:text-emerald-200">
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
+              >
                 {item.label}
               </Link>
             ))}
-            <Link href="/auth/signin" className="rounded-md border border-emerald-300/35 px-2 py-1 text-emerald-200">
-              Sign in
+            <Link
+              href={pathname.startsWith('/town') ? '/' : '/town'}
+              onClick={() => setIsOpen(false)}
+              className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
+            >
+              {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
             </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/auth/signin"
+                onClick={() => setIsOpen(false)}
+                className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
+              >
+                Sign in
+              </Link>
+            )}
           </nav>
         ) : null}
       </div>

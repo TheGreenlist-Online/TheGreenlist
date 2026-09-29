@@ -1,18 +1,14 @@
 import { Suspense } from 'react'
-import { Header } from '@/components/Header'
 import { Hero } from '@/components/Hero'
 import { FeatureCards } from '@/components/FeatureCards'
 import { FeaturedForums } from '@/components/FeaturedForums'
 import { RecentPosts } from '@/components/RecentPosts'
 import { TrendingTopics } from '@/components/TrendingTopics'
 import { SponsoredContent } from '@/components/SponsoredContent'
-import { Footer } from '@/components/Footer'
-import { LegalDisclaimer } from '@/components/LegalDisclaimer'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       <main>
         <Hero />
 
@@ -41,8 +37,6 @@ export default function HomePage() {
           </div>
         </div>
       </main>
-      <Footer />
-      <LegalDisclaimer />
     </div>
   )
 }

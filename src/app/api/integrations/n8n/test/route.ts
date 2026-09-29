@@ -6,26 +6,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/authz'
 import { n8n } from '@/lib/integrations/n8n'
 
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const supabase = await createSupabaseServerClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const principal = await requireAdmin()
+    const user = principal.user
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify admin role - TODO: implement role check from Supabase
-    // For now, check if user email contains admin indicator
-    const isAdmin = user.email?.includes('admin') || user.email?.includes('test')
-
-    if (!isAdmin) {
+    if (!principal.authorized) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 

@@ -1,7 +1,5 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Footer } from '@/components/Footer'
-import { Header } from '@/components/Header'
 
 export const metadata = {
   title: 'Legal & Compliance - The Green List',
@@ -11,12 +9,11 @@ export const metadata = {
 export default function LegalHub() {
   return (
     <>
-      <Header />
-      <main className="min-h-screen bg-background pt-8 pb-20 text-foreground">
+      <main className="min-h-screen pt-8 pb-20 text-foreground">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="mb-12">
-              <h1 className="text-4xl font-bold mb-4">Legal & Compliance</h1>
+              <h1 className="greenlist-page-title mb-4">Legal & Compliance</h1>
               <p className="text-xl text-muted-foreground">
                 Important information about The Green List and our platform.
               </p>
@@ -109,25 +106,25 @@ export default function LegalHub() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">Age Verification</h3>
+                  <h3 className="greenlist-card-title mb-2">Age Verification</h3>
                   <p className="text-sm text-muted-foreground">
                     By using The Green List, you confirm that you are at least 21 years of age or meet the minimum legal age in your jurisdiction. Content is for adults only.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Legal Compliance</h3>
+                  <h3 className="greenlist-card-title mb-2">Legal Compliance</h3>
                   <p className="text-sm text-muted-foreground">
                     The Green List complies with applicable federal, state, and local laws. We do not facilitate illegal activities. Cannabis regulations vary by jurisdiction, so consult local authorities.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">User-Generated Content</h3>
+                  <h3 className="greenlist-card-title mb-2">User-Generated Content</h3>
                   <p className="text-sm text-muted-foreground">
                     All reviews, forum posts, reports, and community submissions are user-generated. Content is published for community discussion and accountability review.
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Moderation & Safety</h3>
+                  <h3 className="greenlist-card-title mb-2">Moderation & Safety</h3>
                   <p className="text-sm text-muted-foreground">
                     We maintain community standards and moderate content to prevent harassment, hate speech, defamation, and illegal activity. See our Terms for details on enforcement.
                   </p>
@@ -154,7 +151,6 @@ export default function LegalHub() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   )
 }

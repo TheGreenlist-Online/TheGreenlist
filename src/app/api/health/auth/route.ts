@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
 
@@ -8,7 +8,7 @@ export async function GET() {
   const checks = {
     supabaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseKeyConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
-    databaseUrlConfigured: Boolean(process.env.DATABASE_URL),
+    databaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseReachable: false,
     databaseReachable: false,
     usersTableReachable: false,
@@ -28,26 +28,23 @@ export async function GET() {
 
   // Check Supabase connection
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data, error } = await supabase.auth.getUser()
-    if (!error) {
-      checks.supabaseReachable = true
-    }
+    const response = await fetch(`${getSupabaseUrl()}/auth/v1/health`, {
+      headers: { apikey: getSupabasePublishableKey() },
+      cache: 'no-store',
+    })
+    checks.supabaseReachable = response.ok
   } catch (error) {
     console.warn('Supabase auth check warning (non-fatal):', error)
   }
 
-  // Check database if configured (optional)
+  // Check database (Supabase Postgres) via the profiles table
   if (checks.databaseUrlConfigured) {
     try {
-      await prisma.$queryRaw`SELECT 1`
-      checks.databaseReachable = true
-
-      try {
-        await prisma.user.count()
+      const supabase = await createSupabaseServerClient()
+      const { error } = await supabase.from('profiles').select('id').limit(1)
+      if (!error) {
+        checks.databaseReachable = true
         checks.usersTableReachable = true
-      } catch {
-        // Prisma tables might not exist, which is OK for Supabase-only setup
       }
     } catch (error) {
       console.warn('Database check warning (non-fatal):', error)

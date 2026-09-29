@@ -1,18 +1,19 @@
 import { cn } from '@/lib/utils'
+import { statusBadgeBase, statusToneClass, type StatusTone } from '@/lib/statusTones'
 
-type StatusTone = 'pending' | 'under-review' | 'verified' | 'unverified' | 'resolved'
+type StatusLabel = 'pending' | 'under-review' | 'verified' | 'unverified' | 'resolved'
 
-const toneClass: Record<StatusTone, string> = {
-  pending: 'border-amber-300/35 text-amber-200 bg-amber-950/25',
-  'under-review': 'border-sky-300/35 text-sky-200 bg-sky-950/25',
-  verified: 'border-emerald-300/35 text-emerald-200 bg-emerald-950/25',
-  unverified: 'border-zinc-400/35 text-zinc-300 bg-zinc-800/35',
-  resolved: 'border-violet-300/35 text-violet-200 bg-violet-950/25',
+const LABEL_TONES: Record<StatusLabel, StatusTone> = {
+  pending: 'pending',
+  'under-review': 'progress',
+  verified: 'success',
+  unverified: 'neutral',
+  resolved: 'success',
 }
 
-export function StatusBadge({ status, className }: { status: StatusTone; className?: string }) {
+export function StatusBadge({ status, className }: { status: StatusLabel; className?: string }) {
   return (
-    <span className={cn('inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]', toneClass[status], className)}>
+    <span className={cn(statusBadgeBase, statusToneClass[LABEL_TONES[status]], className)}>
       {status.replace(/-/g, ' ')}
     </span>
   )

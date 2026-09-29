@@ -1,140 +1,279 @@
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
+'use client'
 
-export const metadata = {
-  title: 'Submit Educational Content - The Green List',
-  description: 'Share educational resources and guides for the community',
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { BookOpen, FlaskConical, Scale, ShieldCheck, Users } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+
+const categories = [
+  { value: 'SAFETY_GUIDE', title: 'Safety Guide', description: 'Testing standards, contamination prevention, consumer protection, labeling, and responsible-use information.', icon: ShieldCheck },
+  { value: 'REGULATORY_RESOURCE', title: 'Regulatory Resource', description: 'Licensing rules, compliance requirements, agency guidance, policy changes, and legal frameworks.', icon: Scale },
+  { value: 'WORKER_RIGHTS', title: 'Worker Rights', description: 'Workplace safety, wage protections, labor rights, fair practices, reporting channels, and industry standards.', icon: Users },
+  { value: 'RESEARCH_SUMMARY', title: 'Research Summary', description: 'Plain-language summaries of studies, datasets, testing findings, public-health evidence, and accountability research.', icon: FlaskConical },
+]
+
+const EDUCATION_BUCKET = 'education-materials'
+const MAX_FILES = 5
+const MAX_FILE_SIZE = 15 * 1024 * 1024
+const ALLOWED_FILE_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'text/plain'])
+
+function sanitizeFileName(fileName: string) {
+  return (fileName.split(/[\\/]/).pop() ?? 'material')
+    .normalize('NFKD')
+    .replace(/[^\w.-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 120) || 'material'
 }
 
 export default function EducationNewPage() {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
+  const [userId, setUserId] = useState<string | null>(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [category, setCategory] = useState('SAFETY_GUIDE')
+  const [title, setTitle] = useState('')
+  const [summary, setSummary] = useState('')
+  const [content, setContent] = useState('')
+  const [sources, setSources] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type EducationDraft = {
+    category: string
+    title: string
+    summary: string
+    content: string
+    sources: string
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<EducationDraft>(
+    'education_resource',
+    { category, title, summary, content, sources },
+    { enabled: !checkingSession && Boolean(userId) }
+  )
+
+  useEffect(() => {
+    if (checkingSession || !userId) return
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.category) setCategory(draft.category)
+      if (draft.title) setTitle(draft.title)
+      if (draft.summary) setSummary(draft.summary)
+      if (draft.content) setContent(draft.content)
+      if (draft.sources) setSources(draft.sources)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    return () => {
+      mounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkingSession, userId])
+
+  useEffect(() => {
+    let mounted = true
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return
+      setUserId(data.session?.user.id ?? null)
+      setCheckingSession(false)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setUserId(session?.user.id ?? null)
+    })
+
+    return () => {
+      mounted = false
+      listener.subscription.unsubscribe()
+    }
+  }, [supabase])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMessage('')
+    setError('')
+
+    if (!userId) {
+      setError('Please sign in before submitting educational content.')
+      return
+    }
+
+    if (files.length > MAX_FILES) {
+      setError(`Upload no more than ${MAX_FILES} supporting files.`)
+      return
+    }
+    const invalidFile = files.find((file) => !ALLOWED_FILE_TYPES.has(file.type) || file.size > MAX_FILE_SIZE)
+    if (invalidFile) {
+      setError(`${invalidFile.name} must be a PDF, JPG, PNG, WebP, or TXT file no larger than 15 MB.`)
+      return
+    }
+
+    setSubmitting(true)
+    const sourceUrls = sources.split('\n').map((item) => item.trim()).filter(Boolean)
+    const { data: resource, error: insertError } = await supabase.from('education_resources').insert({
+      submitter_id: userId,
+      category,
+      title: title.trim(),
+      summary: summary.trim(),
+      content: content.trim(),
+      source_urls: sourceUrls,
+      status: 'PENDING_REVIEW',
+    }).select('id').single<{ id: string }>()
+
+    if (insertError || !resource) {
+      setSubmitting(false)
+      setError(insertError?.message || 'Your submission could not be saved.')
+      return
+    }
+
+    const uploadedPaths: string[] = []
+    try {
+      const attachments = []
+      for (const file of files) {
+        const storagePath = `${userId}/${resource.id}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`
+        const { error: uploadError } = await supabase.storage.from(EDUCATION_BUCKET).upload(storagePath, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: false,
+        })
+        if (uploadError) throw uploadError
+        uploadedPaths.push(storagePath)
+        attachments.push({
+          resource_id: resource.id,
+          uploader_id: userId,
+          storage_bucket: EDUCATION_BUCKET,
+          storage_path: storagePath,
+          file_name: file.name.slice(0, 255),
+          file_type: file.type,
+          file_size: file.size,
+        })
+      }
+      if (attachments.length) {
+        const { error: attachmentError } = await supabase.from('education_attachments').insert(attachments)
+        if (attachmentError) throw attachmentError
+      }
+    } catch (attachmentError) {
+      if (uploadedPaths.length) await supabase.storage.from(EDUCATION_BUCKET).remove(uploadedPaths)
+      setSubmitting(false)
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Supporting materials could not be uploaded.')
+      return
+    }
+
+    setSubmitting(false)
+
+    setTitle('')
+    setSummary('')
+    setContent('')
+    setSources('')
+    setFiles([])
+    const fileInput = document.getElementById('education-materials') as HTMLInputElement | null
+    if (fileInput) fileInput.value = ''
+    await clearDraft()
+    setMessage('Submission received. It is now marked Pending Review and will not be published until approved.')
+  }
+
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
-      <Header />
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-12">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Educational Content</p>
-            <h1 className="mt-3 max-w-4xl text-3xl font-bold md:text-5xl">
-              Share Knowledge & Community Resources
-            </h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">
-              Submit educational content, guides, research summaries, and resources that help the community understand cannabis transparency, safety, regulations, and accountability.
-            </p>
+    <div className="min-h-screen smoke-surface flex flex-col platform-stage">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-10 md:py-14">
+        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-brand-panel/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(147,51,234,.2),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(132,204,22,.18),transparent_35%)]" />
+          <div className="relative max-w-4xl">
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-lime-300">Education Center</p>
+            <h1 className="greenlist-hero-title">Share knowledge that strengthens the community.</h1>
+            <p className="mt-5 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg">Submit evidence-based guides, regulatory resources, worker-rights information, or research summaries. Every submission enters a transparent review queue before publication.</p>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-4xl mx-auto">
-          <Link href="/auth/signin?callbackUrl=/education/new">
-            <Card className="h-full hover:bg-accent/5 transition-all cursor-pointer border-primary/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">🛡️</span>
-                  Safety Guide
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Create guides about product safety, testing standards, contamination prevention, and consumer protection.
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/auth/signin?callbackUrl=/education/new">
-            <Card className="h-full hover:bg-accent/5 transition-all cursor-pointer border-primary/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">⚖️</span>
-                  Regulatory Resource
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Share information about cannabis regulations, legal frameworks, compliance requirements, and policy updates.
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/auth/signin?callbackUrl=/education/new">
-            <Card className="h-full hover:bg-accent/5 transition-all cursor-pointer border-primary/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">👥</span>
-                  Worker Rights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Document worker protection resources, labor rights, fair practices, and industry standards.
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/auth/signin?callbackUrl=/education/new">
-            <Card className="h-full hover:bg-accent/5 transition-all cursor-pointer border-primary/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">📊</span>
-                  Research Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Summarize research findings, studies, and data relevant to cannabis accountability and transparency.
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        <section className="max-w-2xl mx-auto mb-12">
-          <Card className="border-primary/40">
-            <CardHeader>
-              <CardTitle>Content Standards</CardTitle>
-              <CardDescription>What makes excellent educational content</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-accent mb-2">Evidence-Based</h4>
-                <p className="text-sm text-muted-foreground">
-                  Include citations, research sources, and references where applicable. Clearly distinguish between fact and opinion.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-accent mb-2">Accessible</h4>
-                <p className="text-sm text-muted-foreground">
-                  Write for a general audience. Explain technical concepts clearly without oversimplifying.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-accent mb-2">Impartial</h4>
-                <p className="text-sm text-muted-foreground">
-                  Present multiple perspectives. Avoid commercial promotion or biased advocacy.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-accent mb-2">Current</h4>
-                <p className="text-sm text-muted-foreground">
-                  Use recent, accurate information. Update your content if regulations or facts change.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {categories.map((item) => {
+            const Icon = item.icon
+            const active = category === item.value
+            return (
+              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-brand-panel/85 hover:border-emerald-300/45'}`}>
+                <Icon className="h-7 w-7 text-lime-300" />
+                <h2 className="greenlist-section-title">{item.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">{item.description}</p>
+              </button>
+            )
+          })}
         </section>
 
-        <div className="max-w-2xl mx-auto">
-          <Link href="/auth/signin?callbackUrl=/education/new">
-            <button className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg font-semibold hover:bg-accent/90 transition-colors">
-              Sign In to Submit Content
-            </button>
-          </Link>
-        </div>
+        <section className="mt-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr]">
+          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-brand-panel/92 p-6 shadow-xl shadow-black/30 md:p-8">
+            <div className="flex items-center gap-3">
+              <BookOpen className="h-6 w-6 text-lime-300" />
+              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="greenlist-section-title">{categories.find((item) => item.value === category)?.title}</h2></div>
+            </div>
+
+            {!checkingSession && !userId ? (
+              <div className="mt-6 rounded-xl border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">You are not signed in. The form stays visible so you can review what is required, but submission requires authentication. <Link className="font-bold text-lime-300 underline" href="/auth/signin?callbackUrl=/education/new">Sign in here</Link>.</div>
+            ) : null}
+
+            {showRestoredBanner && restoredAt ? (
+              <div className="mt-6 flex items-start justify-between gap-3 rounded-xl border border-lime-300/30 bg-lime-950/20 p-4 text-sm text-lime-100">
+                <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+                <button
+                  type="button"
+                  onClick={() => setShowRestoredBanner(false)}
+                  className="shrink-0 text-xs font-medium text-zinc-400 hover:text-zinc-200"
+                  aria-label="Dismiss"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : null}
+
+            <div className="mt-7 space-y-5">
+              <label className="block text-sm font-semibold text-zinc-200">Title<Input className="mt-2" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required placeholder="A specific, factual title" /></label>
+              <label className="block text-sm font-semibold text-zinc-200">Summary<textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={summary} onChange={(event) => setSummary(event.target.value)} minLength={20} maxLength={500} required placeholder="Explain what readers will learn and why it matters." /></label>
+              <label className="block text-sm font-semibold text-zinc-200">Full resource<textarea className="mt-2 min-h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={content} onChange={(event) => setContent(event.target.value)} minLength={100} maxLength={20000} required placeholder="Provide the complete educational content. Separate verified facts, interpretation, and personal experience." /></label>
+              <label className="block text-sm font-semibold text-zinc-200">Source links <span className="font-normal text-zinc-500">(one per line)</span><textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={sources} onChange={(event) => setSources(event.target.value)} placeholder="https://agency.gov/resource\nhttps://journal.org/study" /></label>
+              <label className="block text-sm font-semibold text-zinc-200" htmlFor="education-materials">
+                Supporting materials <span className="font-normal text-zinc-500">(optional)</span>
+                <Input
+                  id="education-materials"
+                  className="mt-2"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/jpeg,image/png,image/webp,text/plain"
+                  onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+                />
+                <span className="mt-1 block text-xs font-normal text-zinc-500">Up to 5 files, 15 MB each. PDF, JPG, PNG, WebP, or TXT.</span>
+              </label>
+            </div>
+
+            {error ? <div className="mt-5 rounded-xl border border-red-400/35 bg-red-950/30 p-4 text-sm text-red-100">{error}</div> : null}
+            {message ? <div className="mt-5 rounded-xl border border-emerald-300/35 bg-emerald-950/30 p-4 text-sm text-emerald-100">{message}</div> : null}
+
+            <div className="mt-4 text-right text-xs text-zinc-500">
+              {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+            </div>
+
+            <Button className="mt-2 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
+          </form>
+
+          <aside className="rounded-3xl border border-amber-300/25 bg-brand-panel/88 p-6 md:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-lime-300">Publication standards</p>
+            <h2 className="greenlist-section-title">Useful. Verifiable. Non-commercial.</h2>
+            <div className="mt-6 space-y-5 text-sm leading-6 text-zinc-300">
+              <div><strong className="text-emerald-300">Evidence-led</strong><p>Use primary sources, public records, research, or clearly identified firsthand experience.</p></div>
+              <div><strong className="text-emerald-300">Accessible</strong><p>Explain technical terms and provide practical context for a general audience.</p></div>
+              <div><strong className="text-emerald-300">Impartial</strong><p>Do not use education submissions as advertising, product promotion, or a sales funnel.</p></div>
+              <div><strong className="text-emerald-300">Current</strong><p>Include dates, jurisdictions, and source links when regulations or findings may change.</p></div>
+              <div><strong className="text-emerald-300">Transparent review</strong><p>New submissions begin as Pending Review. Approval does not imply legal or medical endorsement.</p></div>
+            </div>
+          </aside>
+        </section>
       </main>
-      <Footer />
     </div>
   )
 }

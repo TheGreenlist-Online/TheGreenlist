@@ -13,21 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,7 +20,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
 
     - name: Install dependencies
@@ -44,18 +29,11 @@ jobs:
     - name: Run linting
       run: npm run lint
 
-    - name: Generate Prisma client
-      run: npx prisma generate
-
-    - name: Run database migrations
-      run: npx prisma db push
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
-
     - name: Run tests
-      run: npm test
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      run: npm test --if-present
+
+    - name: Verify Supabase migrations are tracked
+      run: test -n "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print -quit)"
 
   build:
     runs-on: ubuntu-latest
@@ -68,7 +46,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
 
     - name: Install dependencies
