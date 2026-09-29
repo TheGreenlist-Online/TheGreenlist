@@ -1,35 +1,23 @@
+import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
 import './globals.css'
-import { Inter, Permanent_Marker, Bebas_Neue, Anton, Archivo_Black, Fugaz_One, Kaushan_Script, Alfa_Slab_One } from 'next/font/google'
-
-// Inter remains the interface voice. Permanent Marker is scoped to the public
-// hero so the official system can carry a controlled street-art accent.
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-})
-
-const expressive = Permanent_Marker({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-expressive',
-  display: 'swap',
-})
-
-// Hand-painted tag stack: character + slant, still legit.
-const display = Bebas_Neue({ subsets: ['latin'], weight: '400', variable: '--font-display', display: 'swap' })
-const stencil = Anton({ subsets: ['latin'], weight: '400', variable: '--font-stencil', display: 'swap' })
-const heavy = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-heavy', display: 'swap' })
-const mural = Fugaz_One({ subsets: ['latin'], weight: '400', variable: '--font-mural', display: 'swap' })
-const brush = Kaushan_Script({ subsets: ['latin'], weight: '400', variable: '--font-brush', display: 'swap' })
-const slab = Alfa_Slab_One({ subsets: ['latin'], weight: '400', variable: '--font-slab', display: 'swap' })
 import { Providers } from './providers'
 import { ComplianceBanner } from '@/components/ComplianceBanner'
 import { SiteFrame } from '@/components/SiteFrame'
 import { Footer } from '@/components/Footer'
 import { SmokeBackground } from '@/components/SmokeBackground'
 import { APPEARANCE_BOOT_SCRIPT } from '@/lib/appearance'
+
+const FONT_VARIABLES = {
+  '--font-sans': '"Inter", system-ui, sans-serif',
+  '--font-expressive': '"Permanent Marker", "Segoe Print", cursive',
+  '--font-display': '"Bebas Neue", Impact, sans-serif',
+  '--font-stencil': '"Anton", Impact, sans-serif',
+  '--font-heavy': '"Archivo Black", Impact, sans-serif',
+  '--font-mural': '"Fugaz One", Impact, sans-serif',
+  '--font-brush': '"Kaushan Script", cursive',
+  '--font-slab': '"Alfa Slab One", serif',
+} as CSSProperties
 
 const siteUrl = 'https://thegreenlist.online'
 
@@ -76,10 +64,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${expressive.variable} ${display.variable} ${stencil.variable} ${heavy.variable} ${mural.variable} ${brush.variable} ${slab.variable}`}>
+    <html lang="en" style={FONT_VARIABLES}>
       <head>
-        {/* Applies the saved calm-background preference before first paint so the
-            backdrop never flashes at full strength. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Permanent+Marker&family=Bebas+Neue&family=Anton&family=Archivo+Black&family=Fugaz+One&family=Kaushan+Script&family=Alfa+Slab+One&display=swap"
+          rel="stylesheet"
+        />
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
       </head>
       <body className="font-sans">

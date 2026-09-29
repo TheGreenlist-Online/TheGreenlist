@@ -70,9 +70,13 @@ export function SiteHeader() {
             </span>
           </Link>
 
+          <div className="hidden flex-1 px-4 lg:block">
+            <SearchBar className="mx-auto max-w-md" />
+          </div>
+
           <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-[#a3d93b]">
+              <Link key={item.href} href={item.href} className="rounded-md transition hover:text-[#a3d93b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a3d93b]">
                 {item.label}
               </Link>
             ))}
@@ -83,8 +87,6 @@ export function SiteHeader() {
             </Button>
             {isAuthenticated ? (
               <>
-                {/* Settings was previously only reachable by knowing the URL or
-                    finding a button on the dashboard. */}
                 <Link
                   href="/settings"
                   aria-label="Account settings"
@@ -112,6 +114,8 @@ export function SiteHeader() {
             className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-100 lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label="Toggle navigation"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -120,7 +124,7 @@ export function SiteHeader() {
         <SearchBar className="mt-3 lg:hidden" />
 
         {isOpen ? (
-          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
+          <nav id="mobile-navigation" className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
             {navItems.map((item) => (
               <Link
                 key={item.href}
