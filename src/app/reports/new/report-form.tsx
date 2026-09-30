@@ -1,0 +1,266 @@
+'use client'
+
+import { FormEvent, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { REPORT_TYPES } from '@/lib/report-types'
+
+type BusinessOption = { id: string; name: string }
+
+export function ReportForm({ businesses }: { businesses: BusinessOption[] }) {
+  const router = useRouter()
+  const [reportType, setReportType] = useState('mislabeling')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [locationState, setLocationState] = useState('')
+  const [locationCity, setLocationCity] = useState('')
+  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [relatedBusiness, setRelatedBusiness] = useState('')
+  const [businessId, setBusinessId] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [restoredAt, setRestoredAt] = useState<Date | null>(null)
+  const [showRestoredBanner, setShowRestoredBanner] = useState(false)
+
+  type ReportDraft = {
+    reportType: string
+    title: string
+    description: string
+    locationState: string
+    locationCity: string
+    isAnonymous: boolean
+    relatedBusiness: string
+    businessId: string
+  }
+
+  const { savedAt, isSaving, clearDraft, loadDraft } = useDraftAutosave<ReportDraft>('report', {
+    reportType,
+    title,
+    description,
+    locationState,
+    locationCity,
+    isAnonymous,
+    relatedBusiness,
+    businessId,
+  })
+
+  useEffect(() => {
+    let mounted = true
+    loadDraft().then((draft) => {
+      if (!mounted || !draft) return
+      if (draft.reportType) setReportType(draft.reportType)
+      if (draft.title) setTitle(draft.title)
+      if (draft.description) setDescription(draft.description)
+      if (draft.locationState) setLocationState(draft.locationState)
+      if (draft.locationCity) setLocationCity(draft.locationCity)
+      if (draft.isAnonymous) setIsAnonymous(draft.isAnonymous)
+      if (draft.relatedBusiness) setRelatedBusiness(draft.relatedBusiness)
+      if (draft.businessId) setBusinessId(draft.businessId)
+      setRestoredAt(new Date())
+      setShowRestoredBanner(true)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+
+    if (title.trim().length < 8 || title.trim().length > 160) {
+      setError('Title must be between 8 and 160 characters.')
+      return
+    }
+
+    if (description.trim().length < 20) {
+      setError('Description must be at least 20 characters.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report_type: reportType,
+          title: title.trim(),
+          description: description.trim(),
+          location_state: locationState.trim() || null,
+          location_city: locationCity.trim() || null,
+          is_anonymous: isAnonymous,
+          business_id: businessId || null,
+          business_name_reported: businessId ? null : relatedBusiness.trim() || null,
+        }),
+      })
+
+      const body = await response.json()
+
+      if (!response.ok) {
+        throw new Error(body?.error ?? 'The report could not be submitted.')
+      }
+
+      await clearDraft()
+      router.push(`/reports/${body.id}`)
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : 'The report could not be submitted.')
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <Card className="border-primary/40">
+        <CardHeader>
+          <CardTitle>File a Report</CardTitle>
+          <CardDescription>
+            Document a mislabeling, contamination, licensing, worker-safety, deceptive-marketing, or other
+            accountability concern. Reports are reviewed before any public action is taken.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {showRestoredBanner && restoredAt ? (
+            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
+              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button
+                type="button"
+                onClick={() => setShowRestoredBanner(false)}
+                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <label className="block space-y-2 text-sm font-medium" htmlFor="report-type">
+              Report type
+              <select
+                id="report-type"
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={reportType}
+                onChange={(event) => setReportType(event.target.value)}
+              >
+                {REPORT_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block space-y-2 text-sm font-medium" htmlFor="report-title">
+              Title
+              <Input
+                id="report-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                minLength={8}
+                maxLength={160}
+                required
+                placeholder="Briefly identify the concern"
+              />
+            </label>
+
+            <label className="block space-y-2 text-sm font-medium" htmlFor="report-description">
+              Description
+              <textarea
+                id="report-description"
+                className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                minLength={20}
+                required
+                placeholder="Describe the facts, dates, location, and why this matters."
+              />
+            </label>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block space-y-2 text-sm font-medium" htmlFor="report-state">
+                State
+                <Input
+                  id="report-state"
+                  value={locationState}
+                  onChange={(event) => setLocationState(event.target.value)}
+                  placeholder="e.g. CA"
+                />
+              </label>
+              <label className="block space-y-2 text-sm font-medium" htmlFor="report-city">
+                City
+                <Input
+                  id="report-city"
+                  value={locationCity}
+                  onChange={(event) => setLocationCity(event.target.value)}
+                  placeholder="e.g. Oakland"
+                />
+              </label>
+            </div>
+
+            <label className="block space-y-2 text-sm font-medium" htmlFor="report-business">
+              Related business <span className="font-normal text-muted-foreground">(optional)</span>
+              <select
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={businessId}
+                onChange={(event) => {
+                  setBusinessId(event.target.value)
+                  if (event.target.value) setRelatedBusiness('')
+                }}
+              >
+                <option value="">Business is not listed</option>
+                {businesses.map((business) => (
+                  <option key={business.id} value={business.id}>{business.name}</option>
+                ))}
+              </select>
+              <Input
+                id="report-business"
+                value={relatedBusiness}
+                onChange={(event) => setRelatedBusiness(event.target.value)}
+                disabled={Boolean(businessId)}
+                maxLength={160}
+                placeholder="Business name, if applicable"
+              />
+              <span className="block text-xs font-normal text-muted-foreground">
+                Select a directory business, or enter its name when it is not yet listed.
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={isAnonymous}
+                onChange={(event) => setIsAnonymous(event.target.checked)}
+              />
+              <span>
+                <span className="block font-medium">Request public anonymity</span>
+                <span className="text-muted-foreground">
+                  Authorized reviewers can still identify the submitting account for safety and due process.
+                </span>
+              </span>
+            </label>
+
+            {error ? (
+              <p role="alert" className="rounded-lg border border-red-400/40 bg-red-950/35 p-3 text-sm text-red-100">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">
+                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
+              </span>
+            </div>
+
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting…' : 'Submit Report'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

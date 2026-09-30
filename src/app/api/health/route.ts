@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
   const requiredSupabaseEnv = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']
   const missingSupabaseEnv = requiredSupabaseEnv.filter((key) => !process.env[key])
-  let database: 'ok' | 'unconfigured' | 'error' = process.env.DATABASE_URL ? 'ok' : 'unconfigured'
+  let database: 'ok' | 'unconfigured' | 'error' = missingSupabaseEnv.length > 0 ? 'unconfigured' : 'ok'
 
-  if (process.env.DATABASE_URL) {
+  if (missingSupabaseEnv.length === 0) {
     try {
-      await prisma.$queryRaw`SELECT 1`
-      database = 'ok'
+      const supabase = await createSupabaseServerClient()
+      const { error } = await supabase.from('profiles').select('id').limit(1)
+      database = error ? 'error' : 'ok'
     } catch {
       database = 'error'
     }

@@ -2,30 +2,37 @@
 
 import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { Footer } from '@/components/Footer'
 import { SiteHeader } from '@/components/SiteHeader'
 import { resolveLocation } from '@/lib/view-switch'
+import { getDistrict } from '@/lib/districts'
 
-export function SiteFrame({ children }: { children: ReactNode }) {
+/**
+ * The persistent app shell: district theming, header, ribbon, footer.
+ *
+ * This is a client component only because the district is derived from the
+ * pathname. `children` and `footer` are passed in from the server layout, so
+ * they stay server-rendered and out of the client bundle — importing Footer
+ * here instead would drag it across the boundary on every route.
+ */
+export function SiteFrame({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const pathname = usePathname()
-  // The landing page is the site entrance rather than a district, so it keeps
-  // the neutral theme and shows no ribbon.
-  const location = pathname === '/' ? null : resolveLocation(pathname)
+  const district = getDistrict(pathname ?? '')
+  const location = pathname?.startsWith('/town') ? resolveLocation(pathname) : null
 
   return (
-    <div className={`site-frame district--${location?.themeSlug ?? 'home'}`}>
+    <div className={`site-frame district--${location?.themeSlug ?? district?.slug ?? 'home'}`}>
       <SiteHeader />
-      {location ? (
-        <div className="district-ribbon" role="note" aria-label={`Current district: ${location.name}`}>
+      {location || district ? (
+        <div className="district-ribbon" role="note" aria-label={`Current district: ${location?.name ?? district?.name}`}>
           <div className="district-ribbon__inner">
             <span className="district-ribbon__marker" aria-hidden="true" />
-            <strong>{location.name}</strong>
-            <span>{location.tagline}</span>
+            <strong>{location?.name ?? district?.name}</strong>
+            <span>{location?.tagline ?? district?.description}</span>
           </div>
         </div>
       ) : null}
       <div className="site-frame__content">{children}</div>
-      <Footer />
+      {footer}
     </div>
   )
 }

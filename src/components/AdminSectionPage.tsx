@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/authz'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { PageIntro } from '@/components/PageIntro'
 import { FeatureCard } from '@/components/FeatureCard'
 import { RoleBadge } from '@/components/RoleBadge'
 
@@ -19,14 +19,12 @@ export async function AdminSectionPage({ title, description }: { title: string; 
 
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">{title}</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">{description}</p>
-        <div className="mt-5">
-          <RoleBadge role="ADMIN" />
-        </div>
-      </OrnatePanel>
+      <PageIntro
+        eyebrow="Admin command center"
+        title={title}
+        lede={description}
+        actions={<RoleBadge role="ADMIN" />}
+      />
 
       <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {[
@@ -35,7 +33,10 @@ export async function AdminSectionPage({ title, description }: { title: string; 
           ['Sources', '/admin/sources', 'Audit source credibility and verification metadata.'],
           ['Moderation', '/admin/moderation', 'Inspect flags, safety issues, and due-process actions.'],
           ['Submissions', '/admin/submissions', 'Evaluate incoming community submissions and intake quality.'],
-          ['Logs', '/admin/logs', 'Track operational events and moderation audit records.'],
+          ['Audit logs', '/admin/audit-logs', 'Track operational events and moderation audit records.'],
+          ['NDA agreement', '/admin/nda', 'Sign the confidentiality agreement required to review sensitive content.'],
+          ['Verified Wall', '/admin/verified-facts', 'Add or remove moderator-verified facts on profiles and business pages.'],
+          ['Business documents', '/admin/business-documents', 'Approve or reject licenses, lab results, and permits.'],
         ].map(([label, href, cardDescription]) => (
           <FeatureCard key={href} title={label} href={href} description={cardDescription} />
         ))}

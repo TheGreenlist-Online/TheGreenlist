@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
         slug,
         status: 'published',
         visibility: 'public',
+        is_anonymous: Boolean(validatedData.isAnonymous),
       })
       .select()
       .single()
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const forumId = searchParams.get('forumId')
+    const forumId = searchParams.get('forumId') || searchParams.get('forum_id')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const from = (page - 1) * limit

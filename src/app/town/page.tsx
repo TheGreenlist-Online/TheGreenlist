@@ -21,7 +21,7 @@ export default function TownPage() {
 
         <section className="relative z-10 mx-auto max-w-4xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-emerald-300">One platform · Two ways to experience it</p>
-          <h1 className="mt-4 text-5xl text-amber-100 sm:text-7xl">Welcome to Green List Town</h1>
+          <h1 className="greenlist-hero-title">Welcome to Green List Town</h1>
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-zinc-300 sm:text-lg">
             A living digital community where every building opens a real Green List feature. The town and the standard site share the same accounts, records, permissions, forums, reports, and source of truth.
           </p>
@@ -84,7 +84,7 @@ export default function TownPage() {
 
         <section className="relative z-10 mx-auto mt-12 max-w-4xl rounded-2xl border border-amber-200/20 bg-black/45 p-6 text-center">
           <Castle className="mx-auto h-8 w-8 text-amber-200" />
-          <h2 className="mt-3 text-3xl text-amber-100">Your Base Is Coming</h2>
+          <h2 className="greenlist-section-title">Your Base Is Coming</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-zinc-300">
             Every resident will have a privacy-first personal base for verified achievements, chosen public information, strain journals, saved places, community contributions, and role-specific trophies.
           </p>

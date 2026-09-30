@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
     const role = normalizePlatformRole(profile?.role)
     const isPlatformOwner = user.app_metadata?.platform_owner === true
 
-    if (error || !hasPermission(role, 'platform:admin', isPlatformOwner)) {
+    if (error || !hasPermission(role, 'platform.admin', isPlatformOwner)) {
       return NextResponse.redirect(dashboardUrl(request))
     }
   }

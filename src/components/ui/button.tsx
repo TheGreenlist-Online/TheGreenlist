@@ -12,11 +12,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-emerald-300/20 bg-emerald-400 text-emerald-950 shadow-sm hover:bg-emerald-300",
+          "border border-brand-lime/40 bg-gradient-to-b from-brand-lime to-brand-green text-[#06110a] shadow-sm hover:brightness-110",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-accent/35 bg-card/70 text-foreground hover:border-accent hover:bg-accent/10 hover:text-accent",
+          "border border-brand-gold/40 bg-brand-gold/[.05] text-foreground hover:border-brand-gold/75 hover:bg-brand-gold/10 hover:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "text-foreground hover:bg-accent/10 hover:text-accent",
