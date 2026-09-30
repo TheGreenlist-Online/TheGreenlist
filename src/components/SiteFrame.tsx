@@ -2,28 +2,20 @@
 
 import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { Footer } from '@/components/Footer'
 import { SiteHeader } from '@/components/SiteHeader'
+import { getDistrict } from '@/lib/districts'
 
-const districts = [
-  { prefixes: ['/reports', '/report', '/evidence'], slug: 'reports', name: 'Reports Bureau', description: 'Evidence · Review · Accountability' },
-  { prefixes: ['/forums'], slug: 'forums', name: 'Forum Hall', description: 'Community · Discussion · Due process' },
-  { prefixes: ['/businesses'], slug: 'businesses', name: 'Business District', description: 'Verification · Licensing · Public trust' },
-  { prefixes: ['/news', '/trending'], slug: 'news', name: 'Newsroom', description: 'Reporting · Sources · Public interest' },
-  { prefixes: ['/education', '/help', '/api-docs'], slug: 'knowledge', name: 'Knowledge Library', description: 'Education · Guidance · Open resources' },
-  { prefixes: ['/legal', '/contact'], slug: 'civic', name: 'Civic Center', description: 'Policy · Governance · Public record' },
-  { prefixes: ['/admin'], slug: 'watchtower', name: 'The Watchtower', description: 'Moderation · Safety · Oversight' },
-  { prefixes: ['/dashboard', '/profile', '/settings', '/auth', '/login', '/register', '/sign-in', '/sign-up'], slug: 'resident', name: 'Resident Services', description: 'Account · Preferences · Participation' },
-  { prefixes: ['/town'], slug: 'town', name: 'Green List Town', description: 'One community · Every district' },
-] as const
-
-function getDistrict(pathname: string) {
-  return districts.find((district) => district.prefixes.some((prefix) => pathname.startsWith(prefix)))
-}
-
-export function SiteFrame({ children }: { children: ReactNode }) {
+/**
+ * The persistent app shell: district theming, header, ribbon, footer.
+ *
+ * This is a client component only because the district is derived from the
+ * pathname. `children` and `footer` are passed in from the server layout, so
+ * they stay server-rendered and out of the client bundle — importing Footer
+ * here instead would drag it across the boundary on every route.
+ */
+export function SiteFrame({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const pathname = usePathname()
-  const district = getDistrict(pathname)
+  const district = getDistrict(pathname ?? '')
 
   return (
     <div className={`site-frame district--${district?.slug ?? 'home'}`}>
@@ -38,7 +30,7 @@ export function SiteFrame({ children }: { children: ReactNode }) {
         </div>
       ) : null}
       <div className="site-frame__content">{children}</div>
-      <Footer />
+      {footer}
     </div>
   )
 }

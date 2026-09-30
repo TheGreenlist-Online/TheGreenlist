@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Leaf, LogOut, Menu, UserRound, X } from 'lucide-react'
+import Image from 'next/image'
+import { LogOut, Menu, Settings, UserRound, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
 import { Button } from '@/components/ui/button'
@@ -58,13 +59,24 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="site-brand" aria-label="The Green List home">
-            <span className="site-brand__mark"><Leaf /></span>
-            <span>The Green List</span>
+            <span className="site-brand__mark">
+              <Image src="/brand/greenlist-leaf.png" alt="" width={40} height={40} priority />
+            </span>
+            <span className="site-brand__text">
+              <span className="site-brand__name">
+                The <em>Green</em> List
+              </span>
+              <span className="site-brand__tag">Transparency &middot; Accountability</span>
+            </span>
           </Link>
+
+          <div className="hidden flex-1 px-4 lg:block">
+            <SearchBar className="mx-auto max-w-md" />
+          </div>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-300 lg:flex">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-emerald-300">
+              <Link key={item.href} href={item.href} className="rounded-md transition hover:text-[#a3d93b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a3d93b]">
                 {item.label}
               </Link>
             ))}
@@ -74,10 +86,19 @@ export function SiteHeader() {
               </Link>
             </Button>
             {isAuthenticated ? (
-              <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                {isSigningOut ? 'Signing out...' : 'Sign out'}
-              </Button>
+              <>
+                <Link
+                  href="/settings"
+                  aria-label="Account settings"
+                  className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-300 transition hover:border-[#a3d93b]/40 hover:text-[#a3d93b]"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
+                <Button type="button" size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </Button>
+              </>
             ) : (
               <Button asChild size="sm">
                 <Link href="/auth/signin">
@@ -93,6 +114,8 @@ export function SiteHeader() {
             className="rounded-lg border border-white/10 bg-white/[.03] p-2 text-zinc-100 lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label="Toggle navigation"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -101,13 +124,13 @@ export function SiteHeader() {
         <SearchBar className="mt-3 lg:hidden" />
 
         {isOpen ? (
-          <nav className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-[#0b100d] p-3 text-sm shadow-2xl lg:hidden">
+          <nav id="mobile-navigation" className="mt-3 grid gap-2 rounded-xl border border-white/10 bg-brand-panel p-3 text-sm shadow-2xl lg:hidden">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-emerald-300/10 hover:text-emerald-200"
+                className="rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
               >
                 {item.label}
               </Link>
@@ -115,25 +138,35 @@ export function SiteHeader() {
             <Link
               href={pathname.startsWith('/town') ? '/' : '/town'}
               onClick={() => setIsOpen(false)}
-              className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+              className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
             >
               {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
             </Link>
             {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                {isSigningOut ? 'Signing out...' : 'Sign out'}
-              </button>
+              <>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center rounded-md px-2 py-2 text-zinc-200 transition hover:bg-[#a3d93b]/10 hover:text-[#a3d93b]"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="flex items-center rounded-md border border-amber-300/35 px-2 py-2 text-left text-amber-100"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </button>
+              </>
             ) : (
               <Link
                 href="/auth/signin"
                 onClick={() => setIsOpen(false)}
-                className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+                className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
               >
                 Sign in
               </Link>

@@ -59,18 +59,18 @@ export default async function EducationPage({
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Knowledge Library</p>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
+        <p className="greenlist-eyebrow">Knowledge Library</p>
+        <h1 className="greenlist-page-title">
           Cannabis education & accountability resources
         </h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+        <p className="greenlist-page-lede">
           Resources are reviewed for accuracy, sourcing, safety, and compliance before publication. The
           library does not provide cannabis sales, ordering, delivery, or medical advice.
         </p>
         <div className="mt-6">
           <Link
             href="/education/new"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
+            className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
             Submit a Resource
@@ -125,7 +125,7 @@ export default async function EducationPage({
               <Link key={resource.id} href={`/education/${resource.id}`} className="block">
                 <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35" innerClassName="h-full flex flex-col">
                   <CategoryBadge category={resource.category} />
-                  <h3 className="mt-4 text-lg font-semibold text-zinc-100">{resource.title}</h3>
+                  <h3 className="greenlist-card-title mt-4">{resource.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-6 text-zinc-400">{resource.summary}</p>
                   <p className="mt-4 text-xs text-zinc-500">
                     Published {new Date(resource.created_at).toLocaleDateString()}

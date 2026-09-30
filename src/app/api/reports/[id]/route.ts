@@ -5,6 +5,7 @@ type ReportDetailRow = {
   id: string
   reporter_id: string | null
   business_id: string | null
+  business_name_reported: string | null
   forum_thread_id: string | null
   report_type: string
   title: string
@@ -44,7 +45,7 @@ export async function GET(
     const { data: report, error } = await supabase
       .from('reports')
       .select(
-        'id, reporter_id, business_id, forum_thread_id, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
+        'id, reporter_id, business_id, business_name_reported, forum_thread_id, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
       )
       .eq('id', id)
       .maybeSingle<ReportDetailRow>()

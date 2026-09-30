@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .maybeSingle<{ role: string | null }>()
         const role = normalizePlatformRole(requesterProfile?.role)
         const isPlatformOwner = requester.app_metadata?.platform_owner === true
-        isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
+        isAdmin = hasPermission(role, 'platform.admin', isPlatformOwner)
       }
       isOwnerOrAdmin = isOwner || isAdmin
     }

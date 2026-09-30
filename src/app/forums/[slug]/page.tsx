@@ -92,7 +92,7 @@ export default async function ForumDetailPage({
   return (
     <PageShell>
       <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+        <p className="greenlist-eyebrow">
           {forum.category ? forum.category.replace(/[_-]+/g, ' ') : 'Forum'}
         </p>
         <div className="mt-3 flex items-center gap-3">
@@ -100,15 +100,15 @@ export default async function ForumDetailPage({
             className="h-3 w-3 rounded-full"
             style={{ backgroundColor: forum.accent_color || '#34d399' }}
           />
-          <h1 className="text-4xl font-semibold text-zinc-100 md:text-5xl">{forum.name}</h1>
+          <h1 className="greenlist-page-title">{forum.name}</h1>
         </div>
         {forum.description ? (
-          <p className="mt-4 max-w-3xl leading-7 text-zinc-400">{forum.description}</p>
+          <p className="greenlist-page-lede">{forum.description}</p>
         ) : null}
         <div className="mt-6">
           <Link
             href={`/forums/new?forum=${forum.slug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
+            className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
             New Thread

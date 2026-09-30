@@ -17,7 +17,7 @@ export async function GET() {
     const { data, error } = await principal.supabase
       .from('nda_signatures')
       .select('*')
-      .eq('user_id', principal.user.id)
+      .eq('moderator_user_id', principal.user.id)
       .order('signed_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -37,7 +37,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const principal = await requireAdmin()
 
@@ -49,15 +49,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const forwardedFor = request.headers.get('x-forwarded-for')
-    const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : null
-
     const { data, error } = await principal.supabase
       .from('nda_signatures')
       .insert({
-        user_id: principal.user.id,
+        moderator_user_id: principal.user.id,
         signed_at: new Date().toISOString(),
-        ip_address: ipAddress,
         document_version: NDA_DOCUMENT_VERSION,
       })
       .select()

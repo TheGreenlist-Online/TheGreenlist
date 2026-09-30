@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { FileText, Plus } from 'lucide-react'
+import { statusToneClass, type StatusTone } from '@/lib/statusTones'
 
 export const metadata = {
   title: 'Reports Bureau - The Green List',
@@ -19,15 +20,19 @@ type ReportListRow = {
   created_at: string
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  submitted: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  under_review: 'border-cyan-300/35 bg-cyan-950/25 text-cyan-200',
-  business_response_requested: 'border-orange-300/35 bg-orange-950/25 text-orange-200',
-  substantiated: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
-  unsubstantiated: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  inconclusive: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  resolved: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
+const REPORT_STATUS_TONES: Record<string, StatusTone> = {
+  submitted: 'pending',
+  under_review: 'progress',
+  business_response_requested: 'progress',
+  substantiated: 'success',
+  unsubstantiated: 'neutral',
+  inconclusive: 'neutral',
+  resolved: 'success',
 }
+
+const STATUS_STYLES: Record<string, string> = Object.fromEntries(
+  Object.entries(REPORT_STATUS_TONES).map(([status, tone]) => [status, statusToneClass[tone]]),
+)
 
 function StatusPill({ status }: { status: string }) {
   const style = STATUS_STYLES[status] ?? 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200'
@@ -65,18 +70,18 @@ export default async function ReportsPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Reports Bureau</p>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
+        <p className="greenlist-eyebrow">Reports Bureau</p>
+        <h1 className="greenlist-page-title">
           Structured accountability reports
         </h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+        <p className="greenlist-page-lede">
           File a report documenting mislabeling, contamination, licensing issues, worker safety concerns,
           deceptive marketing, or other accountability matters. Reports enter a transparent review process.
         </p>
         <div className="mt-6">
           <Link
             href="/reports/new"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
+            className="greenlist-primary-button"
           >
             <Plus className="h-4 w-4" />
             File a Report
@@ -85,8 +90,8 @@ export default async function ReportsPage() {
       </OrnatePanel>
 
       <section className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Your reports</p>
-        <h2 className="mt-2 text-2xl text-amber-100">My filed reports</h2>
+        <p className="greenlist-eyebrow">Your reports</p>
+        <h2 className="greenlist-section-title">My filed reports</h2>
 
         {!user ? (
           <OrnatePanel className="mt-5">
@@ -121,7 +126,7 @@ export default async function ReportsPage() {
                 <OrnatePanel className="transition hover:-translate-y-0.5 hover:border-emerald-300/35">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-zinc-100">{report.title}</h3>
+                      <h3 className="greenlist-card-title">{report.title}</h3>
                       <p className="mt-1 text-sm text-zinc-400">
                         {report.report_type.replace(/_/g, ' ')}
                         {report.location_city || report.location_state

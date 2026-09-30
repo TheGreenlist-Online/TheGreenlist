@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { gohighlevel } from '@/lib/integrations/gohighlevel'
 
 function slugify(value: string) {
   return value
@@ -70,6 +71,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business name is required' }, { status: 400 })
     }
 
+    // business_profiles.business_type is NOT NULL, so an omitted value has to be
+    // rejected here rather than becoming a 500 from the database.
+    if (!business_type || typeof business_type !== 'string' || !business_type.trim()) {
+      return NextResponse.json({ error: 'Business type is required' }, { status: 400 })
+    }
+
     const baseSlug = slugify(name)
     let slug = baseSlug
     let attempt = 0
@@ -92,7 +99,7 @@ export async function POST(request: NextRequest) {
         owner_id: user.id,
         name: name.trim(),
         slug,
-        business_type: business_type || null,
+        business_type: business_type.trim(),
         description: description || null,
         website_url: website_url || null,
         external_affiliate_url: external_affiliate_url || null,
@@ -105,6 +112,25 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    try {
+      await gohighlevel.businessClaimSubmitted({
+        businessId: business.id,
+        businessName: business.name,
+        businessType: business.business_type,
+        state: business.state ?? undefined,
+        city: business.city ?? undefined,
+        ownerUserId: user.id,
+      })
+
+      await gohighlevel.onboardingQueued({
+        userId: user.id,
+        pathway: 'business-claim',
+        businessId: business.id,
+      })
+    } catch (integrationError) {
+      console.error('[businesses] GoHighLevel sync failed:', integrationError)
+    }
 
     return NextResponse.json(business, { status: 201 })
   } catch (error) {

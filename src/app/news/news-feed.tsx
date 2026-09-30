@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Loader2, Newspaper } from 'lucide-react'
 import { OrnatePanel } from '@/components/OrnatePanel'
@@ -45,7 +45,7 @@ function NewsCard({ item }: { item: NewsRow }) {
         <span>{formatPublished(item.published_at)}</span>
       </div>
 
-      <h3 className="mt-3 text-lg font-semibold leading-6 text-zinc-100">{item.title}</h3>
+      <h3 className="greenlist-card-title mt-3">{item.title}</h3>
 
       {item.summary ? (
         <p className="mt-2 flex-1 text-sm leading-6 text-zinc-400">{item.summary}</p>
@@ -90,7 +90,7 @@ export function NewsFeed({
   const [total, setTotal] = useState(initialTotal)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isInitial, setIsInitial] = useState(true)
+  const isInitial = useRef(true)
 
   const availableCategories = useMemo(() => {
     const found = new Set<string>()
@@ -101,8 +101,8 @@ export function NewsFeed({
   }, [initialItems])
 
   useEffect(() => {
-    if (isInitial) {
-      setIsInitial(false)
+    if (isInitial.current) {
+      isInitial.current = false
       return
     }
 

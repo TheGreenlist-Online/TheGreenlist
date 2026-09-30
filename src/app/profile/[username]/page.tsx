@@ -103,7 +103,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     <PageShell>
       <OrnatePanel>
         <div className="flex items-start gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-[#121a15]">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-emerald-300/25 bg-brand-raised">
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatar_url} alt={profile.display_name ?? profile.username ?? 'Profile avatar'} className="h-full w-full object-cover" />
@@ -112,8 +112,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Member profile</p>
-            <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">
+            <p className="greenlist-eyebrow">Member profile</p>
+            <h1 className="greenlist-page-title">
               {profile.display_name || profile.username || 'Member'}
             </h1>
             {profile.username ? <p className="mt-1 text-sm text-zinc-500">@{profile.username}</p> : null}
@@ -149,13 +149,13 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       {!isMinimal ? (
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <OrnatePanel>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Trust score</p>
+            <p className="greenlist-eyebrow">Trust score</p>
             <div className="mt-4">
               <ScoreMeter label="Trust" score={profile.trust_score} />
             </div>
           </OrnatePanel>
           <OrnatePanel>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Transparency score</p>
+            <p className="greenlist-eyebrow">Transparency score</p>
             <div className="mt-4">
               <ScoreMeter label="Transparency" score={profile.transparency_score} />
             </div>

@@ -46,6 +46,9 @@ export default async function AdminBusinessDocumentsPage() {
 
   const documents = await Promise.all(
     rows.map(async (row) => {
+      if (row.file_url.includes('..')) {
+        throw new Error('Invalid file path')
+      }
       const { data: signed } = await principal.supabase.storage
         .from('business-documents')
         .createSignedUrl(row.file_url, 60 * 60)
@@ -56,9 +59,9 @@ export default async function AdminBusinessDocumentsPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Business legal documents</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <p className="greenlist-eyebrow">Admin command center</p>
+        <h1 className="greenlist-page-title">Business legal documents</h1>
+        <p className="greenlist-page-lede">
           Review licenses, lab results, and permits submitted by business owners before they become
           publicly visible on business pages.
         </p>

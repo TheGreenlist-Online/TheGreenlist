@@ -16,6 +16,20 @@ const categories = [
   { value: 'RESEARCH_SUMMARY', title: 'Research Summary', description: 'Plain-language summaries of studies, datasets, testing findings, public-health evidence, and accountability research.', icon: FlaskConical },
 ]
 
+const EDUCATION_BUCKET = 'education-materials'
+const MAX_FILES = 5
+const MAX_FILE_SIZE = 15 * 1024 * 1024
+const ALLOWED_FILE_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'text/plain'])
+
+function sanitizeFileName(fileName: string) {
+  return (fileName.split(/[\\/]/).pop() ?? 'material')
+    .normalize('NFKD')
+    .replace(/[^\w.-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 120) || 'material'
+}
+
 export default function EducationNewPage() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [userId, setUserId] = useState<string | null>(null)
@@ -25,6 +39,7 @@ export default function EducationNewPage() {
   const [summary, setSummary] = useState('')
   const [content, setContent] = useState('')
   const [sources, setSources] = useState('')
+  const [files, setFiles] = useState<File[]>([])
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -92,9 +107,19 @@ export default function EducationNewPage() {
       return
     }
 
+    if (files.length > MAX_FILES) {
+      setError(`Upload no more than ${MAX_FILES} supporting files.`)
+      return
+    }
+    const invalidFile = files.find((file) => !ALLOWED_FILE_TYPES.has(file.type) || file.size > MAX_FILE_SIZE)
+    if (invalidFile) {
+      setError(`${invalidFile.name} must be a PDF, JPG, PNG, WebP, or TXT file no larger than 15 MB.`)
+      return
+    }
+
     setSubmitting(true)
     const sourceUrls = sources.split('\n').map((item) => item.trim()).filter(Boolean)
-    const { error: insertError } = await supabase.from('education_resources').insert({
+    const { data: resource, error: insertError } = await supabase.from('education_resources').insert({
       submitter_id: userId,
       category,
       title: title.trim(),
@@ -102,18 +127,56 @@ export default function EducationNewPage() {
       content: content.trim(),
       source_urls: sourceUrls,
       status: 'PENDING_REVIEW',
-    })
-    setSubmitting(false)
+    }).select('id').single<{ id: string }>()
 
-    if (insertError) {
-      setError(insertError.message || 'Your submission could not be saved.')
+    if (insertError || !resource) {
+      setSubmitting(false)
+      setError(insertError?.message || 'Your submission could not be saved.')
       return
     }
+
+    const uploadedPaths: string[] = []
+    try {
+      const attachments = []
+      for (const file of files) {
+        const storagePath = `${userId}/${resource.id}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`
+        const { error: uploadError } = await supabase.storage.from(EDUCATION_BUCKET).upload(storagePath, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: false,
+        })
+        if (uploadError) throw uploadError
+        uploadedPaths.push(storagePath)
+        attachments.push({
+          resource_id: resource.id,
+          uploader_id: userId,
+          storage_bucket: EDUCATION_BUCKET,
+          storage_path: storagePath,
+          file_name: file.name.slice(0, 255),
+          file_type: file.type,
+          file_size: file.size,
+        })
+      }
+      if (attachments.length) {
+        const { error: attachmentError } = await supabase.from('education_attachments').insert(attachments)
+        if (attachmentError) throw attachmentError
+      }
+    } catch (attachmentError) {
+      if (uploadedPaths.length) await supabase.storage.from(EDUCATION_BUCKET).remove(uploadedPaths)
+      setSubmitting(false)
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Supporting materials could not be uploaded.')
+      return
+    }
+
+    setSubmitting(false)
 
     setTitle('')
     setSummary('')
     setContent('')
     setSources('')
+    setFiles([])
+    const fileInput = document.getElementById('education-materials') as HTMLInputElement | null
+    if (fileInput) fileInput.value = ''
     await clearDraft()
     setMessage('Submission received. It is now marked Pending Review and will not be published until approved.')
   }
@@ -121,11 +184,11 @@ export default function EducationNewPage() {
   return (
     <div className="min-h-screen smoke-surface flex flex-col platform-stage">
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-10 md:py-14">
-        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-[#07110c]/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
+        <section className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-brand-panel/90 px-6 py-10 shadow-2xl shadow-black/40 md:px-12 md:py-14">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(147,51,234,.2),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(34,211,238,.15),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(132,204,22,.18),transparent_35%)]" />
           <div className="relative max-w-4xl">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-lime-300">Education Center</p>
-            <h1 className="mt-4 text-4xl font-bold leading-none text-amber-50 md:text-6xl">Share knowledge that strengthens the community.</h1>
+            <h1 className="greenlist-hero-title">Share knowledge that strengthens the community.</h1>
             <p className="mt-5 max-w-3xl text-base leading-7 text-zinc-300 md:text-lg">Submit evidence-based guides, regulatory resources, worker-rights information, or research summaries. Every submission enters a transparent review queue before publication.</p>
           </div>
         </section>
@@ -135,9 +198,9 @@ export default function EducationNewPage() {
             const Icon = item.icon
             const active = category === item.value
             return (
-              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-[#08110d]/85 hover:border-emerald-300/45'}`}>
+              <button key={item.value} type="button" onClick={() => setCategory(item.value)} className={`text-left rounded-2xl border p-5 transition ${active ? 'border-lime-300/70 bg-lime-300/10 shadow-lg shadow-lime-950/30' : 'border-emerald-300/20 bg-brand-panel/85 hover:border-emerald-300/45'}`}>
                 <Icon className="h-7 w-7 text-lime-300" />
-                <h2 className="mt-4 text-xl text-amber-50">{item.title}</h2>
+                <h2 className="greenlist-section-title">{item.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-zinc-400">{item.description}</p>
               </button>
             )
@@ -145,10 +208,10 @@ export default function EducationNewPage() {
         </section>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[1.35fr_.65fr]">
-          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-[#07100c]/92 p-6 shadow-xl shadow-black/30 md:p-8">
+          <form onSubmit={handleSubmit} className="rounded-3xl border border-emerald-300/25 bg-brand-panel/92 p-6 shadow-xl shadow-black/30 md:p-8">
             <div className="flex items-center gap-3">
               <BookOpen className="h-6 w-6 text-lime-300" />
-              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="text-2xl text-amber-50">{categories.find((item) => item.value === category)?.title}</h2></div>
+              <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Selected category</p><h2 className="greenlist-section-title">{categories.find((item) => item.value === category)?.title}</h2></div>
             </div>
 
             {!checkingSession && !userId ? (
@@ -174,6 +237,18 @@ export default function EducationNewPage() {
               <label className="block text-sm font-semibold text-zinc-200">Summary<textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={summary} onChange={(event) => setSummary(event.target.value)} minLength={20} maxLength={500} required placeholder="Explain what readers will learn and why it matters." /></label>
               <label className="block text-sm font-semibold text-zinc-200">Full resource<textarea className="mt-2 min-h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={content} onChange={(event) => setContent(event.target.value)} minLength={100} maxLength={20000} required placeholder="Provide the complete educational content. Separate verified facts, interpretation, and personal experience." /></label>
               <label className="block text-sm font-semibold text-zinc-200">Source links <span className="font-normal text-zinc-500">(one per line)</span><textarea className="mt-2 min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={sources} onChange={(event) => setSources(event.target.value)} placeholder="https://agency.gov/resource\nhttps://journal.org/study" /></label>
+              <label className="block text-sm font-semibold text-zinc-200" htmlFor="education-materials">
+                Supporting materials <span className="font-normal text-zinc-500">(optional)</span>
+                <Input
+                  id="education-materials"
+                  className="mt-2"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/jpeg,image/png,image/webp,text/plain"
+                  onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+                />
+                <span className="mt-1 block text-xs font-normal text-zinc-500">Up to 5 files, 15 MB each. PDF, JPG, PNG, WebP, or TXT.</span>
+              </label>
             </div>
 
             {error ? <div className="mt-5 rounded-xl border border-red-400/35 bg-red-950/30 p-4 text-sm text-red-100">{error}</div> : null}
@@ -186,9 +261,9 @@ export default function EducationNewPage() {
             <Button className="mt-2 w-full" size="lg" type="submit" disabled={submitting || checkingSession || !userId}>{submitting ? 'Submitting...' : userId ? 'Submit for review' : 'Sign in required'}</Button>
           </form>
 
-          <aside className="rounded-3xl border border-amber-300/25 bg-[#0a120e]/88 p-6 md:p-8">
+          <aside className="rounded-3xl border border-amber-300/25 bg-brand-panel/88 p-6 md:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-lime-300">Publication standards</p>
-            <h2 className="mt-3 text-3xl text-amber-50">Useful. Verifiable. Non-commercial.</h2>
+            <h2 className="greenlist-section-title">Useful. Verifiable. Non-commercial.</h2>
             <div className="mt-6 space-y-5 text-sm leading-6 text-zinc-300">
               <div><strong className="text-emerald-300">Evidence-led</strong><p>Use primary sources, public records, research, or clearly identified firsthand experience.</p></div>
               <div><strong className="text-emerald-300">Accessible</strong><p>Explain technical terms and provide practical context for a general audience.</p></div>

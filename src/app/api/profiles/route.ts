@@ -2,15 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 type PatchBody = {
+  username?: string | null
   display_name?: string | null
   bio?: string | null
   avatar_url?: string | null
   is_public?: boolean
+  is_anonymous_allowed?: boolean
 }
 
 const MAX_DISPLAY_NAME_LEN = 80
 const MAX_BIO_LEN = 1000
 const MAX_URL_LEN = 2048
+const MIN_USERNAME_LEN = 3
+const MAX_USERNAME_LEN = 30
+/** Postgres unique-violation. `profiles.username` is uniquely indexed. */
+const UNIQUE_VIOLATION = '23505'
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -25,6 +31,30 @@ export async function PATCH(request: NextRequest) {
 
     const body = (await request.json()) as PatchBody
     const update: Record<string, unknown> = {}
+
+    if ('username' in body) {
+      const value = typeof body.username === 'string' ? body.username.trim().toLowerCase() : ''
+      if (value.length < MIN_USERNAME_LEN || value.length > MAX_USERNAME_LEN) {
+        return NextResponse.json(
+          { error: `Username must be between ${MIN_USERNAME_LEN} and ${MAX_USERNAME_LEN} characters.`, field: 'username' },
+          { status: 400 },
+        )
+      }
+      if (!/^[a-z0-9_]+$/.test(value)) {
+        return NextResponse.json(
+          { error: 'Username may only contain lowercase letters, numbers and underscores.', field: 'username' },
+          { status: 400 },
+        )
+      }
+      update.username = value
+    }
+
+    if ('is_anonymous_allowed' in body) {
+      if (typeof body.is_anonymous_allowed !== 'boolean') {
+        return NextResponse.json({ error: 'is_anonymous_allowed must be a boolean' }, { status: 400 })
+      }
+      update.is_anonymous_allowed = body.is_anonymous_allowed
+    }
 
     if ('display_name' in body) {
       const value = typeof body.display_name === 'string' ? body.display_name.trim() : null
@@ -82,7 +112,14 @@ export async function PATCH(request: NextRequest) {
       )
       .single()
 
-    if (error) throw error
+    if (error) {
+      // A taken handle is an expected outcome, not a server fault — report it
+      // against the field so the form can highlight it.
+      if (error.code === UNIQUE_VIOLATION) {
+        return NextResponse.json({ error: 'That username is already taken.', field: 'username' }, { status: 409 })
+      }
+      throw error
+    }
 
     return NextResponse.json(profile)
   } catch (error) {

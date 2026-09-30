@@ -24,7 +24,7 @@ export default async function AdminNdaPage() {
   const { data } = await principal.supabase
     .from('nda_signatures')
     .select('*')
-    .eq('user_id', principal.user.id)
+    .eq('moderator_user_id', principal.user.id)
     .order('signed_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -34,9 +34,9 @@ export default async function AdminNdaPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Confidentiality</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Non-disclosure agreement</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <p className="greenlist-eyebrow">Confidentiality</p>
+        <h1 className="greenlist-page-title">Non-disclosure agreement</h1>
+        <p className="greenlist-page-lede">
           Reviewing sensitive reports, private evidence, or restricted forum content requires a signed
           confidentiality agreement scoped to your moderator/admin access on The Green List.
         </p>
@@ -49,7 +49,7 @@ export default async function AdminNdaPage() {
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Agreement signed</h2>
+              <h2 className="greenlist-card-title">Agreement signed</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-400">
                 You signed document version <span className="font-semibold text-zinc-200">{signature.document_version}</span> on{' '}
                 <span className="font-semibold text-zinc-200">{new Date(signature.signed_at).toLocaleString()}</span>.
@@ -60,7 +60,7 @@ export default async function AdminNdaPage() {
         </OrnatePanel>
       ) : (
         <OrnatePanel className="mt-8">
-          <h2 className="text-lg font-semibold text-zinc-100">Confidentiality statement</h2>
+          <h2 className="greenlist-card-title">Confidentiality statement</h2>
           <div className="mt-4 max-h-96 space-y-4 overflow-y-auto rounded-lg border border-white/10 bg-black/20 p-4 text-sm leading-6 text-zinc-300">
             <p>
               As a moderator or administrator of The Green List, you may be granted access to sensitive user
@@ -81,8 +81,7 @@ export default async function AdminNdaPage() {
             </ul>
             <p>
               This agreement (document version {NDA_DOCUMENT_VERSION}) remains in effect for as long as you hold
-              moderator or administrator access. Your acceptance, timestamp, and originating IP address will be
-              recorded for compliance purposes.
+              moderator or administrator access. Your acceptance, document version, and timestamp will be recorded for compliance purposes.
             </p>
           </div>
 

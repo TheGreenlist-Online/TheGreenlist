@@ -40,38 +40,42 @@ export async function FeaturedForums() {
 
   return (
     <section className="py-12">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Featured Forums</h2>
-        <Link href="/forums" className="text-sm font-medium text-accent hover:text-accent/80">
+      <div className="mb-8 flex items-center justify-between">
+        <h2 className="font-display text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">
+          Featured Forums
+        </h2>
+        <Link href="/forums" className="text-sm font-semibold text-accent transition-colors hover:text-accent/80">
           View all forums →
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {forums.map((forum) => {
           const threadCount = countsById.get(forum.id) ?? 0
+          const accent = forum.accent_color || '#39ff88'
+
           return (
-            <Link key={forum.id} href={`/forums/${forum.slug}`}>
-              <div className="group relative overflow-hidden rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-1">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: forum.accent_color || '#34d399' }}
-                  />
-                  <h3 className="font-semibold text-lg">{forum.name}</h3>
+            <Link key={forum.id} href={`/forums/${forum.slug}`} className="block h-full">
+              <div className="glass-card group h-full rounded-lg p-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
+                  <h3 className="text-base font-semibold text-foreground transition-colors group-hover:text-accent">
+                    {forum.name}
+                  </h3>
                 </div>
 
                 {forum.description ? (
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{forum.description}</p>
+                  <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{forum.description}</p>
                 ) : null}
 
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="h-4 w-4" />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="h-3.5 w-3.5" />
                     <span>
                       {threadCount} {threadCount === 1 ? 'thread' : 'threads'}
                     </span>
                   </div>
+                  <span className="font-semibold text-accent">Active</span>
                 </div>
               </div>
             </Link>

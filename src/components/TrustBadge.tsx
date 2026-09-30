@@ -58,7 +58,7 @@ export function TrustBadge({ text = 'Built for Truth. Driven by Community.', sta
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-full border border-amber-300/35 bg-[#121a15]/85 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200',
+        'inline-flex items-center rounded-full border border-amber-300/35 bg-brand-raised/85 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200',
         className,
       )}
     >

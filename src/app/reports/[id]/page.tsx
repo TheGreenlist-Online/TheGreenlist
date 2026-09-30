@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { ArrowLeft, MapPin, ShieldAlert } from 'lucide-react'
+import { statusToneClass, type StatusTone } from '@/lib/statusTones'
 
 export const metadata = {
   title: 'Report Detail - The Green List',
@@ -13,6 +14,7 @@ type ReportDetailRow = {
   id: string
   reporter_id: string | null
   business_id: string | null
+  business_name_reported: string | null
   report_type: string
   title: string
   description: string
@@ -28,15 +30,19 @@ type ReportDetailRow = {
   updated_at: string
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  submitted: 'border-amber-300/35 bg-amber-950/25 text-amber-200',
-  under_review: 'border-cyan-300/35 bg-cyan-950/25 text-cyan-200',
-  business_response_requested: 'border-orange-300/35 bg-orange-950/25 text-orange-200',
-  substantiated: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
-  unsubstantiated: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  inconclusive: 'border-zinc-400/35 bg-zinc-800/40 text-zinc-300',
-  resolved: 'border-emerald-300/35 bg-emerald-950/25 text-emerald-200',
+const REPORT_STATUS_TONES: Record<string, StatusTone> = {
+  submitted: 'pending',
+  under_review: 'progress',
+  business_response_requested: 'progress',
+  substantiated: 'success',
+  unsubstantiated: 'neutral',
+  inconclusive: 'neutral',
+  resolved: 'success',
 }
+
+const STATUS_STYLES: Record<string, string> = Object.fromEntries(
+  Object.entries(REPORT_STATUS_TONES).map(([status, tone]) => [status, statusToneClass[tone]]),
+)
 
 // NOTE (phase 2 TODO): public visibility for resolved/substantiated reports (via
 // public_summary, for non-owners / unauthenticated visitors) is not implemented yet.
@@ -59,7 +65,7 @@ export default async function ReportDetailPage({
   const { data: report, error } = await supabase
     .from('reports')
     .select(
-      'id, reporter_id, business_id, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
+      'id, reporter_id, business_id, business_name_reported, report_type, title, description, location_state, location_city, is_anonymous, status, verification_status, risk_level, confidence_score, public_summary, created_at, updated_at'
     )
     .eq('id', id)
     .maybeSingle<ReportDetailRow>()
@@ -80,10 +86,10 @@ export default async function ReportDetailPage({
       <OrnatePanel className="mt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            <p className="greenlist-eyebrow">
               {report.report_type.replace(/_/g, ' ')}
             </p>
-            <h1 className="mt-2 text-3xl font-semibold text-zinc-100 md:text-4xl">{report.title}</h1>
+            <h1 className="greenlist-page-title">{report.title}</h1>
           </div>
           <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.12em] ${statusStyle}`}>
             {report.status.replace(/_/g, ' ')}
@@ -104,16 +110,17 @@ export default async function ReportDetailPage({
             Risk: {report.risk_level}
           </span>
           {report.is_anonymous ? <span>Public anonymity requested</span> : null}
+          {report.business_name_reported ? <span>Business reported: {report.business_name_reported}</span> : null}
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Description</h2>
+          <h2 className="greenlist-eyebrow">Description</h2>
           <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-300">{report.description}</p>
         </div>
 
         {report.public_summary ? (
           <div className="mt-6 border-t border-white/10 pt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Public summary</h2>
+            <h2 className="greenlist-eyebrow">Public summary</h2>
             <p className="mt-3 leading-7 text-zinc-300">{report.public_summary}</p>
           </div>
         ) : null}

@@ -68,7 +68,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
         .maybeSingle<{ role: string | null }>()
       const role = normalizePlatformRole(requesterProfile?.role)
       const isPlatformOwner = requester.app_metadata?.platform_owner === true
-      isAdmin = hasPermission(role, 'platform:admin', isPlatformOwner)
+      isAdmin = hasPermission(role, 'platform.admin', isPlatformOwner)
     }
   }
   const isOwnerOrAdmin = isOwner || isAdmin
@@ -98,6 +98,9 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   // short-lived signed URLs here so the client only ever sees a working link.
   const allDocuments = await Promise.all(
     rawDocuments.map(async (doc) => {
+      if (doc.file_url.includes('..')) {
+        throw new Error('Invalid file path')
+      }
       const { data: signed } = await supabase.storage
         .from('business-documents')
         .createSignedUrl(doc.file_url, 60 * 60)
@@ -110,7 +113,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
     <PageShell>
       <OrnatePanel className="district-page-intro">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+          <p className="greenlist-eyebrow">
             {formatType(business.business_type)}
           </p>
           {business.verification_status === 'verified' ? (
@@ -123,7 +126,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
             </span>
           )}
         </div>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">{business.name}</h1>
+        <h1 className="greenlist-page-title">{business.name}</h1>
         {(business.city || business.state) ? (
           <p className="mt-3 flex items-center gap-1 text-sm text-zinc-400">
             <MapPin className="h-4 w-4" />
@@ -131,7 +134,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
           </p>
         ) : null}
         {business.description ? (
-          <p className="mt-4 max-w-3xl leading-7 text-zinc-400">{business.description}</p>
+          <p className="greenlist-page-lede">{business.description}</p>
         ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -151,14 +154,14 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Trust rating</p>
+          <p className="greenlist-eyebrow">Trust rating</p>
           <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-amber-300">
             <Star className="h-6 w-6 fill-current" />
             {(business.trust_rating ?? 0).toFixed(1)}
           </div>
         </OrnatePanel>
         <OrnatePanel>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Transparency score</p>
+          <p className="greenlist-eyebrow">Transparency score</p>
           <div className="mt-3 flex items-center gap-2 text-2xl font-semibold text-emerald-200">
             <ShieldCheck className="h-6 w-6" />
             {business.transparency_score ?? 0}
@@ -167,7 +170,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
       </div>
 
       <OrnatePanel className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Profile status</p>
+        <p className="greenlist-eyebrow">Profile status</p>
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wide text-zinc-500">Verification</dt>
@@ -199,7 +202,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
       </div>
 
       <OrnatePanel className="mt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Related reports</p>
+        <p className="greenlist-eyebrow">Related reports</p>
         <p className="mt-2 text-sm leading-6 text-zinc-400">
           Report linkage for this business is coming in a later phase.
         </p>

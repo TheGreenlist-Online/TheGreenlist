@@ -5,6 +5,7 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getCurrentPrincipal } from '@/lib/supabase/authz'
 import { isAdmin } from '@/lib/roles'
+import { PageIntro } from '@/components/PageIntro'
 
 export const metadata = {
   title: 'Forums - The Green List',
@@ -53,23 +54,16 @@ export default async function ForumsPage() {
 
   return (
     <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">District services</p>
-        <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">Forums</h1>
-        <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
-          Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open
-          public oversight.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/forums/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-300"
-          >
+      <PageIntro
+        title="Forums"
+        lede="Community discussion spaces for cannabis transparency, consumer reports, industry accountability, and open public oversight."
+        actions={
+          <Link href="/forums/new" className="greenlist-primary-button">
             <Sparkles className="h-4 w-4" />
             Start a new thread
           </Link>
-        </div>
-      </OrnatePanel>
+        }
+      />
 
       {error ? (
         <OrnatePanel className="mt-8">
@@ -94,7 +88,7 @@ export default async function ForumsPage() {
         <div className="mt-8 space-y-10">
           {Array.from(grouped.entries()).map(([category, categoryForums]) => (
             <section key={category}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">{category}</h2>
+              <h2 className="greenlist-eyebrow">{category}</h2>
               <div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {categoryForums.map((forum) => (
                   <Link key={forum.id} href={`/forums/${forum.slug}`} className="block">
@@ -104,7 +98,7 @@ export default async function ForumsPage() {
                           className="h-3 w-3 rounded-full"
                           style={{ backgroundColor: forum.accent_color || '#34d399' }}
                         />
-                        <h3 className="text-lg font-semibold text-zinc-100">{forum.name}</h3>
+                        <h3 className="greenlist-card-title">{forum.name}</h3>
                       </div>
                       {forum.description ? (
                         <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-400">{forum.description}</p>

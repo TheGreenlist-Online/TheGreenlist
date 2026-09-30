@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/supabase/authz'
+import { requirePermission } from '@/lib/supabase/authz'
 import type { AuditLogRow } from '@/types/moderation'
 
 export async function GET(request: NextRequest) {
   try {
-    const principal = await requireAdmin()
+    const principal = await requirePermission('audit.read')
 
     if (!principal.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

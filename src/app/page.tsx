@@ -1,10 +1,14 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import {
   BadgeCheck, BarChart3, BookOpen, Bot, Building2, CircleAlert, FileSearch,
   FileText, Gavel, Leaf, LockKeyhole, MessageSquare, Newspaper, Search,
   ShieldCheck, Sparkles, Users, Waypoints,
 } from 'lucide-react'
-import { PageShell } from '@/components/PageShell'
+import { FeaturedForums } from '@/components/FeaturedForums'
+import { RecentPosts } from '@/components/RecentPosts'
+import { TrendingTopics } from '@/components/TrendingTopics'
+import { SponsoredContent } from '@/components/SponsoredContent'
 
 const capabilities = [
   ['Authentication system', '/auth/signin', 'live'], ['Forum ecosystem', '/forums', 'live'],
@@ -40,7 +44,8 @@ function Status({ value }: { value: 'live' | 'beta' | 'planned' }) {
 
 export default function HomePage() {
   return (
-    <PageShell className="greenlist-home spec-home">
+    <div className="greenlist-home spec-home min-h-screen">
+      <main>
       <section className="spec-hero" aria-labelledby="home-heading">
         <div className="spec-hero__glow" />
         <div className="spec-wrap spec-hero__content">
@@ -91,7 +96,24 @@ export default function HomePage() {
           <div><p className="spec-label"><Building2 />Platform architecture</p><h2>Built to scale without losing accountability.</h2><p>Next.js and TypeScript on Vercel, PostgreSQL and protected storage on Supabase, OpenAI-assisted analysis with audit metadata, and integrations designed around explicit permissions.</p></div>
           <div className="spec-flow" aria-label="High level architecture"><span>Web + mobile</span><i>→</i><span>API + authorization</span><i>→</i><span>Postgres + storage</span><i>→</i><span>AI + external sources</span></div>
         </section>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+          <div className="lg:col-span-3">
+            <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading forums…</div>}>
+              <FeaturedForums />
+            </Suspense>
+            <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading posts…</div>}>
+              <RecentPosts />
+            </Suspense>
+          </div>
+          <div className="space-y-6 lg:col-span-1">
+            <Suspense fallback={<div className="py-4 text-sm text-muted-foreground">Loading topics…</div>}>
+              <TrendingTopics />
+            </Suspense>
+            <SponsoredContent />
+          </div>
+        </div>
       </div>
-    </PageShell>
+      </main>
+    </div>
   )
 }

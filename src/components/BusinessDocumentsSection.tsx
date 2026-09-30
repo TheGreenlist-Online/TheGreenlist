@@ -72,7 +72,7 @@ export function BusinessDocumentsSection({
 
   return (
     <OrnatePanel>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Legal &amp; compliance documents</p>
+      <p className="greenlist-eyebrow">Legal &amp; compliance documents</p>
       <p className="mt-1 text-xs text-zinc-500">Licenses, lab results, and permits verified by Green List admins.</p>
 
       {approvedDocs.length === 0 ? (

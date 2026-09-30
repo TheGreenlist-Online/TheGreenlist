@@ -32,7 +32,7 @@ export function VerifiedWall({ facts }: { facts: VerifiedFact[] }) {
     <OrnatePanel>
       <div className="flex items-center gap-2">
         <BadgeCheck className="h-4 w-4 text-emerald-300" />
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Verified Wall</p>
+        <p className="greenlist-eyebrow">Verified Wall</p>
       </div>
       <p className="mt-1 text-xs text-zinc-500">Facts and credentials confirmed by Green List moderators.</p>
 

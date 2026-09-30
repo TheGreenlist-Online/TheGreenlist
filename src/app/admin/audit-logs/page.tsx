@@ -36,9 +36,9 @@ export default async function AdminAuditLogsPage() {
   return (
     <PageShell>
       <OrnatePanel>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin command center</p>
-        <h1 className="mt-3 text-4xl text-amber-100">Audit logs</h1>
-        <p className="mt-4 max-w-3xl text-zinc-300">
+        <p className="greenlist-eyebrow">Admin command center</p>
+        <h1 className="greenlist-page-title">Audit logs</h1>
+        <p className="greenlist-page-lede">
           Operational and moderation audit records — actor, action, target, and timestamp for every tracked
           admin action.
         </p>

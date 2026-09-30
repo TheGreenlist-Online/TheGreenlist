@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma, getDatabaseUrl } from '@/lib/prisma'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
@@ -8,7 +8,7 @@ export async function GET() {
   const checks = {
     supabaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseKeyConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
-    databaseUrlConfigured: Boolean(getDatabaseUrl()),
+    databaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseReachable: false,
     databaseReachable: false,
     usersTableReachable: false,
@@ -37,17 +37,14 @@ export async function GET() {
     console.warn('Supabase auth check warning (non-fatal):', error)
   }
 
-  // Check database if configured (optional)
+  // Check database (Supabase Postgres) via the profiles table
   if (checks.databaseUrlConfigured) {
     try {
-      await prisma.$queryRaw`SELECT 1`
-      checks.databaseReachable = true
-
-      try {
-        await prisma.user.count()
+      const supabase = await createSupabaseServerClient()
+      const { error } = await supabase.from('profiles').select('id').limit(1)
+      if (!error) {
+        checks.databaseReachable = true
         checks.usersTableReachable = true
-      } catch {
-        // Prisma tables might not exist, which is OK for Supabase-only setup
       }
     } catch (error) {
       console.warn('Database check warning (non-fatal):', error)

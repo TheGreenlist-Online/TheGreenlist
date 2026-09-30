@@ -46,7 +46,7 @@ export function AuditLogTable({
   }
 
   return (
-    <div className="rounded-xl border border-white/[.09] bg-[#0d120f] shadow-[0_14px_35px_rgba(0,0,0,0.16)]">
+    <div className="rounded-xl border border-white/[.09] bg-brand-panel shadow-[0_14px_35px_rgba(0,0,0,0.16)]">
       <div className="flex items-center justify-between border-b border-white/10 p-4">
         <span className="text-xs text-zinc-500">{total} total log{total === 1 ? '' : 's'}</span>
         <div className="flex items-center gap-2">
