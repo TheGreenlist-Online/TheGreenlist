@@ -14,3 +14,16 @@ export function getOpenAIClient() {
 
   return new OpenAI({ apiKey });
 }
+
+export function getAIGatewayClient() {
+  const apiKey = process.env.AI_GATEWAY_API_KEY?.trim();
+
+  if (!apiKey) {
+    return null;
+  }
+
+  return new OpenAI({
+    apiKey,
+    baseURL: process.env.AI_GATEWAY_BASE_URL?.trim() || "https://ai-gateway.vercel.sh/v1",
+  });
+}

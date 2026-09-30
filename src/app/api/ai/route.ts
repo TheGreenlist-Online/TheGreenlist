@@ -1,23 +1,25 @@
 import { NextResponse } from "next/server";
-import { getOpenAIClient } from "@/lib/openai";
+import { getAIGatewayClient } from "@/lib/openai";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   return NextResponse.json({
-    configured: Boolean(process.env.OPENAI_API_KEY),
+    configured: Boolean(process.env.AI_GATEWAY_API_KEY),
     endpoint: "/api/ai",
     method: "POST",
+    streaming: true,
+    model: process.env.AI_GATEWAY_MODEL?.trim() || "openai/gpt-4o-mini",
   });
 }
 
 export async function POST(request: Request) {
   try {
-    const openai = getOpenAIClient();
+    const gateway = getAIGatewayClient();
 
-    if (!openai) {
+    if (!gateway) {
       return NextResponse.json(
-        { error: "AI service is not configured" },
+        { error: "AI Gateway is not configured" },
         { status: 503 }
       );
     }
@@ -35,8 +37,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await gateway.chat.completions.create({
+      model: process.env.AI_GATEWAY_MODEL?.trim() || "openai/gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -47,20 +49,36 @@ export async function POST(request: Request) {
       ],
       temperature: 0.2,
       max_tokens: 500,
+      stream: true,
     });
 
-    const response = completion.choices[0]?.message?.content?.trim();
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of completion) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          }
 
-    if (!response) {
-      return NextResponse.json(
-        { error: "AI service returned no response" },
-        { status: 502 }
-      );
-    }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
 
-    return NextResponse.json({ response });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
-    console.error("OpenAI API error:", error);
+    console.error("AI Gateway API error:", error);
 
     return NextResponse.json(
       { error: "AI service unavailable" },

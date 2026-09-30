@@ -39,7 +39,7 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 - **Auth**: Supabase Auth with server-verified sessions and PostgreSQL RLS
 - **Database**: Supabase/PostgreSQL with Prisma
 - **Storage**: Supabase
-- **AI**: OpenAI API for moderation and summarization
+- **AI**: Vercel AI Gateway (OpenAI-compatible client) for API generation plus OpenAI for selected summarization jobs
 - **Deployment**: Vercel, Docker, GitHub Actions
 - **Infrastructure**: Porkbun DNS, Redis-compatible cache where configured
 

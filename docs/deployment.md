@@ -73,7 +73,9 @@ docker run -p 3000:3000 --env-file .env.local thegreenlist
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Optional
-- [ ] `OPENAI_API_KEY`
+- [ ] `AI_GATEWAY_API_KEY`
+- [ ] `AI_GATEWAY_MODEL` (for `/api/ai` defaults/overrides)
+- [ ] `OPENAI_API_KEY` (optional fallback for non-gateway jobs)
 - [ ] `RESEND_API_KEY` or `SENDGRID_API_KEY`
 - [ ] `REDIS_URL`
 
