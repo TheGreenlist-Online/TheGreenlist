@@ -1,12 +1,11 @@
 import Parser from 'rss-parser'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { getOpenAIClient } from '@/lib/openai'
+import { getOpenAIClient, getSummaryModel } from '@/lib/openai'
 import { NEWS_SOURCES, type NewsSource } from '@/lib/newsSources'
 import { runJob, type JobResult } from '@/lib/jobs/runJob'
 
 const ITEMS_PER_FEED = 5
 const MAX_SUMMARIZED_PER_RUN = 20
-const OPENAI_MODEL = 'gpt-4o-mini'
 
 const parser = new Parser({
   timeout: 15_000,
@@ -68,7 +67,7 @@ async function summarizeWithOpenAI(
 
   try {
     const completion = await client.chat.completions.create({
-      model: OPENAI_MODEL,
+      model: getSummaryModel(),
       messages: [
         {
           role: 'system',
@@ -96,7 +95,7 @@ async function summarizeWithOpenAI(
       tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3).map((t) => String(t).trim()) : [],
     }
   } catch (error) {
-    console.error('[refreshNews] OpenAI summarization failed, falling back to RSS snippet:', error instanceof Error ? error.message : error)
+    console.error('[refreshNews] AI summarization failed, falling back to RSS snippet:', error instanceof Error ? error.message : error)
     return null
   }
 }
