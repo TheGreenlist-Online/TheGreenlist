@@ -3,9 +3,8 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Field, FormActions, Input, Notice, Panel, Select, Textarea } from '@/components/record'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
 
 type ForumOption = {
@@ -67,7 +66,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
     setSuccess(null)
 
     if (!forumId) {
-      setError('Choose a forum for this thread.')
+      setError('Choose a topic area for this discussion.')
       return
     }
     if (title.trim().length < 4) {
@@ -95,7 +94,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
       const payload = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        throw new Error(payload?.error || 'The thread could not be created.')
+        throw new Error(payload?.error || 'The discussion could not be opened.')
       }
 
       const forum = forums.find((f) => f.id === forumId)
@@ -109,7 +108,7 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
         router.push(`/forums/${forum.slug}`)
       }
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : 'The thread could not be created.')
+      setError(submissionError instanceof Error ? submissionError.message : 'The discussion could not be opened.')
     } finally {
       setSubmitting(false)
     }
@@ -117,123 +116,79 @@ export function NewThreadForm({ forums, defaultForumSlug }: NewThreadFormProps) 
 
   if (forums.length === 0) {
     return (
-      <Card className="mx-auto max-w-2xl border-primary/40">
-        <CardHeader>
-          <CardTitle>No forums available</CardTitle>
-          <CardDescription>There are no active forums to post in yet. Check back soon.</CardDescription>
-        </CardHeader>
-      </Card>
+      <Panel title="No desks available">
+        <p className="text-sm text-[var(--gl-text-secondary)]">There are no active discussion desks to post in.</p>
+      </Panel>
     )
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <Card className="border-primary/40">
-        <CardHeader>
-          <CardTitle>New Thread</CardTitle>
-          <CardDescription>Choose a forum, give your thread a clear title, and share the details.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {showRestoredBanner && restoredAt ? (
-            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
-              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
-              <button
-                type="button"
-                onClick={() => setShowRestoredBanner(false)}
-                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
-                aria-label="Dismiss"
-              >
+    <form onSubmit={handleSubmit} className="gl-panel">
+      <div className="gl-panel__head">
+        <h2>New discussion</h2>
+        <span className="gl-meta">
+          {isSaving ? <span>Saving draft…</span> : savedAt ? <span>Draft saved {formatDistanceToNow(savedAt, { addSuffix: true })}</span> : <span>Draft autosaves</span>}
+        </span>
+      </div>
+      <div className="gl-panel__body">
+        {showRestoredBanner && restoredAt ? (
+          <Notice tone="info" className="mb-5">
+            <span className="flex items-start justify-between gap-3">
+              <span>Unsaved draft restored from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button type="button" onClick={() => setShowRestoredBanner(false)} className="gl-link shrink-0 text-xs" aria-label="Dismiss">
                 Dismiss
               </button>
-            </div>
-          ) : null}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <label className="block space-y-2 text-sm font-medium" htmlFor="forum-select">
-              Forum
-              <select
-                id="forum-select"
-                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={forumId}
-                onChange={(event) => setForumId(event.target.value)}
-                required
-              >
-                {forums.map((forum) => (
-                  <option key={forum.id} value={forum.id}>
-                    {forum.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            </span>
+          </Notice>
+        ) : null}
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="thread-title">
-              Title
-              <Input
-                id="thread-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                minLength={4}
-                maxLength={200}
-                required
-                placeholder="Give your thread a clear, specific title"
-              />
-            </label>
+        <Field label="Desk" htmlFor="forum-select">
+          <Select id="forum-select" value={forumId} onChange={(event) => setForumId(event.target.value)} required>
+            {forums.map((forum) => (
+              <option key={forum.id} value={forum.id}>
+                {forum.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="thread-body">
-              Body
-              <textarea
-                id="thread-body"
-                className="min-h-40 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                minLength={10}
-                required
-                placeholder="Share the details, context, and any relevant facts."
-              />
-            </label>
+        <Field label="Title" htmlFor="thread-title" required help="State the question or documentation request. 4–200 characters.">
+          <Input id="thread-title" value={title} onChange={(event) => setTitle(event.target.value)} minLength={4} maxLength={200} required />
+        </Field>
 
-            <label className="flex items-start gap-3 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={isAnonymous}
-                onChange={(event) => setIsAnonymous(event.target.checked)}
-              />
-              <span>
-                <span className="block font-medium">Post anonymously</span>
-                <span className="text-muted-foreground">Your display name will be hidden from other members.</span>
-              </span>
-            </label>
+        <Field label="Body" htmlFor="thread-body" required help="Give the context and any sources you have. Name documents, not people.">
+          <Textarea id="thread-body" className="min-h-40" value={body} onChange={(event) => setBody(event.target.value)} minLength={10} required />
+        </Field>
 
-            {error ? (
-              <p role="alert" className="rounded-lg border border-red-400/40 bg-red-950/35 p-3 text-sm text-red-100">
-                {error}
-              </p>
-            ) : null}
+        <label className="mt-3 flex items-start gap-3 text-sm text-[var(--gl-text-secondary)]">
+          <input type="checkbox" className="mt-1" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} />
+          <span>
+            <span className="block font-medium text-[var(--gl-text)]">Post anonymously</span>
+            <span>Your display name is hidden from readers. Your account remains visible to reviewers.</span>
+          </span>
+        </label>
 
-            {success ? (
-              <div role="status" className="rounded-lg border border-emerald-400/40 bg-emerald-950/35 p-4 text-sm text-emerald-100">
-                <p className="font-semibold">Thread created.</p>
-                <a
-                  className="mt-2 inline-block font-semibold text-accent hover:underline"
-                  href={`/forums/${success.forumSlug}/${success.threadSlug}`}
-                >
-                  View your thread
-                </a>
-              </div>
-            ) : null}
+        {error ? (
+          <Notice tone="alert" className="mt-5">
+            {error}
+          </Notice>
+        ) : null}
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">
-                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
-              </span>
-            </div>
+        {success ? (
+          <Notice tone="confirmed" className="mt-5" role="status">
+            <strong>Discussion opened.</strong>{' '}
+            <a className="gl-link" href={`/forums/${success.forumSlug}/${success.threadSlug}`}>
+              View discussion
+            </a>
+          </Notice>
+        ) : null}
 
-            <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? 'Posting…' : 'Create Thread'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <FormActions>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? 'Publishing…' : 'Open discussion'}
+          </Button>
+        </FormActions>
+      </div>
+    </form>
   )
 }

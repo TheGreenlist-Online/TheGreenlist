@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { BookOpen, FlaskConical, Plus, Scale, ShieldCheck, Users } from 'lucide-react'
+import { PageIntro } from '@/components/PageIntro'
+import { Ledger, LimitationsPanel, Notice, Panel, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
+import { EDUCATION_CATEGORIES, educationCategoryLabel } from '@/lib/educationCategories'
+import { formatDate, recordId } from '@/lib/recordStatus'
 
 export const metadata = {
-  title: 'Knowledge Library - The Green List',
-  description: 'Cannabis education, policy context, consumer protection, and public-interest resources.',
+  title: 'Learn - The Green List',
+  description: 'Plain-language explainers on cannabis testing, labelling, licensing, and consumer rights, reviewed for sourcing before publication.',
 }
 
 type EducationListRow = {
@@ -17,29 +19,7 @@ type EducationListRow = {
   created_at: string
 }
 
-const CATEGORY_META: Record<string, { label: string; icon: typeof ShieldCheck }> = {
-  SAFETY_GUIDE: { label: 'Safety Guide', icon: ShieldCheck },
-  REGULATORY_RESOURCE: { label: 'Regulatory Resource', icon: Scale },
-  WORKER_RIGHTS: { label: 'Worker Rights', icon: Users },
-  RESEARCH_SUMMARY: { label: 'Research Summary', icon: FlaskConical },
-}
-
-function CategoryBadge({ category }: { category: string }) {
-  const meta = CATEGORY_META[category]
-  const Icon = meta?.icon ?? BookOpen
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/35 bg-emerald-950/25 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200">
-      <Icon className="h-3.5 w-3.5" />
-      {meta?.label ?? category.replace(/_/g, ' ')}
-    </span>
-  )
-}
-
-export default async function EducationPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string }>
-}) {
+export default async function EducationPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const { category } = await searchParams
   const supabase = await createSupabaseServerClient()
 
@@ -49,93 +29,86 @@ export default async function EducationPage({
     .eq('status', 'APPROVED')
     .order('created_at', { ascending: false })
 
-  if (category && Object.keys(CATEGORY_META).includes(category)) {
-    query = query.eq('category', category)
-  }
+  const activeCategory = category && Object.keys(EDUCATION_CATEGORIES).includes(category) ? category : undefined
+  if (activeCategory) query = query.eq('category', activeCategory)
 
   const { data, error } = await query.returns<EducationListRow[]>()
   const resources = data ?? []
 
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Knowledge Library</p>
-        <h1 className="greenlist-page-title">
-          Cannabis education & accountability resources
-        </h1>
-        <p className="greenlist-page-lede">
-          Resources are reviewed for accuracy, sourcing, safety, and compliance before publication. The
-          library does not provide cannabis sales, ordering, delivery, or medical advice.
-        </p>
-        <div className="mt-6">
-          <Link
-            href="/education/new"
-            className="greenlist-primary-button"
-          >
-            <Plus className="h-4 w-4" />
-            Submit a Resource
+      <PageIntro
+        title="Learn"
+        lede="Plain-language explainers on how cannabis testing, labelling, and licensing work, and what a certificate of analysis does and does not tell you. Resources are reviewed for accuracy and sourcing before publication. Nothing here is medical or legal advice."
+        meta={
+          <>
+            <span>{resources.length} published resource{resources.length === 1 ? '' : 's'}</span>
+            <span>Sources listed on every resource</span>
+          </>
+        }
+        actions={
+          <Link href="/education/new" className="greenlist-primary-button">
+            Submit a resource
           </Link>
-        </div>
-      </OrnatePanel>
+        }
+      />
 
-      <section className="mt-8">
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/education"
-            className={`rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-              !category ? 'border-emerald-300/60 bg-emerald-300/10 text-emerald-200' : 'border-white/10 text-zinc-400 hover:border-emerald-300/35'
-            }`}
-          >
-            All
-          </Link>
-          {Object.entries(CATEGORY_META).map(([value, meta]) => (
-            <Link
-              key={value}
-              href={`/education?category=${value}`}
-              className={`rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                category === value ? 'border-emerald-300/60 bg-emerald-300/10 text-emerald-200' : 'border-white/10 text-zinc-400 hover:border-emerald-300/35'
-              }`}
-            >
-              {meta.label}
+      <Section title="Categories" aside="Filter the list">
+        <Panel>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/education" className={activeCategory ? 'greenlist-quiet-button' : 'greenlist-secondary-button'} aria-current={!activeCategory ? 'true' : undefined}>
+              All
             </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6">
-        {error ? (
-          <OrnatePanel className="mt-5">
-            <p role="alert" className="text-amber-200">Resources could not be loaded right now.</p>
-          </OrnatePanel>
-        ) : resources.length === 0 ? (
-          <OrnatePanel className="mt-5">
-            <div className="flex items-start gap-3">
-              <BookOpen className="mt-1 h-6 w-6 text-emerald-300" />
-              <div>
-                <p className="text-zinc-200 font-semibold">No approved resources yet{category ? ' in this category' : ''}.</p>
-                <p className="mt-1 text-sm text-zinc-400">
-                  Approved submissions will appear here once reviewers have published them.
-                </p>
-              </div>
-            </div>
-          </OrnatePanel>
-        ) : (
-          <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {resources.map((resource) => (
-              <Link key={resource.id} href={`/education/${resource.id}`} className="block">
-                <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35" innerClassName="h-full flex flex-col">
-                  <CategoryBadge category={resource.category} />
-                  <h3 className="greenlist-card-title mt-4">{resource.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-6 text-zinc-400">{resource.summary}</p>
-                  <p className="mt-4 text-xs text-zinc-500">
-                    Published {new Date(resource.created_at).toLocaleDateString()}
-                  </p>
-                </OrnatePanel>
+            {Object.entries(EDUCATION_CATEGORIES).map(([value, meta]) => (
+              <Link
+                key={value}
+                href={`/education?category=${value}`}
+                className={activeCategory === value ? 'greenlist-secondary-button' : 'greenlist-quiet-button'}
+                aria-current={activeCategory === value ? 'true' : undefined}
+              >
+                {meta.label}
               </Link>
             ))}
           </div>
+          {activeCategory ? <p className="mt-3 text-sm text-[var(--gl-text-secondary)]">{EDUCATION_CATEGORIES[activeCategory].scope}</p> : null}
+        </Panel>
+      </Section>
+
+      <Section title="Published resources" aside={<span>Newest first</span>}>
+        {error ? (
+          <Notice tone="alert">Resources could not be loaded. Try again shortly.</Notice>
+        ) : resources.length === 0 ? (
+          <Panel>
+            <p className="text-sm font-semibold text-[var(--gl-text)]">No published resources{activeCategory ? ' in this category' : ''}.</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">Submitted resources are listed once reviewers have checked their sourcing and published them.</p>
+          </Panel>
+        ) : (
+          <RecordList ariaLabel="Published resources">
+            {resources.map((resource) => (
+              <RecordRow
+                key={resource.id}
+                href={`/education/${resource.id}`}
+                title={resource.title}
+                body={resource.summary}
+                meta={
+                  <>
+                    <span>{recordId('EDU', resource.id)}</span>
+                    <span>{educationCategoryLabel(resource.category)}</span>
+                    <span>Published {formatDate(resource.created_at)}</span>
+                  </>
+                }
+                aside={<StatusLabel label="Reviewed" tone="confirmed" title="Reviewed for accuracy and sourcing before publication" />}
+              />
+            ))}
+          </RecordList>
         )}
-      </section>
+      </Section>
+
+      <Section title="What the categories cover">
+        <Ledger rows={Object.values(EDUCATION_CATEGORIES).map((meta) => ({ label: meta.label, value: meta.scope }))} />
+      </Section>
+
+      <LimitationsPanel subject="resource" />
     </PageShell>
   )
 }

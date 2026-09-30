@@ -1,10 +1,15 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { CORRECTION_REQUEST_TYPE, isReportType, type ReportType } from '@/lib/report-types'
 import { EvidenceUploadForm, type EvidenceReportOption } from './evidence-upload-form'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { LimitationsPanel } from '@/components/record'
+import Link from 'next/link'
 
 export const metadata = {
-  title: 'Upload Evidence - The Green List',
-  description: 'Upload photos, receipts, and documentation to support your report',
+  title: 'Submit evidence - The Green List',
+  description: 'Submit documentation supporting a report or a correction request.',
 }
 
 type EvidenceReportRow = {
@@ -14,14 +19,35 @@ type EvidenceReportRow = {
   created_at: string
 }
 
-export default async function EvidenceUploadPage() {
+type EvidenceUploadPageProps = {
+  searchParams: Promise<{ type?: string | string[] }>
+}
+
+/**
+ * `?type=` preselects the report type. /about/corrections links here with
+ * `type=correction_request`. Anything not in the registry is ignored rather
+ * than echoed back, so the query string cannot inject an arbitrary token.
+ */
+function resolveInitialReportType(raw: string | string[] | undefined): ReportType | null {
+  const candidate = Array.isArray(raw) ? raw[0] : raw
+  return isReportType(candidate) ? candidate : null
+}
+
+export default async function EvidenceUploadPage({ searchParams }: EvidenceUploadPageProps) {
+  const { type } = await searchParams
+  const initialReportType = resolveInitialReportType(type)
+  const isCorrection = initialReportType === CORRECTION_REQUEST_TYPE
+
   const supabase = await createSupabaseServerClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/signin?callbackUrl=/evidence/upload')
+    const callbackUrl = initialReportType
+      ? `/evidence/upload?type=${encodeURIComponent(initialReportType)}`
+      : '/evidence/upload'
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
   }
 
   const { data: reports, error } = await supabase
@@ -40,27 +66,38 @@ export default async function EvidenceUploadPage() {
   }))
 
   return (
-    <div className="min-h-screen smoke-surface flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <section className="glow-border rounded-lg p-px mb-12">
-          <div className="rounded-lg bg-card/90 p-6 backdrop-blur md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">Upload Evidence</p>
-            <h1 className="greenlist-page-title max-w-4xl">
-              Document Your Report with Supporting Evidence
-            </h1>
-            <p className="mt-4 max-w-3xl text-muted-foreground">
-              Submit photos, receipts, product labels, screenshots, PDFs, or written documentation.
-              Files remain private and enter the platform&apos;s protected review process.
-            </p>
-          </div>
-        </section>
+    <PageShell>
+      <PageIntro
+        eyebrow={isCorrection ? 'Corrections' : 'Evidence'}
+        title={isCorrection ? 'Request a correction' : 'Submit evidence'}
+        lede={
+          isCorrection
+            ? 'Identify the record and the statement in dispute, say what it should read, and attach primary documentation. Requests are private until a decision is made and are reviewed by authorised staff only.'
+            : 'Photographs, receipts, product labels, screenshots, PDFs, or written documentation. Files are stored privately, linked to your report or correction request, and reviewed by authorised staff only.'
+        }
+        meta={
+          <>
+            <span>Private on receipt</span>
+            <span>{isCorrection ? 'Filed as a correction request' : 'Linked to a report'}</span>
+          </>
+        }
+        actions={
+          <Link href={isCorrection ? '/about/corrections' : '/evidence'} className="greenlist-quiet-button">
+            {isCorrection ? 'How corrections work' : 'How intake works'}
+          </Link>
+        }
+      />
 
+      <div className="mt-8">
         <EvidenceUploadForm
           userId={user.id}
           reports={reportOptions}
+          initialReportType={initialReportType}
           reportsLoadError={error ? 'Your existing reports could not be loaded. You can still create a new report below.' : null}
         />
-      </main>
-    </div>
+      </div>
+
+      <LimitationsPanel subject="report" className="mt-8" />
+    </PageShell>
   )
 }

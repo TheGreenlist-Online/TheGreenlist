@@ -1,13 +1,10 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/authz'
-import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { RoleBadge } from '@/components/RoleBadge'
+import { AdminPageFrame } from '@/components/AdminPageFrame'
 import { BusinessDocumentsAdmin } from './business-documents-admin'
 
 export const metadata = {
-  title: 'Business Documents - Admin',
+  title: 'Business documents - Review operations - The Green List',
 }
 
 export const revalidate = 0
@@ -57,29 +54,14 @@ export default async function AdminBusinessDocumentsPage() {
   )
 
   return (
-    <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="greenlist-page-title">Business legal documents</h1>
-        <p className="greenlist-page-lede">
-          Review licenses, lab results, and permits submitted by business owners before they become
-          publicly visible on business pages.
-        </p>
-        <div className="mt-5 flex items-center gap-3">
-          <RoleBadge role="ADMIN" />
-          {error ? <span className="text-sm text-red-300">Failed to load documents: {error.message}</span> : null}
-        </div>
-      </OrnatePanel>
-
-      <section className="mt-8">
-        <BusinessDocumentsAdmin initialDocuments={documents} />
-      </section>
-
-      <section className="mt-8 text-center">
-        <Link href="/admin" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to admin command center
-        </Link>
-      </section>
-    </PageShell>
+    <AdminPageFrame
+      title="Business documents"
+      lede="Licences, laboratory results, and permits submitted by record holders. Nothing appears on a public record until it has been reviewed here."
+      current="/admin/business-documents"
+      error={error ? `Documents could not be loaded: ${error.message}` : null}
+      meta={<span>{documents.length} pending</span>}
+    >
+      <BusinessDocumentsAdmin initialDocuments={documents} />
+    </AdminPageFrame>
   )
 }

@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { OrnatePanel } from '@/components/OrnatePanel'
 
 /**
  * One titled block of settings. Sections carry an id so the in-page nav can
@@ -19,17 +18,15 @@ export function SettingsSection({
   footer?: ReactNode
 }) {
   return (
-    <section id={id} className="scroll-mt-28">
-      <OrnatePanel>
-        <div className="max-w-2xl">
-          <h2 className="greenlist-section-title">{title}</h2>
-          {description ? <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p> : null}
-        </div>
-
-        <div className="mt-6 space-y-5">{children}</div>
-
-        {footer ? <div className="mt-6 border-t border-white/[.07] pt-5">{footer}</div> : null}
-      </OrnatePanel>
+    <section id={id} className="gl-panel scroll-mt-28">
+      <div className="gl-panel__head">
+        <h2>{title}</h2>
+      </div>
+      <div className="gl-panel__body">
+        {description ? <p className="mb-5 max-w-2xl text-sm leading-6 text-[var(--gl-text-secondary)]">{description}</p> : null}
+        <div className="grid gap-5">{children}</div>
+        {footer ? <div className="mt-6 border-t border-[var(--gl-border)] pt-5">{footer}</div> : null}
+      </div>
     </section>
   )
 }

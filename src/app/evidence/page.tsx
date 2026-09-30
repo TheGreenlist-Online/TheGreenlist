@@ -1,81 +1,63 @@
 import Link from 'next/link'
-import { FileSearch, FolderLock, ShieldCheck } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { PageIntro } from '@/components/PageIntro'
+import { Ledger, LimitationsPanel, Section } from '@/components/record'
 
 export const metadata = {
-  title: 'Evidence Center - The Green List',
-  description: 'Securely submit and manage documentation supporting Green List transparency reports',
+  title: 'Evidence intake - The Green List',
+  description: 'Private-by-default document intake supporting accountability reports and correction requests.',
 }
 
 export default function EvidencePage() {
   return (
     <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Reports Bureau</p>
-        <h1 className="greenlist-page-title">Evidence Center</h1>
-        <p className="greenlist-page-lede">
-          Securely attach photos, receipts, screenshots, PDFs, and written records to a transparency report.
-          Evidence remains private while authorized reviewers evaluate the submission.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Button asChild size="lg">
-            <Link href="/evidence/upload">
-              <FileSearch className="mr-2 h-5 w-5" />
-              Upload Evidence
+      <PageIntro
+        title="Evidence intake"
+        lede="Attach photographs, receipts, labels, screenshots, PDFs, and written records to a report or a correction request. Submissions are private on receipt and remain private while authorised reviewers assess them."
+        meta={
+          <>
+            <span>Private on receipt</span>
+            <span>Reviewed by staff</span>
+            <span>Never auto-published</span>
+          </>
+        }
+        actions={
+          <>
+            <Link href="/reports/new" className="greenlist-secondary-button">
+              File a report
             </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/reports/new">Start a Report</Link>
-          </Button>
-        </div>
-      </OrnatePanel>
+            <Link href="/evidence/upload" className="greenlist-primary-button">
+              Submit evidence
+            </Link>
+          </>
+        }
+      />
 
-      <section className="mt-8 grid gap-5 md:grid-cols-3" aria-label="Evidence safeguards">
-        <Card className="border-primary/35">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FolderLock className="h-5 w-5 text-accent" />
-              Private Storage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Uploaded files are stored in a private bucket rather than exposed through public file URLs.
-            </p>
-          </CardContent>
-        </Card>
+      <Section title="How submissions are handled" aside={<span>Applies to every file</span>}>
+        <Ledger
+          rows={[
+            { label: 'Storage', value: 'Files are stored in a private bucket. They are never exposed through public file URLs.' },
+            { label: 'Access', value: 'Limited to the submitting account and authorised reviewers under platform policy. Access is logged.' },
+            { label: 'Review', value: 'Documentation supports human review. A file does not, by itself, make an allegation public or a fact confirmed.' },
+            { label: 'Publication', value: 'Only findings supported by reviewed documentation are published, and the source class is stated on the record.' },
+            { label: 'Retention', value: 'Files linked to a closed report are retained with the record of the review. Removal requests go through the correction path.' },
+          ]}
+        />
+      </Section>
 
-        <Card className="border-primary/35">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ShieldCheck className="h-5 w-5 text-accent" />
-              Controlled Access
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Access is limited to the submitting account and authorized reviewers under platform policy.
-            </p>
-          </CardContent>
-        </Card>
+      <Section title="What to submit" aside={<span>Primary documents preferred</span>}>
+        <Ledger
+          rows={[
+            { label: 'Certificates of analysis', value: 'The full document with laboratory name, batch identifier, and date. Screenshots of summary pages are weaker evidence.' },
+            { label: 'Labels and packaging', value: 'Photographs showing the batch number, test date, and licensee name legibly.' },
+            { label: 'Receipts and invoices', value: 'Establishing where and when a product was obtained.' },
+            { label: 'Official correspondence', value: 'Regulator notices, licence letters, recall communications.' },
+            { label: 'Written accounts', value: 'Dated, first-hand, and specific. Identify what you observed directly and what you were told.' },
+          ]}
+        />
+      </Section>
 
-        <Card className="border-primary/35">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileSearch className="h-5 w-5 text-accent" />
-              Evidence-Led Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Documentation supports human review and does not automatically make an allegation public or verified.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      <LimitationsPanel subject="report" />
     </PageShell>
   )
 }

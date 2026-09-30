@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Lock, Pin } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { LimitationsPanel, Notice, Panel, RecordHeader, Section, StatusLabel } from '@/components/record'
+import { formatDate, recordId } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { ThreadReplyForm } from './thread-reply-form'
 
@@ -99,7 +98,7 @@ export default async function ThreadDetailPage({
   function authorLabel(authorId: string | null, isAnon: boolean) {
     if (isAnon) return 'Anonymous'
     if (authorId && authorNames.get(authorId)) return authorNames.get(authorId) as string
-    return 'Member'
+    return 'Account holder'
   }
 
   const topLevelReplies = (replies ?? []).filter((r) => !r.parent_post_id)
@@ -113,93 +112,76 @@ export default async function ThreadDetailPage({
 
   const callbackUrl = `/forums/${forum.slug}/${thread.slug}`
 
+  const stamp = (value: string) => formatDate(value, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+
   return (
-    <PageShell>
-      <OrnatePanel className="district-page-intro">
-        <div className="flex flex-wrap items-center gap-2">
-          {thread.is_pinned ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-xs font-semibold text-amber-200">
-              <Pin className="h-3 w-3" /> Pinned
-            </span>
-          ) : null}
-          {thread.is_locked ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-xs font-semibold text-zinc-300">
-              <Lock className="h-3 w-3" /> Locked
-            </span>
-          ) : null}
-        </div>
-        <h1 className="greenlist-page-title">{thread.title}</h1>
-        <p className="mt-3 text-sm text-zinc-500">
-          by {authorLabel(thread.author_id, thread.is_anonymous)} ·{' '}
-          {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })} · in{' '}
-          <Link href={`/forums/${forum.slug}`} className="text-emerald-300 hover:underline">
-            {forum.name}
+    <PageShell width="record">
+      <RecordHeader
+        eyebrow="Evidence Desk"
+        kind="Discussion"
+        recordId={recordId('DSK', thread.id)}
+        title={thread.title}
+        meta={[
+          { label: 'Opened', value: stamp(thread.created_at) },
+          { label: 'By', value: authorLabel(thread.author_id, thread.is_anonymous) },
+          { label: 'Desk', value: <Link href={`/forums/${forum.slug}`} className="gl-link">{forum.name}</Link> },
+        ]}
+        actions={
+          <Link href={`/forums/${forum.slug}`} className="greenlist-quiet-button">
+            Back to {forum.name}
           </Link>
-        </p>
-        <p className="mt-6 max-w-3xl whitespace-pre-wrap leading-7 text-zinc-300">{thread.body}</p>
-      </OrnatePanel>
+        }
+      >
+        {thread.is_pinned || thread.is_locked ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {thread.is_pinned ? <StatusLabel label="Pinned" tone="neutral" /> : null}
+            {thread.is_locked ? <StatusLabel label="Locked" tone="neutral" title="No further replies accepted" /> : null}
+          </div>
+        ) : null}
+      </RecordHeader>
 
-      <section className="mt-8">
-        <h2 className="greenlist-eyebrow">
-          {(replies ?? []).length} {replies && replies.length === 1 ? 'Reply' : 'Replies'}
-        </h2>
+      <Panel title="Opening post" className="mt-8">
+        <p className="gl-article">{thread.body}</p>
+      </Panel>
 
-        <div className="mt-4 space-y-4">
-          {topLevelReplies.length === 0 ? (
-            <OrnatePanel>
-              <p className="text-sm text-zinc-400">No replies yet. Be the first to respond.</p>
-            </OrnatePanel>
-          ) : (
-            topLevelReplies.map((reply) => (
-              <div key={reply.id} className="space-y-3">
-                <OrnatePanel>
-                  <p className="text-sm text-zinc-500">
-                    {authorLabel(reply.author_id, reply.is_anonymous)} ·{' '}
-                    {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-300">{reply.body}</p>
-                </OrnatePanel>
+      <Section title="Replies" aside={<span>{(replies ?? []).length} {replies && replies.length === 1 ? 'reply' : 'replies'}</span>}>
+        {topLevelReplies.length === 0 ? (
+          <Panel>
+            <p className="text-sm text-[var(--gl-text-muted)]">No replies have been posted.</p>
+          </Panel>
+        ) : (
+          <div className="grid gap-4">
+            {topLevelReplies.map((reply) => (
+              <div key={reply.id} className="grid gap-3">
+                <Panel aside={<><span>{authorLabel(reply.author_id, reply.is_anonymous)}</span><span>{stamp(reply.created_at)}</span></>}>
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--gl-text-secondary)]">{reply.body}</p>
+                </Panel>
                 {(repliesByParent.get(reply.id) ?? []).length > 0 ? (
-                  <div className="ml-6 space-y-3 border-l border-emerald-300/15 pl-4">
+                  <div className="ml-6 grid gap-3 border-l border-[var(--gl-border-strong)] pl-4">
                     {(repliesByParent.get(reply.id) ?? []).map((nested) => (
-                      <OrnatePanel key={nested.id}>
-                        <p className="text-sm text-zinc-500">
-                          {authorLabel(nested.author_id, nested.is_anonymous)} ·{' '}
-                          {formatDistanceToNow(new Date(nested.created_at), { addSuffix: true })}
-                        </p>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-300">{nested.body}</p>
-                      </OrnatePanel>
+                      <Panel key={nested.id} aside={<><span>{authorLabel(nested.author_id, nested.is_anonymous)}</span><span>{stamp(nested.created_at)}</span></>}>
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--gl-text-secondary)]">{nested.body}</p>
+                      </Panel>
                     ))}
                   </div>
                 ) : null}
               </div>
-            ))
-          )}
-        </div>
-      </section>
+            ))}
+          </div>
+        )}
+      </Section>
 
-      <section className="mt-8">
-        <OrnatePanel>
-          {thread.is_locked ? (
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <Lock className="h-4 w-4" />
-              This thread is locked. New replies are not being accepted.
-            </div>
-          ) : (
-            <ThreadReplyForm
-              threadId={thread.id}
-              isSignedIn={Boolean(user)}
-              signInHref={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            />
-          )}
-        </OrnatePanel>
-      </section>
+      <Section title="Add a reply" aside={<span>Cite a source where you can</span>}>
+        {thread.is_locked ? (
+          <Notice tone="info">This discussion is locked. New replies are not being accepted.</Notice>
+        ) : (
+          <Panel>
+            <ThreadReplyForm threadId={thread.id} isSignedIn={Boolean(user)} signInHref={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`} />
+          </Panel>
+        )}
+      </Section>
 
-      <div className="mt-10">
-        <Link href={`/forums/${forum.slug}`} className="text-sm font-semibold text-emerald-300 hover:underline">
-          ← Back to {forum.name}
-        </Link>
-      </div>
+      <LimitationsPanel subject="discussion" />
     </PageShell>
   )
 }

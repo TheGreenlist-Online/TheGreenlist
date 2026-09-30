@@ -101,7 +101,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
       <SettingsSection
         id="profile"
         title="Public identity"
-        description="How you appear to the community. Reports you file anonymously never show these details."
+        description="How you appear on public discussions and submissions. Reports you file anonymously never show these details."
       >
         <TextField
           id="username"
@@ -163,7 +163,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
         <Toggle
           id="is_anonymous_allowed"
           label="Allow anonymous submissions"
-          description="Keep the option to file a report or open a thread without your name attached. Moderators still see who submitted it for accountability."
+          description="Keep the option to file a report or open a discussion without your name attached. Reviewers still see who submitted it for accountability."
           checked={form.is_anonymous_allowed}
           onChange={(value) => set('is_anonymous_allowed', value)}
         />
@@ -172,7 +172,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
       {result ? <StatusMessage tone={result.tone}>{result.text}</StatusMessage> : null}
 
       {/* Sticky so the save button is reachable without scrolling back down. */}
-      <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-white/[.09] bg-brand-panel/95 px-4 py-3 backdrop-blur">
+      <div className="gl-form-actions">
         <button type="submit" disabled={!isDirty || isSaving} className="greenlist-primary-button disabled:opacity-45">
           {isSaving ? 'Saving…' : 'Save changes'}
         </button>
@@ -191,7 +191,7 @@ export function ProfileSettingsForm({ initial }: { initial: EditableProfile }) {
           </button>
         ) : null}
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[var(--gl-text-muted)]">
           {isDirty
             ? `${changed.length} unsaved ${changed.length === 1 ? 'change' : 'changes'}`
             : 'All changes saved'}

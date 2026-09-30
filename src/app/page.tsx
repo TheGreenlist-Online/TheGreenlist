@@ -1,119 +1,210 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
-import {
-  BadgeCheck, BarChart3, BookOpen, Bot, Building2, CircleAlert, FileSearch,
-  FileText, Gavel, Leaf, LockKeyhole, MessageSquare, Newspaper, Search,
-  ShieldCheck, Sparkles, Users, Waypoints,
-} from 'lucide-react'
-import { FeaturedForums } from '@/components/FeaturedForums'
-import { RecentPosts } from '@/components/RecentPosts'
-import { TrendingTopics } from '@/components/TrendingTopics'
-import { SponsoredContent } from '@/components/SponsoredContent'
+import type { Metadata } from 'next'
+import { PageShell } from '@/components/PageShell'
+import { OrnatePanel } from '@/components/OrnatePanel'
+import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
 
-const capabilities = [
-  ['Authentication system', '/auth/signin', 'live'], ['Forum ecosystem', '/forums', 'live'],
-  ['User social profiles', '/profile', 'live'], ['Transparency reports', '/reports', 'live'],
-  ['AI-assisted moderation', '/admin/moderation', 'beta'], ['Business profiles', '/businesses', 'live'],
-  ['Affiliate & advertising', '/legal/ftc', 'planned'], ['Memberships', '/dashboard', 'planned'],
-  ['News aggregation', '/news', 'live'], ['Legal aid forums', '/forums', 'beta'],
-  ['Admin analytics', '/admin', 'beta'], ['Whistleblower reporting', '/report', 'live'],
-  ['Mobile-first experience', '/', 'live'], ['Personalized home feed', '/dashboard', 'planned'],
-  ['Dynamic forum navigation', '/forums', 'live'], ['Trend & sentiment analytics', '/trending', 'beta'],
-  ['Badges & reputation', '/profile', 'beta'], ['Content tagging & search', '/forums', 'beta'],
-  ['Notifications & messaging', '/dashboard', 'beta'], ['API & integrations', '/api-docs', 'beta'],
-] as const
-
-const forumCategories = ['Cultivation', 'Grow Ops', 'Dispensaries', 'Budtenders', 'Consumer Safety', 'Product Reviews', 'Mold Reports', 'Worker Rights', 'Wage Theft', 'Fake Products', 'Policy & Legislation', 'Legal Aid', 'AI & Cannabis', 'Compliance Violations', 'Industry Corruption', 'Medical Cannabis', 'Regional Boards', 'News & Investigations']
-
-const moderation = [
-  [ShieldCheck, 'Toxicity detection'], [CircleAlert, 'Spam filtering'], [FileSearch, 'Misinformation'],
-  [Users, 'Harassment'], [Gavel, 'Legal-risk analysis'], [FileText, 'Duplicate detection'],
-  [Bot, 'AI summaries'], [BarChart3, 'Trend analysis'],
-] as const
-
-const pathways = [
-  [Search, 'Report it', 'Submit an incident and evidence', '/report'],
-  [BadgeCheck, 'Verify it', 'Review transparent business records', '/businesses'],
-  [MessageSquare, 'Discuss it', 'Join public-interest forums', '/forums'],
-  [BookOpen, 'Understand it', 'Use education and current news', '/education'],
-] as const
-
-function Status({ value }: { value: 'live' | 'beta' | 'planned' }) {
-  return <span className={`spec-status spec-status--${value}`}>{value}</span>
+export const metadata: Metadata = {
+  title: 'The Green List — Cannabis Records & Accountability',
 }
+
+const primaryActions = [
+  {
+    title: 'Search records',
+    body: 'Look up a business, licence, report, or jurisdiction and see what is documented, what is missing, and where each fact came from.',
+    href: '/businesses',
+    cta: 'Open records',
+  },
+  {
+    title: 'Read reports',
+    body: 'Structured accountability reports with a visible review status. Allegations are labelled as allegations until a finding is published.',
+    href: '/reports',
+    cta: 'Open reports',
+  },
+  {
+    title: 'Submit evidence or request a correction',
+    body: 'Provide documents through a private-by-default intake, or dispute a published record with primary documentation.',
+    href: '/evidence/upload',
+    cta: 'Open intake',
+  },
+] as const
+
+const statusVocabulary = [
+  { tone: 'confirmed', label: 'Official source confirmed', meaning: 'A government or regulator source directly supports the stated fact.' },
+  { tone: 'confirmed', label: 'Primary document verified', meaning: 'A source document was reviewed and linked to the listed record.' },
+  { tone: 'neutral', label: 'Business-reported', meaning: 'The business submitted the information. It has not been independently confirmed.' },
+  { tone: 'review', label: 'Partially documented', meaning: 'Some relevant evidence exists, but meaningful documentation is missing.' },
+  { tone: 'review', label: 'Under review', meaning: 'The information is being assessed. No public conclusion is implied.' },
+  { tone: 'alert', label: 'Official alert active', meaning: 'A source-linked regulator alert, recall, hold, or warning applies.' },
+  { tone: 'neutral', label: 'Cannot verify', meaning: 'The platform cannot substantiate the claim using available evidence.' },
+] as const
+
+const cannotYetVerify = [
+  'Batch-specific laboratory results for products sold at retail, until laboratory and regulator data feeds are connected.',
+  'Whether a certificate of analysis represents the entire batch rather than the submitted sample.',
+  'Ingredient and additive disclosures that manufacturers have not published.',
+  'License status in real time. Records carry the date they were last checked against the official source.',
+] as const
 
 export default function HomePage() {
   return (
-    <div className="greenlist-home spec-home min-h-screen">
-      <main>
-      <section className="spec-hero" aria-labelledby="home-heading">
-        <div className="spec-hero__glow" />
-        <div className="spec-wrap spec-hero__content">
-          <p className="spec-eyebrow"><span className="spec-pulse" /> Civic-tech cannabis transparency</p>
-          <h1 id="home-heading"><span>The</span>Green List</h1>
-          <p className="spec-deck">The public accountability layer for cannabis.</p>
-          <p className="spec-intro">Reports, verified context, business transparency, current news, education, and community discussion—connected in one evidence-led platform.</p>
-          <div className="spec-actions">
-            <Link className="spec-button spec-button--primary" href="/town"><Waypoints />Enter Green List Town</Link>
-            <Link className="spec-button" href="/report"><FileText />Submit a report</Link>
-            <Link className="spec-button" href="/news"><Newspaper />Read current news</Link>
+    <PageShell className="greenlist-home">
+      {/* Statement of purpose */}
+      <section aria-labelledby="home-heading" className="border-b border-[var(--gl-border)] pb-10">
+        <p className="greenlist-eyebrow">Independent public-interest records</p>
+        <h1 id="home-heading" className="greenlist-hero-title max-w-4xl">
+          What is documented. What is missing. What needs accountability.
+        </h1>
+        <p className="greenlist-page-lede max-w-3xl text-[1.05rem]">
+          The Green List is an independent records platform for the cannabis market. It makes business, licence,
+          testing, and compliance information readable, comparable, and checkable against its sources — and it says
+          plainly when something cannot be verified.
+        </p>
+
+        <div className="mt-8 max-w-3xl">
+          <GlobalSearch placeholder="Business, licence, brand, report, or jurisdiction" />
+          <p className="gl-meta mt-2">
+            <span>Public records only.</span>
+            <span>Private reports and evidence never appear in search.</span>
+          </p>
+        </div>
+
+        <ul className="gl-meta mt-6 gap-x-6" aria-label="Platform commitments">
+          <li>No paid verification</li>
+          <li>No paid removal</li>
+          <li>No hidden sponsorship</li>
+          <li>No marketplace</li>
+        </ul>
+      </section>
+
+      {/* Three primary actions */}
+      <section className="gl-section" aria-labelledby="actions-heading">
+        <div className="gl-section__head">
+          <h2 id="actions-heading">Start here</h2>
+          <p>Three ways to use the record.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {primaryActions.map((action) => (
+            <OrnatePanel key={action.href} className="flex flex-col" innerClassName="flex h-full flex-col">
+              <h3 className="greenlist-card-title">{action.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-[var(--gl-text-secondary)]">{action.body}</p>
+              <Link href={action.href} className="greenlist-secondary-button mt-5 self-start">
+                {action.cta}
+              </Link>
+            </OrnatePanel>
+          ))}
+        </div>
+      </section>
+
+      {/* What we can and cannot verify */}
+      <section className="gl-section" aria-labelledby="scope-heading">
+        <div className="gl-section__head">
+          <h2 id="scope-heading">What the record can and cannot establish</h2>
+          <p>Stated limits are part of the record, not a footnote to it.</p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="gl-panel">
+            <div className="gl-panel__head">
+              <h3>Status vocabulary</h3>
+              <span className="gl-meta">Used identically on every record</span>
+            </div>
+            <table className="gl-ledger">
+              <tbody>
+                {statusVocabulary.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row">
+                      <span className={`gl-status gl-status--${row.tone}`}>{row.label}</span>
+                    </th>
+                    <td className="text-[var(--gl-text-secondary)]">{row.meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="spec-pathways">
-            {pathways.map(([Icon, title, copy, href]) => <Link href={href} key={title}><Icon /><span><strong>{title}</strong><small>{copy}</small></span></Link>)}
+
+          <div className="grid gap-4">
+            <div className="gl-panel">
+              <div className="gl-panel__head">
+                <h3>What The Green List cannot yet verify</h3>
+              </div>
+              <div className="gl-panel__body">
+                <ul className="grid gap-3 text-sm leading-6 text-[var(--gl-text-secondary)]">
+                  {cannotYetVerify.map((item) => (
+                    <li key={item} className="border-l-2 border-[var(--gl-border-strong)] pl-3">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-sm text-[var(--gl-text-muted)]">
+                  These gaps are the reason the platform exists. Closing them is the work, and progress is reported as
+                  records — not as marketing.
+                </p>
+              </div>
+            </div>
+
+            <div className="gl-panel">
+              <div className="gl-panel__head">
+                <h3>What a record does not mean</h3>
+              </div>
+              <div className="gl-panel__body text-sm leading-6 text-[var(--gl-text-secondary)]">
+                <p>
+                  A record on The Green List is not a certification, an endorsement, a safety rating, or a
+                  recommendation to purchase. A verification label states exactly what was checked, against which
+                  source, and when. Nothing more is implied.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="spec-wrap spec-board">
-        <section className="spec-mission spec-panel">
-          <div><p className="spec-label"><Leaf />Mission</p><h2>Truth needs infrastructure.</h2><p>Build the most trusted cannabis-industry transparency platform: a civic-tech ecosystem for accountability, verification, legal aid, reporting, analytics, and public education.</p></div>
-          <div className="spec-version"><span>Platform</span><strong>Public beta</strong><span>Domain</span><strong>thegreenlist.online</strong></div>
-        </section>
-
-        <section className="spec-boundaries" aria-label="Platform purpose and compliance boundaries">
-          <article className="spec-panel"><p className="spec-label"><BadgeCheck />We are</p><ul><li>Transparency infrastructure</li><li>Civic-tech watchdog</li><li>Investigative reporting hub</li><li>Community and education platform</li><li>Verified business directory</li><li>Analytics and trend intelligence</li></ul></article>
-          <article className="spec-panel spec-panel--danger"><p className="spec-label"><CircleAlert />We are not</p><ul><li>A dispensary or cannabis marketplace</li><li>A checkout, cart, broker, or payment processor</li><li>A delivery, inventory, or transaction service</li><li>A facilitator of interstate cannabis commerce</li></ul><strong>No cannabis sales. Under any circumstances.</strong></article>
-          <article className="spec-panel spec-panel--blue"><p className="spec-label"><LockKeyhole />Legal compliance</p><ul><li>No sales, ordering, delivery, or fulfillment</li><li>FTC labels on promotions and affiliate links</li><li>No deceptive or unverified medical claims</li><li>User allegations remain labeled until reviewed</li><li>Human review for consequential moderation</li></ul></article>
-        </section>
-
-        <section className="spec-panel">
-          <div className="spec-section-head"><div><p className="spec-label"><Sparkles />Core platform</p><h2>One system, twenty connected capabilities.</h2></div><p>Status reflects the current implementation—not a marketing promise.</p></div>
-          <div className="spec-capability-grid">{capabilities.map(([name, href, status], index) => <Link href={href} key={name}><span className="spec-number">{String(index + 1).padStart(2, '0')}</span><strong>{name}</strong><Status value={status} /></Link>)}</div>
-        </section>
-
-        <section className="spec-panel">
-          <div className="spec-section-head"><div><p className="spec-label"><MessageSquare />Forum districts</p><h2>Follow the issue, not the noise.</h2></div><Link href="/forums">Open all forums →</Link></div>
-          <div className="spec-tags">{forumCategories.map(category => <Link href={`/forums?category=${encodeURIComponent(category)}`} key={category}>{category}</Link>)}</div>
-          <p className="spec-note">Threads · voting · AI summaries · tagging · attachments · anonymous reporting pathways · trust signals</p>
-        </section>
-
-        <section className="spec-panel">
-          <div className="spec-section-head"><div><p className="spec-label"><Bot />AI and moderation</p><h2>Machine speed. Human judgment.</h2></div><p>AI assists reviewers; people make consequential decisions.</p></div>
-          <div className="spec-moderation">{moderation.map(([Icon, label]) => <div key={label}><Icon /><span>{label}</span></div>)}</div>
-        </section>
-
-        <section className="spec-architecture spec-panel">
-          <div><p className="spec-label"><Building2 />Platform architecture</p><h2>Built to scale without losing accountability.</h2><p>Next.js and TypeScript on Vercel, PostgreSQL and protected storage on Supabase, OpenAI-assisted analysis with audit metadata, and integrations designed around explicit permissions.</p></div>
-          <div className="spec-flow" aria-label="High level architecture"><span>Web + mobile</span><i>→</i><span>API + authorization</span><i>→</i><span>Postgres + storage</span><i>→</i><span>AI + external sources</span></div>
-        </section>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-          <div className="lg:col-span-3">
-            <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading forums…</div>}>
-              <FeaturedForums />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-sm text-muted-foreground">Loading posts…</div>}>
-              <RecentPosts />
-            </Suspense>
-          </div>
-          <div className="space-y-6 lg:col-span-1">
-            <Suspense fallback={<div className="py-4 text-sm text-muted-foreground">Loading topics…</div>}>
-              <TrendingTopics />
-            </Suspense>
-            <SponsoredContent />
-          </div>
+      {/* Sections */}
+      <section className="gl-section" aria-labelledby="sections-heading">
+        <div className="gl-section__head">
+          <h2 id="sections-heading">Sections of the record</h2>
+          <p>Every section uses the same shell, the same status language, and the same correction path.</p>
         </div>
-      </div>
-      </main>
-    </div>
+        <div className="gl-panel">
+          <table className="gl-ledger">
+            <tbody>
+              {PRIMARY_NAV.map((item) => (
+                <tr key={item.href}>
+                  <th scope="row">
+                    <Link href={item.href} className="text-[var(--gl-text)] normal-case tracking-normal font-sans text-sm font-semibold hover:underline">
+                      {item.label}
+                    </Link>
+                  </th>
+                  <td className="text-[var(--gl-text-secondary)]">{item.purpose}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Governance */}
+      <section className="gl-section" aria-labelledby="governance-heading">
+        <div className="gl-section__head">
+          <h2 id="governance-heading">How the work is governed</h2>
+          <p>Published, permanent, and reachable from every page.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {GOVERNANCE_LINKS.map((item) => (
+            <Link key={item.href} href={item.href} className="gl-panel gl-panel__body block transition-colors hover:border-[var(--gl-border-strong)]">
+              <h3 className="greenlist-card-title">{item.label}</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--gl-text-secondary)]">{item.purpose}</p>
+            </Link>
+          ))}
+        </div>
+
+        <p className="gl-limitations mt-8 max-w-3xl">
+          <strong>Public participation.</strong> The Evidence Desk exists to locate primary documents, identify missing
+          records, ask informed questions, and correct errors. It is not a reputation vote, and discussion never
+          changes a record&apos;s status without documentary review.
+        </p>
+      </section>
+    </PageShell>
   )
 }

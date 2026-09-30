@@ -55,10 +55,10 @@ export function SettingsNav() {
               href={`#${section.id}`}
               aria-current={active === section.id ? 'true' : undefined}
               className={cn(
-                'block rounded-lg px-3 py-2 text-sm transition',
+                'block border-l-2 px-3 py-1.5 text-sm transition',
                 active === section.id
-                  ? 'bg-emerald-300/[.10] font-semibold text-emerald-200'
-                  : 'text-zinc-400 hover:bg-white/[.04] hover:text-zinc-200',
+                  ? 'border-[var(--gl-accent-strong)] font-medium text-[var(--gl-text)]'
+                  : 'border-transparent text-[var(--gl-text-secondary)] hover:text-[var(--gl-text)]',
               )}
             >
               {section.label}
