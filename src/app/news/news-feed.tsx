@@ -52,15 +52,17 @@ function NewsItem({ item }: { item: NewsRow }) {
 export function NewsFeed({
   initialItems,
   initialTotal,
+  initialError = null,
 }: {
   initialItems: NewsRow[]
   initialTotal: number
+  initialError?: string | null
 }) {
   const [category, setCategory] = useState<string>('all')
   const [items, setItems] = useState<NewsRow[]>(initialItems)
   const [total, setTotal] = useState(initialTotal)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError)
   const isInitial = useRef(true)
 
   const availableCategories = useMemo(() => {
@@ -132,7 +134,7 @@ export function NewsFeed({
         </Notice>
       ) : null}
 
-      {items.length === 0 && !loading ? (
+      {items.length === 0 && !loading && !error ? (
         <Panel className="mt-6">
           <p className="text-sm font-semibold text-[var(--gl-text)]">No items in this category.</p>
           <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">

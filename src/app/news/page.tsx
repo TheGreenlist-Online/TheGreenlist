@@ -14,13 +14,14 @@ export const metadata = {
 export default async function NewsPage() {
   const supabase = await createSupabaseServerClient()
 
-  const { data, count } = await supabase
+  const { data, count, error } = await supabase
     .from('news')
     .select('id, title, summary, source_name, source_url, category, tags, published_at', { count: 'exact' })
     .order('published_at', { ascending: false })
     .range(0, 19)
 
   const items = (data ?? []) as NewsRow[]
+  const loadError = error ? 'News could not be loaded. Try again shortly.' : null
 
   return (
     <PageShell>
@@ -37,7 +38,7 @@ export default async function NewsPage() {
       />
 
       <Section title="Coverage" aside={<span>Newest first</span>}>
-        <NewsFeed initialItems={items} initialTotal={count ?? 0} />
+        <NewsFeed initialItems={items} initialTotal={count ?? 0} initialError={loadError} />
       </Section>
 
       <LimitationsPanel subject="news" />
