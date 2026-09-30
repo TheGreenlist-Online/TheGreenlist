@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
+import { resolveLocation } from '@/lib/view-switch'
 import { getDistrict } from '@/lib/districts'
 
 /**
@@ -16,16 +17,17 @@ import { getDistrict } from '@/lib/districts'
 export function SiteFrame({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const pathname = usePathname()
   const district = getDistrict(pathname ?? '')
+  const location = pathname?.startsWith('/town') ? resolveLocation(pathname) : null
 
   return (
-    <div className={`site-frame district--${district?.slug ?? 'home'}`}>
+    <div className={`site-frame district--${location?.themeSlug ?? district?.slug ?? 'home'}`}>
       <SiteHeader />
-      {district ? (
-        <div className="district-ribbon" role="note" aria-label={`Current district: ${district.name}`}>
+      {location || district ? (
+        <div className="district-ribbon" role="note" aria-label={`Current district: ${location?.name ?? district?.name}`}>
           <div className="district-ribbon__inner">
             <span className="district-ribbon__marker" aria-hidden="true" />
-            <strong>{district.name}</strong>
-            <span>{district.description}</span>
+            <strong>{location?.name ?? district?.name}</strong>
+            <span>{location?.tagline ?? district?.description}</span>
           </div>
         </div>
       ) : null}

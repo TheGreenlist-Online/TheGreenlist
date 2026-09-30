@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LogOut, Menu, Settings, UserRound, X } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/SearchBar'
+import { ViewSwitchLink } from '@/components/ViewSwitchLink'
 import { Button } from '@/components/ui/button'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
@@ -21,7 +22,6 @@ const navItems = [
 
 export function SiteHeader() {
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -81,9 +81,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Button asChild size="sm" variant="outline">
-              <Link href={pathname.startsWith('/town') ? '/' : '/town'}>
-                {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
-              </Link>
+              <ViewSwitchLink />
             </Button>
             {isAuthenticated ? (
               <>
@@ -135,13 +133,10 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href={pathname.startsWith('/town') ? '/' : '/town'}
-              onClick={() => setIsOpen(false)}
-              className="rounded-md border border-brand-gold/40 px-2 py-2 text-[#f7f7f2]"
-            >
-              {pathname.startsWith('/town') ? 'Standard View' : 'Town View'}
-            </Link>
+            <ViewSwitchLink
+              onNavigate={() => setIsOpen(false)}
+              className="rounded-md border border-emerald-300/35 px-2 py-2 text-emerald-200"
+            />
             {isAuthenticated ? (
               <>
                 <Link
