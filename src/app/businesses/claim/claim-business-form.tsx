@@ -6,6 +6,7 @@ import { Field, FormActions, Notice, Select, Textarea } from '@/components/recor
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { track } from '@vercel/analytics'
 
 const BUSINESS_TYPES = [
   { value: 'dispensary', label: 'Dispensary' },
@@ -93,6 +94,7 @@ export function ClaimBusinessForm() {
         throw new Error(payload?.error || 'The business profile could not be created.')
       }
 
+      track('organization_claim_submitted')
       setSuccess({ slug: payload.slug })
       setName('')
       setDescription('')
@@ -101,6 +103,7 @@ export function ClaimBusinessForm() {
       setCity('')
       await clearDraft()
     } catch (submissionError) {
+      track('organization_claim_failed')
       setError(submissionError instanceof Error ? submissionError.message : 'The business profile could not be created.')
     } finally {
       setSubmitting(false)
