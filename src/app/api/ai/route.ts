@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAIProvider, getAssistantModel, getOpenAIClient } from "@/lib/openai";
+import {
+  consumeAiQuery,
+  entitlementDeniedResponse,
+  entitlementHeaders,
+  refundAiQuery,
+} from "@/lib/entitlements";
 
 export const runtime = "nodejs";
 
@@ -72,6 +78,17 @@ export async function POST(request: Request) {
   }
 
   const model = getAssistantModel();
+  const requestId = crypto.randomUUID();
+
+  // Quota is consumed when the request is accepted, before the provider is
+  // called, so an aborted stream still counts (docs/entitlements-spec.md §5.3).
+  // The RPC checks the daily and monthly windows atomically.
+  const quota = await consumeAiQuery(supabase, model, prompt.length, requestId);
+  if (!quota.allowed) {
+    return entitlementDeniedResponse(quota.limit_key, quota);
+  }
+  const quotaHeaders = entitlementHeaders("ai.queries.month", quota);
+  let firstTokenSeen = false;
 
   try {
     const completion = await openai.chat.completions.create(
@@ -93,11 +110,16 @@ export async function POST(request: Request) {
         try {
           for await (const chunk of completion) {
             const delta = chunk.choices[0]?.delta?.content;
-            if (delta) controller.enqueue(encoder.encode(delta));
+            if (delta) {
+              firstTokenSeen = true;
+              controller.enqueue(encoder.encode(delta));
+            }
           }
           controller.close();
         } catch (error) {
           console.error("[api/ai] stream interrupted:", error instanceof Error ? error.message : error);
+          // Provider failed before any content: the user got nothing, give the query back.
+          if (!firstTokenSeen && quota.event_id) await refundAiQuery(supabase, quota.event_id);
           controller.error(error);
         }
       },
@@ -111,9 +133,13 @@ export async function POST(request: Request) {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store, no-transform",
         "X-AI-Model": model,
+        "X-Request-Id": requestId,
+        ...quotaHeaders,
       },
     });
   } catch (error) {
+    // Failed before streaming started (auth, budget, capacity): refund.
+    if (quota.event_id) await refundAiQuery(supabase, quota.event_id);
     return aiErrorResponse(error);
   }
 }
