@@ -108,3 +108,33 @@ alter policy "authenticated users can submit moderation items" on public.moderat
 alter policy "nda_self_insert" on public.nda_signatures with check ((moderator_user_id = (select auth.uid())));
 alter policy "nda_self_read" on public.nda_signatures using ((moderator_user_id = (select auth.uid())));
 alter policy "nda_self_update" on public.nda_signatures using ((moderator_user_id = (select auth.uid()))) with check ((moderator_user_id = (select auth.uid())));
+
+-- Live current_platform_role returns text; category helpers require app_role.
+CREATE OR REPLACE FUNCTION public.current_role_category()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select public.role_category(public.current_platform_role()::public.app_role);
+$function$
+;
+CREATE OR REPLACE FUNCTION public.is_operator()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select public.role_category(public.current_platform_role()::public.app_role) = 'OPERATOR';
+$function$
+;
+CREATE OR REPLACE FUNCTION public.is_reviewer()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select public.is_platform_owner()
+      or public.role_category(public.current_platform_role()::public.app_role) = 'REVIEW';
+$function$
+;
