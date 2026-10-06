@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -37,6 +38,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ resources: resources ?? [] })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error fetching education resources:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

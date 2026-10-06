@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createPostSchema } from '@/utils/validators'
@@ -33,6 +34,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(post)
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error creating post:', error)
     return NextResponse.json(
       { error: 'Failed to create post' },
@@ -68,6 +71,8 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error fetching posts:', error)
     return NextResponse.json(
       { error: 'Failed to fetch posts' },

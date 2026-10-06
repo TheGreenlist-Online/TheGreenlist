@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -21,6 +22,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ replies: replies ?? [] })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error fetching forum posts:', error)
     return NextResponse.json(
       { error: 'Failed to fetch replies' },
@@ -82,6 +85,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(reply, { status: 201 })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error creating forum post:', error)
     return NextResponse.json(
       { error: 'Failed to create reply' },
