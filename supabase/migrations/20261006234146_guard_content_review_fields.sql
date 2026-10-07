@@ -1,7 +1,24 @@
 create or replace function private.guard_business_document_review()
 returns trigger language plpgsql security invoker set search_path='' as $$
 begin
- if current_user in ('service_role','postgres','supabase_admin') or coalesce(public.is_reviewer(),false) then return new; end if;
+ if current_user in ('service_role','postgres','supabase_admin') then return new; end if;
+ if tg_op='INSERT' and new.status is not distinct from 'pending_review'
+  and new.review_note is null and new.uploaded_by is not distinct from auth.uid() then
+  return new;
+ end if;
+ if coalesce(public.has_permission('business.review'),false) then
+  if new.uploaded_by=auth.uid()
+   or exists(select 1 from public.business_profiles b where b.id=new.business_id and b.owner_id=auth.uid()) then
+   raise exception using errcode='42501',message='Document reviewers cannot review their own submissions or businesses';
+  end if;
+  if tg_op='UPDATE' then
+   if old.uploaded_by=auth.uid()
+    or exists(select 1 from public.business_profiles b where b.id=old.business_id and b.owner_id=auth.uid()) then
+    raise exception using errcode='42501',message='Document reviewers cannot review their own submissions or businesses';
+   end if;
+  end if;
+  return new;
+ end if;
  if tg_op='INSERT' then
   if new.status is distinct from 'pending_review' or new.review_note is not null
    or new.uploaded_by is distinct from auth.uid() then
