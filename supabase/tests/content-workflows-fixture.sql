@@ -1,0 +1,42 @@
+-- Synthetic disposable database ONLY. Never run this bootstrap on a project.
+-- Forum/audit columns and forum policies match read-only production catalog
+-- inspection on 2026-10-08. Not a replacement for a full staging schema replay.
+create role anon;
+create role authenticated;
+create role service_role bypassrls;
+create role supabase_admin;
+create schema auth;
+create schema private;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb default '{}');
+create function auth.uid() returns uuid language sql stable as $$ select (current_setting('request.jwt.claims',true)::jsonb->>'sub')::uuid $$;
+create table public.profiles(id uuid primary key,role text default 'USER');
+create function public.fixture_user() returns trigger language plpgsql as $$ begin insert into public.profiles(id) values(new.id); return new; end $$;
+create trigger fixture_user after insert on auth.users for each row execute function public.fixture_user();
+create function public.fixture_profile_guard() returns trigger language plpgsql as $$ begin return new; end $$;
+create trigger protect_profile_authority before update on public.profiles for each row execute function public.fixture_profile_guard();
+create table public.role_permissions(role text,permission text);
+insert into public.role_permissions values ('ADMIN','business.review'),('ADMIN','moderation.review'),('MODERATOR','moderation.review');
+create function public.current_platform_role() returns text language sql security definer set search_path='' as $$ select p.role::text from public.profiles p where p.id=(select auth.uid()) $$;
+create function private.is_platform_owner(check_user_id uuid default auth.uid()) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from auth.users where id=check_user_id and raw_app_meta_data->>'platform_owner'='true') $$;
+create function public.is_platform_owner() returns boolean language sql stable security definer set search_path='' as $$ select private.is_platform_owner(auth.uid()) $$;
+create function public.has_permission(p_permission text) returns boolean language sql stable security definer set search_path='' as $$ select public.is_platform_owner() or exists(select 1 from public.role_permissions rp where rp.role=public.current_platform_role() and rp.permission=p_permission) $$;
+create function public.is_reviewer() returns boolean language sql stable security definer set search_path='' as $$ select public.has_permission('moderation.review') $$;
+create table public.business_profiles(id uuid primary key,name text,slug text,business_type text,owner_id uuid);
+create table public.business_documents(id uuid default gen_random_uuid() primary key,business_id uuid not null,title text not null,doc_type text default 'other' not null,file_url text not null,status text default 'pending_review' not null,uploaded_by uuid,review_note text,created_at timestamptz default now() not null,updated_at timestamptz default now() not null);
+create table public.forums(id uuid default gen_random_uuid() primary key,name text,slug text,is_active boolean default true);
+insert into public.forums(name,slug) values('Fixture','fixture');
+create table public.forum_threads(id uuid default gen_random_uuid() primary key,forum_id uuid references public.forums,author_id uuid,title text not null,slug text,body text,status text default 'published' not null,visibility text default 'public' not null,is_anonymous boolean default false not null,is_pinned boolean default false not null,is_locked boolean default false not null,risk_level text default 'low' not null,ai_summary text,created_at timestamptz default now() not null,updated_at timestamptz default now() not null,search_vector tsvector);
+create table public.forum_posts(id uuid default gen_random_uuid() primary key,thread_id uuid references public.forum_threads not null,author_id uuid,parent_post_id uuid references public.forum_posts,body text not null,status text default 'published' not null,is_anonymous boolean default false not null,risk_level text default 'low' not null,created_at timestamptz default now() not null,updated_at timestamptz default now() not null);
+create table public.audit_logs(id uuid default gen_random_uuid() primary key,actor_id uuid,action text not null,entity_type text,entity_id uuid,metadata jsonb,ip_hash text,created_at timestamptz default now() not null);
+alter table public.forum_threads enable row level security;
+alter table public.forum_posts enable row level security;
+alter table public.audit_logs enable row level security;
+grant usage on schema public,auth to authenticated,anon,service_role;
+grant select on public.business_profiles,public.forums to authenticated;
+grant select,insert,update on public.forum_threads,public.forum_posts to authenticated;
+create policy threads_read_auth on public.forum_threads for select to authenticated using(status='published' and (visibility in ('public','auth') or author_id=(select auth.uid())));
+create policy threads_insert_auth on public.forum_threads for insert to authenticated with check(author_id=(select auth.uid()) and is_locked=false);
+create policy threads_update_auth on public.forum_threads for update to authenticated using(author_id=(select auth.uid())) with check(author_id=(select auth.uid()));
+create policy posts_read_auth on public.forum_posts for select to authenticated using(status='published' and exists(select 1 from public.forum_threads t where t.id=thread_id and (t.visibility in ('public','auth') or t.author_id=(select auth.uid()))));
+create policy posts_insert_auth on public.forum_posts for insert to authenticated with check(author_id=(select auth.uid()));
+create policy posts_update_auth on public.forum_posts for update to authenticated using(author_id=(select auth.uid())) with check(author_id=(select auth.uid()));

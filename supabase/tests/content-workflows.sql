@@ -119,4 +119,101 @@ do $$ begin
 end $$;
 reset role;
 
+
+-- Direct writes use authenticated + JWT claims, as the Supabase Data API does.
+create function pg_temp.expect_error(command text, expected text) returns void
+language plpgsql security invoker as $$
+begin
+ begin
+  execute command;
+ exception when others then
+  if sqlstate=expected then return; end if;
+  raise;
+ end;
+ raise exception 'Expected SQLSTATE %, but command succeeded: %',expected,command;
+end $$;
+grant execute on function pg_temp.expect_error(text,text) to authenticated;
+
+insert into public.forum_threads(id,forum_id,author_id,title,body,visibility,status) values
+('88888888-8888-4888-8888-888888888888',(select id from public.forums where is_active limit 1),'22222222-2222-4222-8222-222222222222','Private fixture','Private body','private','published'),
+('99999999-9999-4999-8999-999999999999',(select id from public.forums where is_active limit 1),'22222222-2222-4222-8222-222222222222','Removed fixture','Removed body','public','removed');
+
+insert into public.forum_posts(id,thread_id,author_id,body) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','33333333-3333-4333-8333-333333333333','22222222-2222-4222-8222-222222222222','Moderation fixture reply');
+
+-- Repeat the reviewer-author scenarios for BOTH MODERATOR and ADMIN.
+do $$ declare actor uuid; thread uuid; post uuid; field text; affected integer; begin
+ foreach actor in array array['66666666-6666-4666-8666-666666666666'::uuid,'55555555-5555-4555-8555-555555555555'::uuid] loop
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated')::text,true);
+  set local role authenticated;
+  insert into public.forum_threads(forum_id,author_id,title,body)
+   values((select id from public.forums where is_active limit 1),actor,'Reviewer author fixture','Original body') returning id into thread;
+  insert into public.forum_posts(thread_id,author_id,body) values(thread,actor,'Reviewer reply') returning id into post;
+  update public.forum_threads set body='Normal author edit' where id=thread;
+  get diagnostics affected=row_count;
+  if affected<>1 then raise exception 'Reviewer normal edit did not affect one row'; end if;
+  foreach field in array array['status=''removed''','risk_level=''high''','is_locked=true','is_pinned=true','ai_summary=''Forged summary'''] loop
+   perform pg_temp.expect_error(format('update public.forum_threads set %s where id=%L',field,thread),'42501');
+  end loop;
+  foreach field in array array['status=''removed''','risk_level=''high''','thread_id=''33333333-3333-4333-8333-333333333333''','author_id=''22222222-2222-4222-8222-222222222222'''] loop
+   perform pg_temp.expect_error(format('update public.forum_posts set %s where id=%L',field,post),'42501');
+  end loop;
+  perform pg_temp.expect_error(format('select public.moderate_forum_content(''thread'',%L,''{"is_locked":true}'',''Self lock'')',thread),'42501');
+  perform pg_temp.expect_error(format('select public.moderate_forum_content(''post'',%L,''{"status":"removed"}'',''Self removal'')',post),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_threads(forum_id,author_id,title,status) values((select id from public.forums limit 1),%L,''Forged'',''removed'')',actor),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''33333333-3333-4333-8333-333333333333'',%L,''Locked reviewer reply'')',actor),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''88888888-8888-4888-8888-888888888888'',%L,''Private reviewer reply'')',actor),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''99999999-9999-4999-8999-999999999999'',%L,''Removed reviewer reply'')',actor),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(%L,%L,repeat(''x'',50001))',thread,actor),'22001');
+  perform pg_temp.expect_error(format('update public.forum_threads set body=repeat(''x'',50001) where id=%L',thread),'22001');
+  perform pg_temp.expect_error('insert into private.forum_review_context values(txid_current(),auth.uid(),''forum_threads'',''33333333-3333-4333-8333-333333333333'')','42501');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":false}'','' '')','22023');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"body":"overwrite"}'',''Rewrite'')','22023');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":"false"}'',''Bad type'')','22023');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''88888888-8888-4888-8888-888888888888'',''{"is_locked":true}'',''Private lock'')','42501');
+  -- Legitimate reviewer can unlock another author's thread, with an audit.
+  perform public.moderate_forum_content('thread','33333333-3333-4333-8333-333333333333','{"is_locked":false,"is_pinned":true}','Reviewed reopening');
+  -- Repeating a reviewed decision still requires and records its rationale.
+  perform public.moderate_forum_content('thread','33333333-3333-4333-8333-333333333333','{"is_locked":false}', 'Confirmed reopening');
+  insert into public.forum_posts(thread_id,author_id,body) values('33333333-3333-4333-8333-333333333333',actor,'Reopened reply');
+  reset role;
+  if not exists(select 1 from public.audit_logs where actor_id=actor and action='forum.moderate'
+    and entity_type='forum_threads' and entity_id='33333333-3333-4333-8333-333333333333'
+    and metadata->>'reason'='Reviewed reopening' and metadata->'before'->>'is_locked'='true'
+    and metadata->'after'->>'is_locked'='false' and not (metadata->'before' ? 'body')) then
+   raise exception 'Missing actor/reason/before/after audit';
+  end if;
+  update public.forum_threads set is_locked=true where id='33333333-3333-4333-8333-333333333333';
+  update public.forum_threads set is_locked=true where id=thread;
+  set local role authenticated;
+  perform pg_temp.expect_error(format('update public.forum_threads set body=''Locked edit'' where id=%L',thread),'42501');
+  perform pg_temp.expect_error(format('update public.forum_posts set body=''Locked edit'' where id=%L',post),'42501');
+  -- Pure moderation may remove a post on a locked thread, without rewriting it.
+  perform public.moderate_forum_content('post','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','{"status":"removed","risk_level":"high"}','Reviewed removal');
+  perform public.moderate_forum_content('post','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','{"status":"published","risk_level":"low"}','Reviewed restore');
+  reset role;
+ end loop;
+end $$;
+-- A non-reviewer cannot call the RPC, even with forged editable metadata.
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","user_metadata":{"role":"ADMIN","platform_owner":true}}',true);
+select pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":false}'',''Forged role'')','42501');
+reset role;
+
+-- An audit failure must roll the moderation update back atomically.
+create function pg_temp.fail_forum_audit() returns trigger language plpgsql as $$
+begin raise exception using errcode='23514',message='Synthetic audit failure'; end $$;
+create trigger fixture_audit_failure before insert on public.audit_logs
+for each row execute function pg_temp.fail_forum_audit();
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"66666666-6666-4666-8666-666666666666","role":"authenticated"}',true);
+select pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":false}'',''Failed audit'')','23514');
+reset role;
+do $$ begin
+ if not (select is_locked from public.forum_threads where id='33333333-3333-4333-8333-333333333333') then
+  raise exception 'Unaudited moderation committed';
+ end if;
+ if exists(select 1 from private.forum_review_context) then raise exception 'Leaked moderation capability'; end if;
+ if exists(select 1 from public.audit_logs where metadata->>'reason'='Failed audit') then raise exception 'Failed decision left audit'; end if;
+end $$;
+drop trigger fixture_audit_failure on public.audit_logs;
 rollback;

@@ -1,20 +1,53 @@
-# Guard document approvals and forum moderation at the database: review handoff
+# Guard document approvals and forum moderation: review handoff
 
-Status: draft proposal, not deployed. Database rollback tests passed against the live schema after PR #33's applied baseline. Tests leave no persistent fixtures.
-Merge/record PR #33 first. These branches start from main and do not include each other's patches.
+Status: draft, not deployed. PR #33 must be merged/recorded first: its already-applied database and role-helper repairs are the production baseline. This branch does not contain #33's patches. No production writes, fixtures, migrations, or settings changes were made during this revision; only catalog and permission reads were used.
 
-## Codex
-Review this PR for authorization bypasses, privacy leaks, RLS recursion, unsafe SECURITY DEFINER logic, direct Supabase calls and migration compatibility. Reproduce the included rollback tests. Return exact file/line findings and concrete fixes. Do not merge or deploy.
+## Authorization contract
 
-## Copilot
-Perform an independent code review. Check normal-user flows and service-role/admin behavior, SQL privileges, grants and failure responses. Add missing regression tests on the same branch only after reproducing a gap. Do not introduce service keys into browser code, new dependencies or unrelated changes. Do not merge or deploy.
+- Preserve commit `62bc254`'s business-document guard and regressions: `business.review` is required; business owners and uploaders cannot review their own documents. Trusted document service-role writes remain supported.
+- Forum reviewers are ordinary authors when submitting or editing their own content. They cannot change status, risk, lock, pin, summary, identity, or placement on their own submissions, including through the moderation RPC.
+- Direct moderation-field writes are rejected. Call `public.moderate_forum_content(p_target_type, p_target_id, p_changes, p_reason)` using the authenticated session client. `p_target_type` is `thread` or `post`; changes may include `status` and `risk_level`, plus thread-only `is_locked`, `is_pinned`, and `ai_summary`. A nonblank reason of at most 2,000 characters is mandatory. This is a database moderation workflow; it does not wire new forum moderation controls into the queue UI.
+- The RPC checks `moderation.review`, derives the actor from `auth.uid()`, rejects self-moderation and inaccessible/private/inactive parent forums, and locks the target before updating. Neither a supplied actor nor editable JWT user metadata grants authority. The read-only production catalog on October 8 confirms MODERATOR/ADMIN have `moderation.review`, and only ADMIN has `business.review`; the existing platform-owner helper remains authoritative.
+- A private, RLS-enabled transaction capability permits only the RPC's protected-field mutation. It is not an exposed schema or a caller-settable GUC. Authenticated clients and service-role clients cannot write it. The RPC and private guard use an empty search path. No new broad reviewer RLS policies or table grants are introduced.
+- The decision and `audit_logs` insert are in one transaction. The live audit columns are `entity_type`/`entity_id`, not `target_type`/`target_id`. Audit metadata includes reason and before/after moderation fields, without copying bodies or author identity. Audit failure rolls back the decision. Database maintenance roles retain their explicit migration/fixture exemption; application forum service-role writes have no early-return exemption.
+- Ordinary reply inserts and edits, including reviewer-authored writes, must pass accessible/published/unlocked parent checks under `FOR SHARE` and the 50,000-character body limit. Audited moderation-only updates may hide/restore existing posts on locked or removed threads; they cannot add replies, rewrite bodies, or relocate content. This intentional exception permits moderation of already-locked content.
+- The reply API maps SQLSTATE `42501` after a stale unlocked pre-check to HTTP 403 and `22001` to HTTP 400; unrelated failures remain 500. Author edits and normal default-published submissions remain supported.
 
-## Perplexity research prompt
-Review the security design in this PR and the current official Supabase, PostgreSQL and PostgREST documentation. Cite primary sources and distinguish verified findings from assumptions. Focus on content-workflows. Identify any incorrect privilege/RLS/trigger/transaction assumption, missing abuse-control layer, or rollout requirement. Do not claim this draft is deployed or secure without test evidence. Use only public code and synthetic examples; do not request or transmit credentials, private reports, evidence files, personal data or raw logs. Return a concise checklist for Codex/Copilot implementation and review.
+Example authenticated Supabase call:
+
+```ts
+await supabase.rpc('moderate_forum_content', {
+  p_target_type: 'thread',
+  p_target_id: threadId,
+  p_changes: { is_locked: true },
+  p_reason: 'Human-reviewed lock: personal information requires removal',
+})
+```
+
+## Verification
+
+Passed locally: the expanded SQL rollback regression on disposable PGlite PostgreSQL, all six actual reply-handler tests (`npm test`), TypeScript (`npx tsc --noEmit --incremental false`), focused ESLint, and `git diff --check`. The fixture mirrors inspected forum policies/columns and uses the production permission-helper shape, but is not a full production schema clone. Existing document regression cases are preserved. Tests exercise both ADMIN/MODERATOR author scenarios, direct locked/private/removed-thread writes, length bounds, self-moderation through the RPC, forged editable metadata, blocked capability writes, valid unlock/remove/restore decisions, audit snapshots, and atomic rollback on audit failure.
+
+The `Content workflow security` GitHub workflow uses a disposable PostgreSQL 16 service, applies the proposed migration, runs rollback regressions, and runs `scripts/test-forum-locks.py`. It asserts a database lock wait in both orders: lock-first rejects a reply after commit; reply-first commits before the lock. Do not run the fixture bootstrap or concurrency fixture script on a real project.
+
+Reproduce in a new disposable PostgreSQL database (standard PG* connection variables):
+
+```sh
+psql -X -v ON_ERROR_STOP=1 -f supabase/tests/content-workflows-fixture.sql
+psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261006234146_guard_content_review_fields.sql
+psql -X -v ON_ERROR_STOP=1 -f supabase/tests/content-workflows.sql
+python3 scripts/test-forum-locks.py
+npm test
+```
+
+## Fresh Codex and Copilot review
+
+Review the new head for direct Supabase authorization bypasses, capability forgery/leaks, self-moderation, RPC grants, role-helper compatibility, audit rollback, private-content access, and concurrent lock/reply ordering. Reproduce the rollback and API tests. Verify moderation-only locked-thread updates are narrow. Preserve the completed business-document fix. Return concrete findings; do not merge, mark ready, or deploy.
 
 ## Remaining acceptance
-- Run two-session lock/reply concurrency testing in staging.
-- Verify document reviewer updates and owner uploads through the real API.
-- File URL/type/size validation, anonymous forum read projections and moderation-queue fields remain separate work.
 
-No production migration or setting change was left applied by this work.
+- Require passing PostgreSQL CI, including the two-session lock test, and fresh Codex/Copilot reviews.
+- Replay against an isolated staging clone including #33's baseline and existing triggers, grants, constraints, and search-vector logic; inspect advisors there.
+- Verify owner uploads, unrelated ADMIN document reviews, authenticated moderation RPC calls, and reply failures through real staging Supabase/PostgREST requests.
+- Keep PR #39 draft. Do not apply its migration to production until these checks are verified.
+- File URL/type/size validation, anonymous forum read projections, moderation-queue field guards, and existing unrelated API audit-column mismatches remain separate work.
