@@ -10,7 +10,8 @@ update public.profiles set role='MODERATOR' where id='66666666-6666-4666-8666-66
 alter table public.profiles enable trigger protect_profile_authority;
 insert into public.business_profiles(id,name,slug,business_type,owner_id) values
 ('44444444-4444-4444-8444-444444444444','Admin fixture business','security-fixture-admin-business','lab','55555555-5555-4555-8555-555555555555'),
-('77777777-7777-4777-8777-777777777777','Other fixture business','security-fixture-other-business','lab','22222222-2222-4222-8222-222222222222');
+('77777777-7777-4777-8777-777777777777','Other fixture business','security-fixture-other-business','lab','22222222-2222-4222-8222-222222222222'),
+('88888888-8888-4888-8888-888888888888','Third fixture business','security-fixture-third-business','lab','11111111-1111-4111-8111-111111111111');
 create temporary table document_guard_fixture(like public.business_documents including defaults);
 create trigger document_guard_fixture before insert or update on document_guard_fixture for each row execute function private.guard_business_document_review();
 grant insert,select,update on document_guard_fixture to authenticated;
@@ -68,7 +69,7 @@ reset role;
 
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated"}',true);
-do $$ declare denied boolean; fixture record; outcome text; begin
+do $$ declare denied boolean; fixture record; outcome text; field text; begin
  -- Admins may submit pending documents, but review only unrelated documents.
  insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by)
  values('44444444-4444-4444-8444-444444444444','Admin pending upload','fixture-path',auth.uid());
@@ -76,7 +77,18 @@ do $$ declare denied boolean; fixture record; outcome text; begin
  values('77777777-7777-4777-8777-777777777777','Admin external review','fixture-path','22222222-2222-4222-8222-222222222222','approved','Reviewed');
  insert into pg_temp.document_guard_fixture(business_id,title,file_url,status)
  values('77777777-7777-4777-8777-777777777777','Admin imported review','fixture-path','approved');
- update pg_temp.document_guard_fixture set status='rejected',review_note='Reviewed' where title='Other document';
+ update pg_temp.document_guard_fixture set status='rejected',review_note='Reviewed',updated_at=now() where title='Other document';
+ foreach field in array array[
+  'title=''Changed title''','doc_type=''license''','file_url=''changed-path''',
+  'business_id=''88888888-8888-4888-8888-888888888888''',
+  'uploaded_by=''11111111-1111-4111-8111-111111111111''','created_at=now()'
+ ] loop
+  denied:=false;
+  begin
+   execute format('update pg_temp.document_guard_fixture set %s where title=''Other document''',field);
+  exception when insufficient_privilege then denied:=true; end;
+  if not denied then raise exception 'Admin review changed submission field: %',field; end if;
+ end loop;
  foreach outcome in array array['approved','rejected','pending_review'] loop
   for fixture in select business_id,uploaded_by from pg_temp.document_guard_fixture
    where title in ('Owned business document','Uploaded document') loop

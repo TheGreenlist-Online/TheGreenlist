@@ -16,6 +16,10 @@ begin
     or exists(select 1 from public.business_profiles b where b.id=old.business_id and b.owner_id=auth.uid()) then
     raise exception using errcode='42501',message='Document reviewers cannot review their own submissions or businesses';
    end if;
+   if (to_jsonb(new) - array['status','review_note','updated_at'])
+    is distinct from (to_jsonb(old) - array['status','review_note','updated_at']) then
+    raise exception using errcode='42501',message='Document review updates cannot change submission details';
+   end if;
   end if;
   return new;
  end if;
