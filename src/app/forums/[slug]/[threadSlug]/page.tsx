@@ -5,6 +5,7 @@ import { LimitationsPanel, Notice, Panel, RecordHeader, Section, StatusLabel } f
 import { formatDate, recordId } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { ThreadReplyForm } from './thread-reply-form'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const revalidate = 0
 
@@ -117,7 +118,7 @@ export default async function ThreadDetailPage({
   return (
     <PageShell width="record">
       <RecordHeader
-        eyebrow="Evidence Desk"
+        eyebrow={EVIDENCE_DESK_NAV_ITEM.label}
         kind="Discussion"
         recordId={recordId('DSK', thread.id)}
         title={thread.title}

@@ -27,6 +27,8 @@
 
   /* Category accent: green. Used for primary actions and active nav only. */
   --gl-accent: #4ea83f;
+  --gl-accent-hover: #45963a;
+  --gl-accent-disabled: #45963a;
   --gl-accent-strong: #a3d93b;
   --gl-accent-ink: #06110a;
 
@@ -542,10 +544,18 @@
 .greenlist-primary-button {
   border-color: var(--gl-accent);
   background: var(--gl-accent);
-  /* Ink, not white: #fff on --gl-accent is ~3.0:1 and fails AA at .875rem. */
+  /* Ink, not white: white on --gl-accent fails AA at .875rem. */
   color: var(--gl-accent-ink);
 }
-.greenlist-primary-button:hover { background: #45963a; border-color: #45963a; color: var(--gl-accent-ink); }
+.greenlist-primary-button:hover { background: var(--gl-accent-hover); border-color: var(--gl-accent-hover); color: var(--gl-accent-ink); }
+.greenlist-primary-button:disabled,
+.greenlist-primary-button[aria-disabled='true'] {
+  border-color: var(--gl-accent-disabled);
+  background: var(--gl-accent-disabled);
+  color: var(--gl-accent-ink);
+  cursor: not-allowed;
+  opacity: 1;
+}
 .greenlist-secondary-button {
   border-color: var(--gl-border-strong);
   background: transparent;

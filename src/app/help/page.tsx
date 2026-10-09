@@ -1,4 +1,5 @@
 import { SimplePage } from '@/components/SimplePage'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const metadata = {
   title: 'Help - The Green List',
@@ -30,7 +31,7 @@ export default function HelpPage() {
         },
         {
           heading: 'Discussion',
-          body: 'The Evidence Desk holds discussion threads attached to records. Discussion is not verification: nothing posted there becomes a finding until a reviewer has checked it against a source.',
+          body: `The ${EVIDENCE_DESK_NAV_ITEM.label} holds discussion threads attached to records. Discussion is not verification: nothing posted there becomes a finding until a reviewer has checked it against a source.`,
         },
       ]}
     />

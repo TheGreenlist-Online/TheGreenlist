@@ -10,6 +10,8 @@
  * The `District` name and `getDistrict` export are retained so existing call
  * sites keep compiling.
  */
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
+
 export type District = {
   prefixes: readonly string[]
   slug: string
@@ -24,7 +26,7 @@ export type Section = District
 export const districts: readonly District[] = [
   { prefixes: ['/reports', '/report'], slug: 'reports', name: 'Reports', description: 'Structured accountability reports and review status' },
   { prefixes: ['/evidence'], slug: 'evidence', name: 'Evidence', description: 'Private-by-default document intake' },
-  { prefixes: ['/forums'], slug: 'evidence-desk', name: 'Evidence Desk', description: 'Public discussion attached to records and sources' },
+  { prefixes: ['/forums'], slug: 'evidence-desk', name: EVIDENCE_DESK_NAV_ITEM.label, description: 'Public discussion attached to records and sources' },
   { prefixes: ['/businesses'], slug: 'records', name: 'Records', description: 'Business, licence, and documentation records' },
   { prefixes: ['/news', '/trending'], slug: 'news', name: 'News', description: 'Source-linked industry, policy, and enforcement coverage' },
   { prefixes: ['/education', '/help', '/api-docs'], slug: 'learn', name: 'Learn', description: 'Testing, labelling, licensing, and consumer-rights explainers' },

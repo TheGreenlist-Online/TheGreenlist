@@ -7,7 +7,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--gl-radius)] border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--gl-radius)] border text-sm font-semibold transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -16,7 +16,7 @@ const buttonVariants = cva(
         // Dark ink foreground: white on --gl-accent is ~3.0:1, below AA for
         // 0.875rem text; --gl-accent-ink clears 4.5:1 in both states.
         default:
-          "border-[var(--gl-accent)] bg-[var(--gl-accent)] text-[var(--gl-accent-ink)] hover:border-[#45963a] hover:bg-[#45963a] hover:text-[var(--gl-accent-ink)]",
+          "border-[var(--gl-accent)] bg-[var(--gl-accent)] text-[var(--gl-accent-ink)] hover:border-[var(--gl-accent-hover)] hover:bg-[var(--gl-accent-hover)] hover:text-[var(--gl-accent-ink)] disabled:border-[var(--gl-accent-disabled)] disabled:bg-[var(--gl-accent-disabled)] disabled:text-[var(--gl-accent-ink)]",
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
