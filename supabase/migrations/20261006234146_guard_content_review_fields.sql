@@ -80,11 +80,15 @@ begin
  if auth.uid() is null then
   raise exception using errcode='42501',message='Forum writes require an authenticated actor';
  end if;
- if tg_op='INSERT' then
+if tg_op='INSERT' then
   if new.author_id is distinct from auth.uid() or new.status is distinct from 'published'
    or new.risk_level is distinct from 'low' then
    raise exception using errcode='42501',message='Forum submissions cannot supply review outcomes';
   end if;
+  if tg_table_name='forum_posts' and new.parent_post_id is not null
+   and not exists(select 1 from public.forum_posts p where p.id=new.parent_post_id and p.thread_id=new.thread_id) then
+   raise exception using errcode='42501',message='Reply parent must belong to the same thread';
+  end if
   if tg_table_name='forum_threads' then
    if new.is_locked or new.is_pinned or new.ai_summary is not null then
     raise exception using errcode='42501',message='Thread submissions cannot supply moderation fields';
