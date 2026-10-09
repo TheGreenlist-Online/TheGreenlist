@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { StatusTone } from '@/lib/statusTones'
+import { recordStatus } from '@/lib/recordStatus'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -65,18 +66,6 @@ const REPORT_PENDING = ['submitted', 'pending', 'under_review']
 /** education_resources.status is constrained to DRAFT/PENDING_REVIEW/APPROVED/REJECTED/ARCHIVED. */
 const RESOURCE_PENDING = ['DRAFT', 'PENDING_REVIEW']
 
-const REPORT_TONES: Record<string, StatusTone> = {
-  submitted: 'pending',
-  pending: 'pending',
-  under_review: 'progress',
-  in_review: 'progress',
-  published: 'success',
-  verified: 'success',
-  resolved: 'success',
-  rejected: 'danger',
-  dismissed: 'neutral',
-}
-
 const RESOURCE_TONES: Record<string, StatusTone> = {
   DRAFT: 'neutral',
   PENDING_REVIEW: 'pending',
@@ -96,6 +85,14 @@ const THREAD_TONES: Record<string, StatusTone> = {
 function tone(map: Record<string, StatusTone>, value: string | null): StatusTone {
   if (!value) return 'neutral'
   return map[value] ?? map[value.toLowerCase()] ?? 'neutral'
+}
+
+function reportTone(value: string | null): StatusTone {
+  const tone = recordStatus(value).tone
+  if (tone === 'confirmed') return 'success'
+  if (tone === 'review') return 'progress'
+  if (tone === 'alert') return 'danger'
+  return 'neutral'
 }
 
 /**
@@ -245,15 +242,18 @@ export async function getDashboardData(supabase: Client, userId: string): Promis
   ])
 
   const activity: ActivityItem[] = [
-    ...recentReports.map((row) => ({
-      id: `report-${row.id}`,
-      title: row.title ?? 'Untitled report',
-      href: `/reports/${row.id}`,
-      kind: 'Report' as const,
-      status: humanizeStatus(row.status),
-      tone: tone(REPORT_TONES, row.status),
-      createdAt: row.created_at,
-    })),
+    ...recentReports.map((row) => {
+      const status = recordStatus(row.status)
+      return {
+        id: `report-${row.id}`,
+        title: row.title ?? 'Untitled report',
+        href: `/reports/${row.id}`,
+        kind: 'Report' as const,
+        status: status.label,
+        tone: reportTone(row.status),
+        createdAt: row.created_at,
+      }
+    }),
     ...recentResources.map((row) => ({
       id: `resource-${row.id}`,
       title: row.title ?? 'Untitled resource',

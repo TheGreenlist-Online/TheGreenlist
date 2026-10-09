@@ -4,6 +4,7 @@ import { PageShell } from '@/components/PageShell'
 import { LimitationsPanel, Notice, Pagination, Panel, RecordHeader, RecordList, RecordRow, Section, StatusLabel } from '@/components/record'
 import { formatDate, humanize } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const revalidate = 0
 
@@ -33,7 +34,7 @@ const PAGE_SIZE = 20
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   return {
-    title: `${slug.replace(/-/g, ' ')} - Evidence Desk - The Green List`,
+    title: `${slug.replace(/-/g, ' ')} - ${EVIDENCE_DESK_NAV_ITEM.label} - The Green List`,
   }
 }
 
@@ -91,7 +92,7 @@ export default async function ForumDetailPage({
   return (
     <PageShell>
       <RecordHeader
-        eyebrow="Evidence Desk"
+        eyebrow={EVIDENCE_DESK_NAV_ITEM.label}
         kind="Discussion desk"
         jurisdiction={forum.category ? humanize(forum.category) : undefined}
         title={forum.name}

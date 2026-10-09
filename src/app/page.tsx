@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
-import { GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
+import { EVIDENCE_DESK_NAV_ITEM, GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
 
 export const metadata: Metadata = {
   title: 'The Green List — Cannabis Records & Accountability',
@@ -200,7 +200,7 @@ export default function HomePage() {
         </div>
 
         <p className="gl-limitations mt-8 max-w-3xl">
-          <strong>Public participation.</strong> The Evidence Desk exists to locate primary documents, identify missing
+          <strong>Public participation.</strong> The {EVIDENCE_DESK_NAV_ITEM.label} exists to locate primary documents, identify missing
           records, ask informed questions, and correct errors. It is not a reputation vote, and discussion never
           changes a record&apos;s status without documentary review.
         </p>
