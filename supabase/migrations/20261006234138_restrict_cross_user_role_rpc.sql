@@ -6,7 +6,7 @@ begin
  if auth.uid() is null then
   if coalesce(
     nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role',
-    current_user
+    session_user
   ) <> 'service_role' then
    return null;
   end if;
