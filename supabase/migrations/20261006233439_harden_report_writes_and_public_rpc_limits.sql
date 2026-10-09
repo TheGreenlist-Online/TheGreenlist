@@ -96,7 +96,7 @@ AS $function$
   select *
   from matches
   order by rank desc, published_at desc, entity_id
-  limit least(greatest(result_limit, 1), 50)
+  limit least(greatest(coalesce(result_limit, 20), 1), 50)
   offset least(greatest(coalesce(result_offset, 0), 0), 1000);
 $function$;
 
