@@ -7,7 +7,7 @@ The production security advisor on 2026-10-06 reported leaked-password protectio
 ## Acceptance evidence
 - Capture only the redacted setting state and date, never passwords, tokens or SMTP secrets.
 - Re-run the Supabase Security Advisor; auth_leaked_password_protection must disappear.
-- In staging, signup/password-reset with a known compromised test password must be rejected; a fresh strong test password must work.
+- Before testing, confirm leaked-password protection is enabled in the staging Supabase project. Use only synthetic test passwords, never real credentials: a known compromised synthetic password must be rejected during signup/password reset, while a fresh strong synthetic password must work.
 - Verify ordinary sign-in, recovery and email-confirmation flows still work.
 - Do not disable protection to make a legacy test password pass.
 
