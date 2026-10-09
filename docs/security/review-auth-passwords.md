@@ -4,7 +4,7 @@ Status: draft proposal, not deployed. Hosted setting remains pending; this PR su
 Merge/record PR #33 first. These branches start from main and do not include each other's patches.
 
 ## Codex
-Review this PR for authorization bypasses, privacy leaks, RLS recursion, unsafe SECURITY DEFINER logic, direct Supabase calls and migration compatibility. Reproduce the included rollback tests. Return exact file/line findings and concrete fixes. Do not merge or deploy.
+Review this PR for authorization bypasses, privacy leaks, RLS recursion, unsafe SECURITY DEFINER logic, direct Supabase calls and migration compatibility. Verify the auth-specific acceptance checks in `docs/security/auth-password-protection.md`, including staging configuration, synthetic password tests, normal sign-in/recovery/email-confirmation flows, and the Security Advisor result; this PR contains no rollback tests. Return exact file/line findings and concrete fixes. Do not merge or deploy.
 
 ## Copilot
 Perform an independent code review. Check normal-user flows and service-role/admin behavior, SQL privileges, grants and failure responses. Add missing regression tests on the same branch only after reproducing a gap. Do not introduce service keys into browser code, new dependencies or unrelated changes. Do not merge or deploy.
