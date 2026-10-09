@@ -188,6 +188,15 @@ begin
   (e.key='ai_summary' and jsonb_typeof(e.value) not in ('string','null'))) then
   raise exception using errcode='22023',message='Invalid moderation field type';
  end if;
+ -- Values must come from the allowed vocabulary; plain text columns carry no
+ -- CHECK constraint, so a typo like 'publshed' or 'urgent' would otherwise be
+ -- written verbatim and silently drop the row out of all read policies.
+ if p_changes ? 'status' and p_changes->>'status' not in ('published','removed','hidden','flagged') then
+  raise exception using errcode='22023',message='Invalid moderation status value';
+ end if;
+ if p_changes ? 'risk_level' and p_changes->>'risk_level' not in ('low','medium','high','critical') then
+  raise exception using errcode='22023',message='Invalid moderation risk_level value';
+ end if;
  if p_target_type='thread' then
   select to_jsonb(t) into before_row from public.forum_threads t where t.id=p_target_id for update;
   parent_thread := p_target_id;
