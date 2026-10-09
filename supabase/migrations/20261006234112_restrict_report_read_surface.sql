@@ -22,7 +22,7 @@ returns table(id uuid,business_id uuid,report_type text,status text,verification
 language sql stable security definer set search_path='' as $$
  select r.id,r.business_id,r.report_type,r.status,r.verification_status,r.public_summary,r.created_at,r.updated_at
  from public.reports r
- where r.status='published' and nullif(btrim(r.public_summary),'') is not null
+ where r.status in ('published', 'corrected') and nullif(btrim(r.public_summary),'') is not null
  order by r.created_at desc,r.id
  limit least(greatest(coalesce(result_limit,20),1),50)
  offset least(greatest(coalesce(result_offset,0),0),1000);
