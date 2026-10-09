@@ -89,9 +89,11 @@ if tg_op='INSERT' then
    or new.risk_level is distinct from 'low' then
    raise exception using errcode='42501',message='Forum submissions cannot supply review outcomes';
   end if;
-  if tg_table_name='forum_posts' and new.parent_post_id is not null
-   and not exists(select 1 from public.forum_posts p where p.id=new.parent_post_id and p.thread_id=new.thread_id) then
-   raise exception using errcode='42501',message='Reply parent must belong to the same thread';
+  if tg_table_name='forum_posts' then
+   if new.parent_post_id is not null
+    and not exists(select 1 from public.forum_posts p where p.id=new.parent_post_id and p.thread_id=new.thread_id) then
+    raise exception using errcode='42501',message='Reply parent must belong to the same thread';
+   end if;
   end if;
   if tg_table_name='forum_threads' then
    if new.is_locked or new.is_pinned or new.ai_summary is not null then

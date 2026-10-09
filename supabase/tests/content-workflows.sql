@@ -81,11 +81,13 @@ do $$ declare denied boolean; fixture record; outcome text; field text; begin
  foreach field in array array[
   'title=''Changed title''','doc_type=''license''','file_url=''changed-path''',
   'business_id=''88888888-8888-4888-8888-888888888888''',
-  'uploaded_by=''11111111-1111-4111-8111-111111111111''','created_at=now()'
+  'uploaded_by=''11111111-1111-4111-8111-111111111111''',
+  'created_at=created_at + interval ''1 second''',
+  'id=''99999999-9999-4999-8999-999999999999'''
  ] loop
   denied:=false;
   begin
-   execute format('update pg_temp.document_guard_fixture set %s where title=''Other document''',field);
+   execute format('update pg_temp.document_guard_fixture set status=''approved'',review_note=''Combined review tampering'',%s where title=''Other document''',field);
   exception when insufficient_privilege then denied:=true; end;
   if not denied then raise exception 'Admin review changed submission field: %',field; end if;
  end loop;
