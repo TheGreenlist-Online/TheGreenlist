@@ -230,4 +230,112 @@ do $$ begin
  if exists(select 1 from public.audit_logs where metadata->>'reason'='Failed audit') then raise exception 'Failed decision left audit'; end if;
 end $$;
 drop trigger fixture_audit_failure on public.audit_logs;
+
+-- Isolate trigger checks from project grants/RLS and NOT NULL constraints.
+-- These temporary grants do NOT demonstrate anonymous production reachability.
+alter table document_guard_fixture alter column status drop not null;
+grant insert,select,update on document_guard_fixture to anon;
+grant execute on function pg_temp.expect_error(text,text) to anon;
+set local role anon;
+select set_config('request.jwt.claims','{"role":"anon"}',true);
+select pg_temp.expect_error('insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by) values(''77777777-7777-4777-8777-777777777777'',''Signed out upload'',''fixture-path'',null)','42501');
+select pg_temp.expect_error('update pg_temp.document_guard_fixture set status=''approved'' where title=''Other document''','42501');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated"}',true);
+select pg_temp.expect_error('insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by) values(''77777777-7777-4777-8777-777777777777'',''Missing actor upload'',''fixture-path'',null)','42501');
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated"}',true);
+do $$ declare outcome text; saved_status text; begin
+ select status into saved_status from pg_temp.document_guard_fixture where title='Other document';
+ foreach outcome in array array['approvd','',null] loop
+  perform pg_temp.expect_error(format('insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by,status) values(''77777777-7777-4777-8777-777777777777'',''Invalid review'',''fixture-path'',''22222222-2222-4222-8222-222222222222'',%L)',outcome),'22023');
+  perform pg_temp.expect_error(format('update pg_temp.document_guard_fixture set status=%L where title=''Other document''',outcome),'22023');
+ end loop;
+ if (select status from pg_temp.document_guard_fixture where title='Other document') is distinct from saved_status then
+  raise exception 'Invalid review changed stored status';
+ end if;
+ foreach outcome in array array['pending_review','approved','rejected'] loop
+  insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by,status)
+   values('77777777-7777-4777-8777-777777777777','Valid review','fixture-path','22222222-2222-4222-8222-222222222222',outcome);
+  update pg_temp.document_guard_fixture set status=outcome where title='Other document';
+  if (select status from pg_temp.document_guard_fixture where title='Other document') is distinct from outcome then
+   raise exception 'Valid document transition failed: %',outcome;
+  end if;
+ end loop;
+end $$;
+reset role;
+
+-- Trusted document automation can still import without a JWT actor.
+select set_config('request.jwt.claims','{}',true);
+set local role service_role;
+insert into pg_temp.document_guard_fixture(business_id,title,file_url,uploaded_by,status)
+ values('77777777-7777-4777-8777-777777777777','Actorless service import','fixture-path',null,'approved');
+update pg_temp.document_guard_fixture set status='rejected' where title='Actorless service import';
+reset role;
+
+-- Ordinary authors AND both reviewer roles receive database-owned metadata.
+do $$ declare actor uuid; thread public.forum_threads; post public.forum_posts;
+ forged uuid := 'abcdefab-cdef-4abc-8def-abcdefabcdef'; supplied_time timestamptz;
+begin
+ foreach actor in array array['11111111-1111-4111-8111-111111111111'::uuid,'55555555-5555-4555-8555-555555555555'::uuid,'66666666-6666-4666-8666-666666666666'::uuid] loop
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated')::text,true);
+  set local role authenticated;
+  foreach supplied_time in array array['1900-01-01'::timestamptz,'2999-01-01'::timestamptz,null] loop
+   insert into public.forum_threads(id,forum_id,author_id,title,body,created_at,updated_at)
+    values(forged,(select id from public.forums where is_active limit 1),actor,'Identity fixture','Body',supplied_time,supplied_time)
+    returning * into thread;
+   if thread.id is null or thread.id=forged or thread.created_at is distinct from now() or thread.updated_at is distinct from now() then
+    raise exception 'Caller controlled thread insert metadata';
+   end if;
+   insert into public.forum_posts(id,thread_id,author_id,body,created_at,updated_at)
+    values(forged,thread.id,actor,'Identity reply',supplied_time,supplied_time) returning * into post;
+   if post.id is null or post.id=forged or post.created_at is distinct from now() or post.updated_at is distinct from now() then
+    raise exception 'Caller controlled reply insert metadata';
+   end if;
+   -- Returned identities remain usable for parent references and author edits.
+   insert into public.forum_posts(thread_id,parent_post_id,author_id,body)
+    values(thread.id,post.id,actor,'Nested identity reply');
+   update public.forum_threads set body='Edited identity fixture' where id=thread.id;
+   update public.forum_posts set body='Edited identity reply' where id=post.id;
+   perform pg_temp.expect_error(format('update public.forum_threads set created_at=''2999-01-01'' where id=%L',thread.id),'42501');
+   perform pg_temp.expect_error(format('update public.forum_posts set id=%L where id=%L',forged,post.id),'42501');
+  end loop;
+  reset role;
+ end loop;
+end $$;
+
+-- Test the forum trigger's signed-out behavior without RLS masking the check.
+create temporary table forum_actor_fixture(like public.forum_threads including defaults);
+create trigger forum_actor_fixture before insert on forum_actor_fixture
+ for each row execute function private.guard_forum_review_fields();
+grant insert on forum_actor_fixture to anon,authenticated,service_role;
+select set_config('request.jwt.claims','{}',true);
+set local role anon;
+select pg_temp.expect_error('insert into pg_temp.forum_actor_fixture(title,author_id) values(''Signed out thread'',null)','42501');
+reset role;
+set local role authenticated;
+select pg_temp.expect_error('insert into pg_temp.forum_actor_fixture(title,author_id) values(''Missing actor thread'',null)','42501');
+reset role;
+-- Unlike documents, forum service-role writes have no actorless bypass.
+set local role service_role;
+select pg_temp.expect_error('insert into pg_temp.forum_actor_fixture(title,author_id) values(''Actorless service thread'',null)','42501');
+reset role;
+
+-- Database maintenance retains explicit identity/timestamp seeding for imports.
+select set_config('request.jwt.claims','{}',true);
+do $$ declare thread public.forum_threads; post public.forum_posts;
+begin
+ insert into public.forum_threads(id,forum_id,title,created_at,updated_at)
+  values('abcdefab-cdef-4abc-8def-abcdefabcdef',(select id from public.forums limit 1),'Maintenance identity','2000-01-01','2000-01-02') returning * into thread;
+ insert into public.forum_posts(id,thread_id,body,created_at,updated_at)
+  values('abcdefab-cdef-4abc-8def-abcdefabcdef',thread.id,'Maintenance reply','2000-01-01','2000-01-02') returning * into post;
+ if thread.id<>'abcdefab-cdef-4abc-8def-abcdefabcdef' or post.id<>thread.id
+  or thread.created_at<>'2000-01-01'::timestamptz or post.created_at<>thread.created_at
+  or thread.updated_at<>'2000-01-02'::timestamptz or post.updated_at<>thread.updated_at then
+  raise exception 'Maintenance insert metadata was overwritten';
+ end if;
+end $$;
 rollback;

@@ -1,10 +1,12 @@
 # Guard document approvals and forum moderation: review handoff
 
-Status: draft, not deployed. PR #33 must be merged/recorded first: its already-applied database and role-helper repairs are the production baseline. This branch does not contain #33's patches. No production writes, fixtures, migrations, or settings changes were made during this revision; only catalog and permission reads were used.
+Status: draft, not deployed. PR #33 has merged into main (`b1d1ccd`); its already-applied database and role-helper repairs remain the required staging baseline. This branch does not duplicate #33's patches. The October 10 revision used only repository reads and disposable local PostgreSQL, with no production database access or deployment.
 
 ## Authorization contract
 
 - Preserve commit `62bc254`'s business-document guard and regressions: `business.review` is required; business owners and uploaders cannot review their own documents. Trusted document service-role writes remain supported.
+- Every untrusted document write requires a non-null `auth.uid()` before any submission/reviewer path. Reviewer INSERT/UPDATE statuses must be `pending_review`, `approved`, or `rejected` (NULL/unknown values raise `22023`). This is the stored vocabulary in the document API; its PATCH endpoint currently exposes only approved/rejected decisions. Review-only column restrictions and self-review denial remain unchanged.
+- Untrusted forum INSERTs overwrite `id`, `created_at`, and `updated_at` with `gen_random_uuid()` and transaction `now()`, for both threads and replies, including reviewer-authors. Both application insertion routes omit these fields and consume returned rows. Explicit database maintenance retains imported metadata; forum service-role callers still have no actorless bypass.
 - Forum reviewers are ordinary authors when submitting or editing their own content. They cannot change status, risk, lock, pin, summary, identity, or placement on their own submissions, including through the moderation RPC.
 - Direct moderation-field writes are rejected. Call `public.moderate_forum_content(p_target_type, p_target_id, p_changes, p_reason)` using the authenticated session client. `p_target_type` is `thread` or `post`; changes may include `status` and `risk_level`, plus thread-only `is_locked`, `is_pinned`, and `ai_summary`. A nonblank reason of at most 2,000 characters is mandatory. This is a database moderation workflow; it does not wire new forum moderation controls into the queue UI.
 - The RPC checks `moderation.review`, derives the actor from `auth.uid()`, rejects self-moderation and inaccessible/private/inactive parent forums, and locks the target before updating. Neither a supplied actor nor editable JWT user metadata grants authority. The read-only production catalog on October 8 confirms MODERATOR/ADMIN have `moderation.review`, and only ADMIN has `business.review`; the existing platform-owner helper remains authoritative.
@@ -25,6 +27,14 @@ await supabase.rpc('moderate_forum_content', {
 ```
 
 ## Verification
+
+October 10 revision: PostgreSQL 16 fixture bootstrap, migration application, expanded rollback regression, and both two-session lock orderings passed locally. Repository lint passed with three existing warnings; all six reply-handler tests, TypeScript, application build, and diff checks passed. `npm run check:roles` explicitly skipped because Supabase URL/service-role credentials were absent; it is not a passing live role-sync check.
+
+Seven negative controls failed as expected: removing the document actor check, moving it only into the submission fast path, removing document status validation, omitting its explicit NULL check, and individually removing each forum identity/timestamp assignment. Restoring the fixes passed the full SQL suite. New regressions cover valid reviewer transitions and invalid INSERT/UPDATE values, actorless requests, ordinary/admin/moderator forum identities, returned-ID parent references and edits, and trusted document/maintenance imports.
+
+The NULL-actor tests deliberately grant access to a temporary trigger-only document fixture. They establish a trigger defect, **not anonymous production reachability**. The repository does not contain a complete current business-document grants/RLS baseline; production grants and policies were not queried in this revision. Existing grant-hardening migrations leave DML grants in place but do not establish the effective document INSERT policies. Confirm both layers on staging before making a reachability claim. The reported main-preview migration-history mismatch is a separate, pre-existing integration issue; this fixture run neither reproduces nor repairs it.
+
+This updates the existing, explicitly undeployed PR migration, following this PR's revision convention. No new migration/version or production SQL application is introduced.
 
 Passed locally: the expanded SQL rollback regression on disposable PGlite PostgreSQL, all six actual reply-handler tests (`npm test`), TypeScript (`npx tsc --noEmit --incremental false`), focused ESLint, and `git diff --check`. The fixture mirrors inspected forum policies/columns and uses the production permission-helper shape, but is not a full production schema clone. Existing document regression cases are preserved. Tests exercise both ADMIN/MODERATOR author scenarios, direct locked/private/removed-thread writes, length bounds, self-moderation through the RPC, forged editable metadata, blocked capability writes, valid unlock/remove/restore decisions, audit snapshots, and atomic rollback on audit failure.
 

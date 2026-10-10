@@ -2,6 +2,10 @@ create or replace function private.guard_business_document_review()
 returns trigger language plpgsql security invoker set search_path='' as $$
 begin
  if current_user in ('service_role','postgres','supabase_admin') then return new; end if;
+ -- Check before every untrusted path: NULL actor/uploader equality is not auth.
+ if auth.uid() is null then
+  raise exception using errcode='42501',message='Document writes require an authenticated actor';
+ end if;
  if tg_op='INSERT' and new.status is not distinct from 'pending_review'
   and new.review_note is null and new.uploaded_by is not distinct from auth.uid() then
   return new;
@@ -20,6 +24,9 @@ begin
     is distinct from (to_jsonb(old) - array['status','review_note','updated_at']) then
     raise exception using errcode='42501',message='Document review updates cannot change submission details';
    end if;
+  end if;
+  if new.status is null or new.status not in ('pending_review','approved','rejected') then
+   raise exception using errcode='22023',message='Invalid document review status';
   end if;
   return new;
  end if;
@@ -85,6 +92,11 @@ begin
   raise exception using errcode='42501',message='Forum writes require an authenticated actor';
  end if;
 if tg_op='INSERT' then
+  -- Defaults have already run, so always replace caller-supplied metadata.
+  -- App inserts consume RETURNING rows; maintenance retains its bypass above.
+  new.id := gen_random_uuid();
+  new.created_at := now();
+  new.updated_at := now();
   if new.author_id is distinct from auth.uid() or new.status is distinct from 'published'
    or new.risk_level is distinct from 'low' then
    raise exception using errcode='42501',message='Forum submissions cannot supply review outcomes';
