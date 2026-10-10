@@ -275,6 +275,9 @@ begin
   -- Service-role / owner inserts (migrations, imports) are not subject to the cap.
   if auth.uid() is null then return new; end if;
 
+  -- Serialize per author so two concurrent inserts cannot both pass the cap.
+  perform pg_advisory_xact_lock(hashtext('threads_quota:' || new.author_id::text));
+
   select * into v from public.check_entitlement(new.author_id, 'threads.new');
   if not v.allowed then
     raise exception 'entitlement_denied:threads.new:%', v.reason
@@ -295,6 +298,9 @@ returns trigger language plpgsql security definer set search_path = '' as $$
 declare v record;
 begin
   if auth.uid() is null then return new; end if;
+
+  -- Serialize per author so two concurrent inserts cannot both pass the rate limit.
+  perform pg_advisory_xact_lock(hashtext('replies_quota:' || new.author_id::text));
 
   select * into v from public.check_entitlement(new.author_id, 'replies.hour');
   if not v.allowed then
