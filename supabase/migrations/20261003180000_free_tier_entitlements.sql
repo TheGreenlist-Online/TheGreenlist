@@ -170,7 +170,19 @@ declare
   v_role     public.app_role;
   v_u        record;
   v_key      text := p_key;
+  v_caller   uuid := auth.uid();
 begin
+  -- Entitlements are per-user state and are never a trust signal (see header).
+  -- A logged-in caller may only inspect their OWN entitlements. Internal
+  -- security-definer callers run with auth.uid() set to the acting user
+  -- (triggers pass new.author_id = auth.uid(); consume_ai_query/my_entitlements
+  -- pass auth.uid()). Service-role / migration callers have a null auth.uid()
+  -- and are allowed through. This prevents one authenticated user from reading
+  -- another profile's account status, age-attestation state, or usage counts.
+  if v_caller is not null and p_profile is distinct from v_caller then
+    return query select false, 0, 0, now(), 'forbidden'::text; return;
+  end if;
+
   select p.account_status, p.age_attested_at, p.created_at
     into v_status, v_attested, v_created
     from public.profiles p where p.id = p_profile;
