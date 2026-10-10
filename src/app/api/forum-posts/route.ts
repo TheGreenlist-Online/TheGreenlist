@@ -82,6 +82,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(reply, { status: 201 })
   } catch (error) {
+    // The database is authoritative if a thread locks after the pre-check.
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      if (error.code === '42501') {
+        return NextResponse.json(
+          { error: 'Replies require an accessible published and unlocked thread' },
+          { status: 403 },
+        )
+      }
+      if (error.code === '22001') {
+        return NextResponse.json({ error: 'Reply is too long' }, { status: 400 })
+      }
+    }
     console.error('Error creating forum post:', error)
     return NextResponse.json(
       { error: 'Failed to create reply' },

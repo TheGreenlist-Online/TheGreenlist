@@ -1,0 +1,42 @@
+name: Content workflow security
+on:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - 'src/app/api/forum-posts/**'
+      - 'tests/forum-posts.test.mjs'
+      - 'scripts/test-forum-locks.py'
+      - '.github/workflows/content-workflows.yml'
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: content_workflows_fixture
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: fixture-only
+      PGDATABASE: content_workflows_fixture
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Bootstrap disposable fixture and apply proposed migration
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f supabase/tests/content-workflows-fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261006234146_guard_content_review_fields.sql
+      - name: Direct-write and audited-moderation regressions
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/content-workflows.sql
+      - name: Two-session lock serialization
+        run: python3 scripts/test-forum-locks.py
