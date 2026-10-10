@@ -831,3 +831,80 @@ html.gl-calm .gl-prose li { font-size: 1.08rem; }
 .greenlist-hero, .greenlist-section, .greenlist-civic-panel { background: transparent; }
 .greenlist-wordmark { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -.02em; }
 .greenlist-piece, .greenlist-seal { display: none; }
+
+/* =====================================================================
+   ONBOARDING: numbered steps and choice cards
+   ===================================================================== */
+
+.gl-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--gl-space-2); align-content: start; }
+.gl-steps__item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--gl-space-2);
+  padding: 8px 10px;
+  border: 1px solid var(--gl-border);
+  border-radius: var(--gl-radius);
+  background: var(--gl-surface);
+  color: var(--gl-text-muted);
+  font-size: .875rem;
+}
+.gl-steps__num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border: 1px solid var(--gl-border-strong);
+  border-radius: var(--gl-radius);
+  font-family: var(--gl-font-mono); font-size: .75rem;
+  color: var(--gl-text-secondary);
+}
+.gl-steps__item.is-current { border-color: var(--gl-accent-strong); color: var(--gl-text); }
+.gl-steps__item.is-current .gl-steps__num { border-color: var(--gl-accent-strong); background: var(--gl-accent); color: var(--gl-accent-ink); }
+.gl-steps__item.is-done { color: var(--gl-text-secondary); }
+.gl-steps__item.is-done .gl-steps__num { border-color: var(--gl-status-confirmed); color: var(--gl-status-confirmed); }
+@media (max-width: 1023px) {
+  .gl-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .gl-steps__label { font-size: .78rem; line-height: 1.3; }
+}
+@media (max-width: 420px) {
+  .gl-steps { grid-template-columns: 1fr; }
+}
+
+/* A selectable row: radio or checkbox semantics supplied by the markup. */
+.gl-choice {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: var(--gl-space-3);
+  align-items: start;
+  width: 100%;
+  padding: var(--gl-space-3) var(--gl-space-4);
+  border: 1px solid var(--gl-border-strong);
+  border-radius: var(--gl-radius);
+  background: var(--gl-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.gl-choice:hover { border-color: var(--gl-text-muted); }
+.gl-choice.is-selected { border-color: var(--gl-accent-strong); background: var(--gl-surface); }
+.gl-choice:focus-visible, .gl-choice:has(.gl-choice__input:focus-visible) {
+  outline: 2px solid var(--gl-accent-strong); outline-offset: 2px;
+}
+.gl-choice__input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.gl-choice__mark {
+  margin-top: 3px; width: 16px; height: 16px;
+  border: 1px solid var(--gl-border-strong); border-radius: 999px;
+  background: var(--gl-ink);
+}
+.gl-choice__mark--box { border-radius: 3px; }
+.gl-choice.is-selected .gl-choice__mark { border-color: var(--gl-accent-strong); background: var(--gl-accent); box-shadow: inset 0 0 0 3px var(--gl-ink); }
+.gl-choice.is-selected .gl-choice__mark--box { box-shadow: inset 0 0 0 2px var(--gl-ink); }
+
+/* Checklist rows on the desk. */
+.gl-checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.gl-checklist li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: var(--gl-space-3); align-items: center; padding: 10px 0; border-top: 1px solid var(--gl-border); font-size: .875rem; }
+.gl-checklist li:first-child { border-top: 0; padding-top: 0; }
+.gl-checklist li:last-child { padding-bottom: 0; }
+.gl-checklist__mark { width: 16px; height: 16px; border: 1px solid var(--gl-border-strong); border-radius: 3px; }
+.gl-checklist li.is-done .gl-checklist__mark { border-color: var(--gl-status-confirmed); background: var(--gl-status-confirmed); box-shadow: inset 0 0 0 2px var(--gl-ink); }
+.gl-checklist li.is-done .gl-checklist__text { color: var(--gl-text-muted); text-decoration: line-through; text-decoration-color: var(--gl-border-strong); }
