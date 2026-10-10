@@ -44,6 +44,39 @@ revoke all on function private.guard_business_document_review() from public,anon
 create trigger guard_business_document_review before insert or update on public.business_documents
 for each row execute function private.guard_business_document_review();
 
+-- AFTER observes the final accepted row and writes in the same transaction.
+-- The definer privilege is only for the protected audit sink, not document writes.
+create or replace function private.audit_business_document_review()
+returns trigger language plpgsql security definer set search_path='' as $$
+declare
+ caller_role text := current_setting('role',true);
+ before_review jsonb := null;
+ after_review jsonb := jsonb_build_object('status',new.status,'review_note',new.review_note);
+begin
+ -- Preserve the guard's explicit trusted import/maintenance exemptions.
+ if caller_role in ('service_role','postgres','supabase_admin')
+  or (caller_role='none' and session_user in ('service_role','postgres','supabase_admin')) then
+  return new;
+ end if;
+ if tg_op='INSERT' then
+  if new.status='pending_review' and new.review_note is null then return new; end if;
+ else
+  before_review := jsonb_build_object('status',old.status,'review_note',old.review_note);
+  if before_review=after_review then return new; end if;
+ end if;
+ if auth.uid() is null or not coalesce(public.has_permission('business.review'),false) then
+  raise exception using errcode='42501',message='Document review audit requires review authority';
+ end if;
+ -- Never copy file paths, titles, uploader identity, or other submission data.
+ insert into public.audit_logs(actor_id,action,entity_type,entity_id,metadata)
+ values(auth.uid(),'business_document.review','business_documents',new.id,
+  jsonb_build_object('operation',tg_op,'before',before_review,'after',after_review));
+ return new;
+end $$;
+revoke all on function private.audit_business_document_review() from public,anon,authenticated,service_role;
+create trigger audit_business_document_review after insert or update on public.business_documents
+for each row execute function private.audit_business_document_review();
+
 -- Lock the parent row without applying the author's UPDATE policy to readers.
 -- This helper returns only a boolean, checks visibility itself, and is private.
 create or replace function private.thread_accepts_reply(p_thread uuid)

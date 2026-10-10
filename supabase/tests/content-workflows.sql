@@ -14,6 +14,7 @@ insert into public.business_profiles(id,name,slug,business_type,owner_id) values
 ('88888888-8888-4888-8888-888888888888','Third fixture business','security-fixture-third-business','lab','11111111-1111-4111-8111-111111111111');
 create temporary table document_guard_fixture(like public.business_documents including defaults);
 create trigger document_guard_fixture before insert or update on document_guard_fixture for each row execute function private.guard_business_document_review();
+create trigger document_audit_fixture after insert or update on document_guard_fixture for each row execute function private.audit_business_document_review();
 grant insert,select,update on document_guard_fixture to authenticated;
 grant insert,select,update on document_guard_fixture to service_role;
 insert into document_guard_fixture(business_id,title,file_url,uploaded_by) values
@@ -336,6 +337,96 @@ begin
   or thread.created_at<>'2000-01-01'::timestamptz or post.created_at<>thread.created_at
   or thread.updated_at<>'2000-01-02'::timestamptz or post.updated_at<>thread.updated_at then
   raise exception 'Maintenance insert metadata was overwritten';
+ end if;
+end $$;
+-- Review auditing uses the actual table's migration-installed AFTER trigger.
+-- Fixture-only grants isolate trigger behavior, not deployed grants/RLS.
+grant select,insert,update on public.business_documents to authenticated,service_role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
+insert into public.business_documents(id,business_id,title,file_url,uploaded_by)
+ values('abcdefab-1111-4111-8111-abcdefabcdef','77777777-7777-4777-8777-777777777777','Audit submission','private-file-path',auth.uid());
+reset role;
+do $$ begin
+ if exists(select 1 from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef') then
+  raise exception 'Pending submission incorrectly logged as review';
+ end if;
+ if has_function_privilege('authenticated','private.audit_business_document_review()','execute')
+  or has_function_privilege('anon','private.audit_business_document_review()','execute')
+  or has_function_privilege('service_role','private.audit_business_document_review()','execute') then
+  raise exception 'Audit trigger function exposed to API roles';
+ end if;
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated"}',true);
+update public.business_documents set status='approved',review_note='Source checked'
+ where id='abcdefab-1111-4111-8111-abcdefabcdef';
+update public.business_documents set review_note='Source rechecked'
+ where id='abcdefab-1111-4111-8111-abcdefabcdef';
+update public.business_documents set status='rejected',review_note='Source withdrawn'
+ where id='abcdefab-1111-4111-8111-abcdefabcdef';
+update public.business_documents set status='pending_review',review_note=null
+ where id='abcdefab-1111-4111-8111-abcdefabcdef';
+-- A timestamp-only/no-op update is not a new review decision.
+update public.business_documents set updated_at=now()+interval '1 second'
+ where id='abcdefab-1111-4111-8111-abcdefabcdef';
+insert into public.business_documents(id,business_id,title,file_url,uploaded_by,status,review_note)
+ values('abcdefab-2222-4222-8222-abcdefabcdef','77777777-7777-4777-8777-777777777777','Reviewed insert','private-file-path','22222222-2222-4222-8222-222222222222','approved','Imported review');
+select pg_temp.expect_error('insert into public.audit_logs(action,entity_type) values(''business_document.review'',''business_documents'')','42501');
+reset role;
+do $$ declare expected jsonb; begin
+ if (select count(*) from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef')<>4 then
+  raise exception 'Expected exactly four document decisions, including note-only edit';
+ end if;
+ foreach expected in array array[
+  '{"before":{"status":"pending_review","review_note":null},"after":{"status":"approved","review_note":"Source checked"}}'::jsonb,
+  '{"before":{"status":"approved","review_note":"Source checked"},"after":{"status":"approved","review_note":"Source rechecked"}}'::jsonb,
+  '{"before":{"status":"approved","review_note":"Source rechecked"},"after":{"status":"rejected","review_note":"Source withdrawn"}}'::jsonb,
+  '{"before":{"status":"rejected","review_note":"Source withdrawn"},"after":{"status":"pending_review","review_note":null}}'::jsonb
+ ] loop
+  if not exists(select 1 from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef'
+   and actor_id='55555555-5555-4555-8555-555555555555' and action='business_document.review'
+   and entity_type='business_documents' and metadata=expected||'{"operation":"UPDATE"}'::jsonb) then
+   raise exception 'Missing precise reviewer/before/after document audit: %',expected;
+  end if;
+ end loop;
+ if (select count(*) from public.audit_logs where entity_id='abcdefab-2222-4222-8222-abcdefabcdef'
+  and actor_id='55555555-5555-4555-8555-555555555555' and action='business_document.review'
+  and metadata='{"operation":"INSERT","before":null,"after":{"status":"approved","review_note":"Imported review"}}'::jsonb)<>1 then
+  raise exception 'Missing reviewed-insert audit';
+ end if;
+end $$;
+
+-- Audit failure rolls back UPDATE and INSERT, not just the audit row.
+create trigger fixture_document_audit_failure before insert on public.audit_logs
+ for each row when (new.action='business_document.review') execute function pg_temp.fail_forum_audit();
+set local role authenticated;
+select pg_temp.expect_error('update public.business_documents set status=''approved'' where id=''abcdefab-1111-4111-8111-abcdefabcdef''','23514');
+select pg_temp.expect_error('insert into public.business_documents(id,business_id,title,file_url,status) values(''abcdefab-3333-4333-8333-abcdefabcdef'',''77777777-7777-4777-8777-777777777777'',''Failed insert'',''private-file-path'',''approved'')','23514');
+reset role;
+drop trigger fixture_document_audit_failure on public.audit_logs;
+do $$ begin
+ if (select status from public.business_documents where id='abcdefab-1111-4111-8111-abcdefabcdef')<>'pending_review'
+  or exists(select 1 from public.business_documents where id='abcdefab-3333-4333-8333-abcdefabcdef') then
+  raise exception 'Document decision survived audit failure';
+ end if;
+ if (select count(*) from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef')<>4
+  or exists(select 1 from public.audit_logs where entity_id='abcdefab-3333-4333-8333-abcdefabcdef') then
+  raise exception 'Failed document decision left an audit';
+ end if;
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
+select pg_temp.expect_error('update public.business_documents set status=''approved'' where id=''abcdefab-1111-4111-8111-abcdefabcdef''','42501');
+reset role;
+-- Trusted imports remain exempt, even when the previous JWT named a reviewer.
+select set_config('request.jwt.claims','{"sub":"55555555-5555-4555-8555-555555555555","role":"service_role"}',true);
+set local role service_role;
+update public.business_documents set status='approved' where id='abcdefab-1111-4111-8111-abcdefabcdef';
+reset role;
+do $$ begin
+ if (select count(*) from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef')<>4 then
+  raise exception 'Denied self-review or trusted import created a reviewer audit';
  end if;
 end $$;
 rollback;
