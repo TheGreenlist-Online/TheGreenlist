@@ -11,7 +11,7 @@ revoke all on private.client_write_buckets from public,anon,authenticated;
 create or replace function private.enforce_client_write_quota()
 returns trigger language plpgsql security definer set search_path='' as $$
 declare caller_role text := current_setting('role',true); actor uuid := auth.uid();
- bucket timestamptz := date_trunc('hour',statement_timestamp()); used_count integer;
+ bucket timestamptz := date_trunc('hour',statement_timestamp(),'UTC'); used_count integer;
  cap integer := tg_argv[0]::integer;
 begin
  -- SET ROLE remains the caller's selected DB role inside SECURITY DEFINER.
