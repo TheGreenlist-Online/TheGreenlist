@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { entitlementDeniedResponse, parseTriggerDenial } from '@/lib/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -78,7 +79,13 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      // Reply rate limits are enforced by the forum_posts BEFORE INSERT
+      // trigger (docs/entitlements-spec.md §5.2); translate to 429/403.
+      const denial = parseTriggerDenial(error)
+      if (denial) return entitlementDeniedResponse(denial.key, denial.state)
+      throw error
+    }
 
     return NextResponse.json(reply, { status: 201 })
   } catch (error) {

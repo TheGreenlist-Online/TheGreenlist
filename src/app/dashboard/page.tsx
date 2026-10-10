@@ -20,6 +20,12 @@ import { StatTile } from '@/components/dashboard/StatTile'
 import { DashboardPanel } from '@/components/dashboard/DashboardPanel'
 import { ActivityList } from '@/components/dashboard/ActivityList'
 import { NotificationList } from '@/components/dashboard/NotificationList'
+import { SetupChecklist } from '@/components/dashboard/SetupChecklist'
+import { ParticipationLimits } from '@/components/dashboard/ParticipationLimits'
+import { BusinessDesk } from '@/components/dashboard/BusinessDesk'
+import { getOnboardingState } from '@/lib/onboarding'
+import { getDeskLimits } from '@/lib/entitlements-desk'
+import { getBusinessDesk } from '@/lib/business-desk'
 
 export const metadata: Metadata = {
   title: 'Your desk - The Green List',
@@ -134,18 +140,23 @@ export default async function DashboardPage() {
     redirect('/auth/signin?callbackUrl=/dashboard')
   }
 
-  const [{ data: profile }, data] = await Promise.all([
+  const [{ data: profile }, data, onboarding, limits] = await Promise.all([
     supabase
       .from('profiles')
       .select('role, display_name, username, account_status')
       .eq('id', user.id)
       .maybeSingle<DashboardProfile>(),
     getDashboardData(supabase, user.id),
+    getOnboardingState(supabase, user.id),
+    getDeskLimits(supabase),
   ])
 
   const role = normalizePlatformRole(profile?.role)
   const isPlatformOwner = user.app_metadata?.platform_owner === true
   const isAdmin = isAdminRole(role, isPlatformOwner)
+  const isOperator = roleCategory(role) === 'OPERATOR'
+  // Business records are only fetched for accounts that can hold them.
+  const businessDesk = isOperator ? await getBusinessDesk(supabase, user.id) : null
 
   // Reviewer workload, not personal activity — only fetched for people who can act on it.
   // Gated on the permission that names the action, not on being an admin.
@@ -210,6 +221,19 @@ export default async function DashboardPage() {
         </Notice>
       ) : null}
 
+      {!onboarding.completed && onboarding.available ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <SetupChecklist state={onboarding} />
+          <ParticipationLimits limits={limits} />
+        </div>
+      ) : null}
+
+      {businessDesk ? (
+        <div className="mt-8">
+          <BusinessDesk desk={businessDesk} />
+        </div>
+      ) : null}
+
       <section className="mt-8" aria-label="Your activity at a glance">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatTile
@@ -249,10 +273,13 @@ export default async function DashboardPage() {
           <ActivityList items={activity} />
         </DashboardPanel>
 
-        <div id="notifications" className="scroll-mt-28">
-          <DashboardPanel title="Notifications" isEmpty={notifications.length === 0} emptyTitle="No notifications" emptyBody="Status changes on your reports and replies to your discussions are listed here.">
-            <NotificationList items={notifications} />
-          </DashboardPanel>
+        <div className="grid gap-6">
+          <div id="notifications" className="scroll-mt-28">
+            <DashboardPanel title="Notifications" isEmpty={notifications.length === 0} emptyTitle="No notifications" emptyBody="Status changes on your reports and replies to your discussions are listed here.">
+              <NotificationList items={notifications} />
+            </DashboardPanel>
+          </div>
+          {onboarding.completed || !onboarding.available ? <ParticipationLimits limits={limits} /> : null}
         </div>
       </div>
 

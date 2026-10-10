@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createPostSchema } from '@/utils/validators'
+import {
+  checkEntitlement,
+  entitlementDeniedResponse,
+  entitlementHeaders,
+  parseTriggerDenial,
+} from '@/lib/entitlements'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +18,14 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = createPostSchema.parse(body)
+
+    // Free-tier cap on new threads (docs/entitlements-spec.md §4). The
+    // BEFORE INSERT trigger re-checks; this call exists to answer with the
+    // HTTP contract instead of a generic 500.
+    const threadQuota = await checkEntitlement(supabase, user.id, 'threads.new')
+    if (!threadQuota.allowed) {
+      return entitlementDeniedResponse('threads.new', threadQuota)
+    }
 
     const slug = `${validatedData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${crypto.randomUUID().slice(0, 8)}`
     const { data: post, error } = await supabase
@@ -29,9 +43,19 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      const denial = parseTriggerDenial(error)
+      if (denial) return entitlementDeniedResponse(denial.key, denial.state)
+      throw error
+    }
 
-    return NextResponse.json(post)
+    return NextResponse.json(post, {
+      headers: entitlementHeaders('threads.new', {
+        used: threadQuota.used + 1,
+        max_value: threadQuota.max_value,
+        resets_at: threadQuota.resets_at,
+      }),
+    })
   } catch (error) {
     console.error('Error creating post:', error)
     return NextResponse.json(
