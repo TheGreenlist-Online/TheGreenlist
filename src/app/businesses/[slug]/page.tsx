@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { ExternalLink, MapPin } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
-import { Ledger, LimitationsPanel, RecordHeader } from '@/components/record'
+import { Ledger, LimitationsPanel, RecordHeader, StatusLabel } from '@/components/record'
 import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
 import { BusinessDocumentsSection, type BusinessDocument } from '@/components/BusinessDocumentsSection'
 import { formatDate, humanize, recordId, recordStatus } from '@/lib/recordStatus'
@@ -115,7 +115,6 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   return (
     <PageShell width="record">
       <RecordHeader
-        eyebrow="Records"
         kind="Business record"
         recordId={recordId('BUS', business.id)}
         jurisdiction={jurisdiction}
@@ -167,7 +166,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
         rows={[
           {
             label: 'Identity verification',
-            value: status.label,
+            value: <StatusLabel status={status} />,
             note: verification === 'verified'
               ? 'Licence and registration details were matched to an official source. This is not a judgement of product quality, safety, or conduct.'
               : 'Licence and registration details have not been matched to an official source.',
