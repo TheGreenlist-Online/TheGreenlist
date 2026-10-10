@@ -3,8 +3,10 @@ import { notFound } from 'next/navigation'
 import { ExternalLink, MapPin } from 'lucide-react'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
+import { Ledger, LimitationsPanel, RecordHeader, StatusLabel } from '@/components/record'
 import { VerifiedWall, type VerifiedFact } from '@/components/VerifiedWall'
 import { BusinessDocumentsSection, type BusinessDocument } from '@/components/BusinessDocumentsSection'
+import { formatDate, humanize, recordId, recordStatus } from '@/lib/recordStatus'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { normalizePlatformRole, hasPermission } from '@/lib/roles'
 
@@ -27,11 +29,6 @@ type BusinessRow = {
   trust_rating: number | null
   is_claimed: boolean
   created_at: string
-}
-
-function formatType(type: string | null) {
-  if (!type) return 'Business'
-  return type.replace(/[_-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -110,119 +107,84 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   const approvedDocuments = allDocuments.filter((doc) => doc.status === 'approved')
 
   const verification = (business.verification_status ?? 'unverified').toLowerCase()
-  const verificationLabel =
-    verification === 'verified'
-      ? { tone: 'confirmed', text: 'Identity verified' }
-      : verification === 'pending'
-        ? { tone: 'review', text: 'Under review' }
-        : { tone: 'neutral', text: business.is_claimed ? 'Business-reported' : 'Not verified' }
+  const status = recordStatus(
+    verification === 'unverified' && business.is_claimed ? 'business-reported' : verification,
+  )
   const jurisdiction = business.state ?? 'Jurisdiction not stated'
-  const recordId = `GL-BUS-${business.id.slice(0, 8).toUpperCase()}`
-  const recordOpened = new Date(business.created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
 
   return (
     <PageShell width="record">
-      <header className="district-page-intro border-b border-[var(--gl-border)] pb-8">
-        <div className="gl-meta mb-3">
-          <span>{jurisdiction}</span>
-          <span>/</span>
-          <span>Business record</span>
-          <span>/</span>
-          <span>{recordId}</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="greenlist-eyebrow">{formatType(business.business_type)}</p>
-          <span className={`gl-status gl-status--${verificationLabel.tone}`}>{verificationLabel.text}</span>
-        </div>
-        <h1 className="greenlist-page-title">{business.name}</h1>
+      <RecordHeader
+        kind="Business record"
+        recordId={recordId('BUS', business.id)}
+        jurisdiction={jurisdiction}
+        title={business.name}
+        lede={business.description ? (
+          <>
+            {business.description}
+            {business.is_claimed ? (
+              <span className="block mt-2 text-xs text-[var(--gl-text-muted)]">Description supplied by the business.</span>
+            ) : null}
+          </>
+        ) : undefined}
+        status={status}
+        meta={[
+          { label: 'Record type', value: humanize(business.business_type, 'Business') },
+          { label: 'Record opened', value: formatDate(business.created_at) },
+        ]}
+        actions={
+          <>
+            {business.website_url ? (
+              <a
+                href={business.website_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="greenlist-quiet-button"
+              >
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                Business website
+              </a>
+            ) : null}
+            <Link href="/about/corrections" className="greenlist-quiet-button">
+              Request a correction
+            </Link>
+          </>
+        }
+      >
         {(business.city || business.state) ? (
           <p className="mt-3 flex items-center gap-1 text-sm text-[var(--gl-text-secondary)]">
             <MapPin className="h-4 w-4" aria-hidden="true" />
             {[business.city, business.state].filter(Boolean).join(', ')}
           </p>
         ) : null}
-        {business.description ? (
-          <p className="greenlist-page-lede">
-            {business.description}
-            {business.is_claimed ? (
-              <span className="block mt-2 text-xs text-[var(--gl-text-muted)]">Description supplied by the business.</span>
-            ) : null}
-          </p>
-        ) : null}
+      </RecordHeader>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {business.website_url ? (
-            <a
-              href={business.website_url}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="greenlist-quiet-button"
-            >
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              Business website
-            </a>
-          ) : null}
-          <Link href="/about/corrections" className="greenlist-quiet-button">
-            Request a correction
-          </Link>
-        </div>
-      </header>
+      <Ledger
+        title="Documentation ledger"
+        aside={`Record opened ${formatDate(business.created_at)}`}
+        className="mt-8"
+        rows={[
+          {
+            label: 'Identity verification',
+            value: <StatusLabel status={status} />,
+            note: verification === 'verified'
+              ? 'Licence and registration details were matched to an official source. This is not a judgement of product quality, safety, or conduct.'
+              : 'Licence and registration details have not been matched to an official source.',
+          },
+          { label: 'Record claimed by business', value: business.is_claimed ? 'Yes' : 'No' },
+          { label: 'Documents on file (reviewed)', value: approvedDocuments.length },
+          { label: 'Facts confirmed by reviewers', value: verifiedFacts.length },
+          {
+            label: 'Paid relationship',
+            value: business.sponsorship_status && business.sponsorship_status !== 'none'
+              ? `Disclosed: ${business.sponsorship_status}`
+              : 'None',
+          },
+          { label: 'Official enforcement records', value: 'Not yet checked in reviewed sources' },
+        ]}
+      />
 
-      <div className="gl-panel mt-8">
-        <div className="gl-panel__head">
-          <h2>Documentation ledger</h2>
-          <span className="gl-meta">Record opened {recordOpened}</span>
-        </div>
-        <table className="gl-ledger">
-          <tbody>
-            <tr>
-              <th scope="row">Identity verification</th>
-              <td>
-                <span className={`gl-status gl-status--${verificationLabel.tone}`}>{verificationLabel.text}</span>
-                <span className="mt-2 block text-xs text-[var(--gl-text-muted)]">
-                  {verification === 'verified'
-                    ? 'Licence and registration details were matched to an official source. This is not a judgement of product quality, safety, or conduct.'
-                    : 'Licence and registration details have not been matched to an official source.'}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Record claimed by business</th>
-              <td>{business.is_claimed ? 'Yes' : 'No'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Documents on file (reviewed)</th>
-              <td>{approvedDocuments.length}</td>
-            </tr>
-            <tr>
-              <th scope="row">Facts confirmed by reviewers</th>
-              <td>{verifiedFacts.length}</td>
-            </tr>
-            <tr>
-              <th scope="row">Paid relationship</th>
-              <td>
-                {business.sponsorship_status && business.sponsorship_status !== 'none'
-                  ? `Disclosed: ${business.sponsorship_status}`
-                  : 'None'}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Official enforcement records</th>
-              <td>Not yet checked in reviewed sources</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p className="gl-limitations mt-6">
-        <strong>What this record does not mean.</strong> The Green List does not certify this business, its products,
-        or their safety. Verification of identity states only that licence details matched an official source on the
-        date checked.
-      </p>
+      <LimitationsPanel subject="business" className="mt-6" />
 
       <div className="mt-8">
         <VerifiedWall facts={verifiedFacts} />
