@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -58,6 +59,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: 'created', ticket_id: ticket.id, created_at: ticket.created_at })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error filing account deletion request:', error)
     return NextResponse.json({ error: 'Failed to file the request' }, { status: 500 })
   }
