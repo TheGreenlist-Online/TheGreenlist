@@ -1,7 +1,6 @@
 # Restrict cross-account privileged role lookup RPC: review handoff
 
-Status: draft proposal, not deployed. Database rollback tests passed against the live schema after PR #33's applied baseline. Tests leave no persistent fixtures.
-Merge/record PR #33 first. These branches start from main and do not include each other's patches.
+Status: ready for review, not deployed. PR #33 is merged. The original handoff recorded rollback tests against the live schema; the 2026-10-10 follow-up uses only a disposable local database. These branches do not include each other's patches.
 
 ## Codex
 Review this PR for authorization bypasses, privacy leaks, RLS recursion, unsafe SECURITY DEFINER logic, direct Supabase calls and migration compatibility. Reproduce the included rollback tests. Return exact file/line findings and concrete fixes. Do not merge or deploy.
@@ -17,3 +16,21 @@ Review the security design in this PR and the current official Supabase, Postgre
 - Inventory the remaining intentional permission helpers rather than blanket-revoking them.
 
 No production migration or setting change was left applied by this work.
+
+## 2026-10-10 regression follow-up
+
+PR #33 is merged. This follow-up changes tests and CI only; it does not change
+RPC behavior or apply a hosted migration. `role-rpc.yml` runs PostgreSQL 16 with
+a minimal synthetic fixture, the actual PR migration, and rollback assertions.
+Coverage includes ordinary self/cross-account access, anonymous EXECUTE denial,
+subjectless service JWTs, direct service sessions without claims, missing users,
+signed-out authenticated requests, and authorized administrator lookups.
+
+Local verification: PostgreSQL 16 assertions pass. Three negative controls fail as
+expected when the service-role path, missing-actor guard, or cross-account guard
+is removed; restoring the actual migration passes again.
+
+The fixture is a contract test, not proof of deployed grants or a full migration
+replay. Staging PostgREST requests, actual reviewer/platform-owner policies,
+permission-helper inventory, and advisor acceptance remain unrun. Never run the
+fixture against an existing Supabase project.
