@@ -37,6 +37,7 @@ export default function SignInPage() {
  if (!isMounted) return
  setCallbackUrl(getSafeCallbackUrl(params.get('callbackUrl')))
  setError(getErrorMessage(params.get('error')))
+ if (params.get('passwordReset')) setNotice('Your password was updated. Sign in with your new password.')
  if (params.get('registered')) setNotice('Account created. Sign in after confirming your email.')
  }, 0)
 
@@ -65,7 +66,7 @@ export default function SignInPage() {
 
  setIsLoading(false)
  if (signInError) {
- setError('Invalid email or password.')
+ setError('Invalid email or password. If your current password may be compromised, use Forgot password to reset it.')
  return
  }
 
@@ -110,6 +111,7 @@ export default function SignInPage() {
  <div className="gl-field">
  <label className="gl-label" htmlFor="password">Password</label>
  <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+ <Link href="/auth/forgot-password" className="mt-2 inline-block text-sm gl-link">Forgot password?</Link>
  </div>
  {error ? <div className="gl-notice gl-notice--alert">{error}</div> : null}
  {notice ? <div className="gl-notice gl-notice--confirmed">{notice}</div> : null}

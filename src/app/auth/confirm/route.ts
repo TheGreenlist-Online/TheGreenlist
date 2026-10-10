@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = requestUrl.searchParams.get('token_hash')
   const type = requestUrl.searchParams.get('type') as EmailOtpType | null
   const code = requestUrl.searchParams.get('code')
+  const isRecovery = requestUrl.searchParams.get('flow') === 'recovery'
   const supabase = await createSupabaseServerClient()
 
   if (tokenHash && type) {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!error) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL(type === 'recovery' || isRecovery ? '/auth/reset-password' : '/dashboard', request.url))
     }
   }
 
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL(isRecovery ? '/auth/reset-password' : '/dashboard', request.url))
     }
   }
 
