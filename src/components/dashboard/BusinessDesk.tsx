@@ -96,7 +96,7 @@ export function BusinessDesk({ desk }: { desk: BusinessDeskData }) {
             meta={
               <>
                 <span>
-                  Documents: {r.documents.approved} approved · {r.documents.pending} pending
+                  Documents: {r.documents.approved} <StatusLabel value="approved" /> · {r.documents.pending} pending
                   {r.documents.rejected > 0 ? ` · ${r.documents.rejected} returned` : ''}
                 </span>
                 <span>
