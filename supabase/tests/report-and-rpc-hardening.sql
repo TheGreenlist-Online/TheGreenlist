@@ -82,4 +82,17 @@ do $$ begin
  if exists(select 1 from public.search_public_content(repeat('x',257),50,2147483647)) then raise exception 'Oversized search produced results'; end if;
 end $$;
 reset role;
+-- Regression: explicitly passing NULL must use the default cap, not LIMIT ALL.
+set local role anon;
+do $
+begin
+ if position('coalesce(result_limit, 20)' in pg_get_functiondef('public.search_public_content(text,integer,integer)'::regprocedure)) = 0 then
+   raise exception 'NULL result_limit is not coalesced before LIMIT';
+ end if;
+ if (select count(*) from public.search_public_content('the',NULL,0)) > 20 then
+   raise exception 'NULL result_limit exceeded the default 20-row cap';
+ end if;
+end $;
+reset role;
+
 rollback;
