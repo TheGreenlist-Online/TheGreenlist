@@ -184,6 +184,8 @@ do $$ declare actor uuid; thread uuid; post uuid; field text; affected integer; 
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":false}'','' '')','22023');
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"body":"overwrite"}'',''Rewrite'')','22023');
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":"false"}'',''Bad type'')','22023');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"status":"publshed"}'',''Bad status'')','22023');
+  perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"risk_level":"urgent"}'',''Bad risk level'')','22023');
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''88888888-8888-4888-8888-888888888888'',''{"is_locked":true}'',''Private lock'')','42501');
   -- Legitimate reviewer can unlock another author's thread, with an audit.
   perform public.moderate_forum_content('thread','33333333-3333-4333-8333-333333333333','{"is_locked":false,"is_pinned":true}','Reviewed reopening');
