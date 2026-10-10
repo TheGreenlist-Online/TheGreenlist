@@ -18,6 +18,12 @@ export function BusinessDesk({ desk }: { desk: BusinessDeskData }) {
           <h2 id="business-desk-title">Your business records</h2>
         </div>
         <div className="gl-panel__body">
+          {desk.degraded ? (
+            <Notice tone="review" role="status">
+              Your business records could not be loaded. This is a temporary problem — refresh to try again. If you already hold records, they are
+              still attached to your account and nothing has changed.
+            </Notice>
+          ) : (
           <div className="border border-dashed border-[var(--gl-border)] p-5">
             <p className="text-sm font-semibold text-[var(--gl-text)]">No record claimed yet</p>
             <p className="mt-1.5 max-w-prose text-sm leading-6 text-[var(--gl-text-secondary)]">
@@ -33,6 +39,7 @@ export function BusinessDesk({ desk }: { desk: BusinessDeskData }) {
               </Link>
             </div>
           </div>
+          )}
         </div>
       </section>
     )
