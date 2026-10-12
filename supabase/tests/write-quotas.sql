@@ -53,4 +53,47 @@ do $$ declare denied boolean:=false; zones text[]:=array['Asia/Kolkata','Asia/Ka
 end $$;
 reset role;
 
+-- Trigger-only fixture isolates role handling from table grants/RLS.
+-- These grants exist only inside this rolled-back test transaction.
+create temporary table quota_role_fixture(id uuid default gen_random_uuid());
+create trigger fixture_quota before insert on quota_role_fixture for each row
+ execute function private.enforce_client_write_quota('1');
+grant insert on quota_role_fixture to authenticated,anon,service_role,supabase_admin;
+create function pg_temp.expect_quota_error(command text, expected text) returns void
+language plpgsql as $$ begin
+ begin execute command;
+ exception when others then
+  if sqlstate=expected then return; end if;
+  raise;
+ end;
+ raise exception 'Expected SQLSTATE %, command succeeded: %',expected,command;
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
+insert into pg_temp.quota_role_fixture default values;
+select pg_temp.expect_quota_error('insert into pg_temp.quota_role_fixture default values','PT429');
+-- JWT role strings do not override the selected database role.
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"service_role","user_metadata":{"role":"ADMIN"}}',true);
+select pg_temp.expect_quota_error('insert into pg_temp.quota_role_fixture default values','PT429');
+select set_config('request.jwt.claims','{}',true);
+select pg_temp.expect_quota_error('insert into pg_temp.quota_role_fixture default values','42501');
+reset role;
+set local role anon;
+select pg_temp.expect_quota_error('insert into pg_temp.quota_role_fixture default values','42501');
+reset role;
+-- Trusted API and maintenance roles bypass quotas with or without a JWT actor.
+set local role service_role;
+insert into pg_temp.quota_role_fixture default values;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
+insert into pg_temp.quota_role_fixture default values;
+reset role;
+set local role supabase_admin;
+insert into pg_temp.quota_role_fixture default values;
+reset role;
+insert into pg_temp.quota_role_fixture default values;
+do $$ begin
+ if (select used from private.client_write_buckets where user_id='11111111-1111-4111-8111-111111111111' and action='quota_role_fixture:INSERT')<>1 then
+  raise exception 'Trusted or rejected writes charged the quota';
+ end if;
+end $$;
 rollback;
