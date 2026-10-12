@@ -154,6 +154,8 @@ insert into public.forum_threads(id,forum_id,author_id,title,body,visibility,sta
 ('99999999-9999-4999-8999-999999999999',(select id from public.forums where is_active limit 1),'22222222-2222-4222-8222-222222222222','Removed fixture','Removed body','public','removed');
 
 insert into public.forum_posts(id,thread_id,author_id,body) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','33333333-3333-4333-8333-333333333333','22222222-2222-4222-8222-222222222222','Moderation fixture reply');
+insert into public.forum_posts(id,thread_id,author_id,body) values
+ ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','88888888-8888-4888-8888-888888888888','22222222-2222-4222-8222-222222222222','Private parent fixture');
 
 -- Repeat the reviewer-author scenarios for BOTH MODERATOR and ADMIN.
 do $$ declare actor uuid; thread uuid; post uuid; field text; affected integer; begin
@@ -178,6 +180,7 @@ do $$ declare actor uuid; thread uuid; post uuid; field text; affected integer; 
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''33333333-3333-4333-8333-333333333333'',%L,''Locked reviewer reply'')',actor),'42501');
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''88888888-8888-4888-8888-888888888888'',%L,''Private reviewer reply'')',actor),'42501');
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(''99999999-9999-4999-8999-999999999999'',%L,''Removed reviewer reply'')',actor),'42501');
+  perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,parent_post_id,author_id,body) values(''33333333-3333-4333-8333-333333333333'',''bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'',%L,''Cross-thread reply'')',actor),'42501');
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(%L,%L,repeat(''x'',50001))',thread,actor),'22001');
   perform pg_temp.expect_error(format('update public.forum_threads set body=repeat(''x'',50001) where id=%L',thread),'22001');
   perform pg_temp.expect_error('insert into private.forum_review_context values(txid_current(),auth.uid(),''forum_threads'',''33333333-3333-4333-8333-333333333333'')','42501');
