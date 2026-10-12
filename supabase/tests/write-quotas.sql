@@ -40,6 +40,16 @@ do $$ declare denied boolean:=false; zones text[]:=array['Asia/Kolkata','Asia/Ka
  insert into public.reports(reporter_id,report_type,title,description) values(auth.uid(),'mislabeling','Quota fixture report','Quota fixture report body for verification.');
  exception when sqlstate 'PT429' then denied:=true; end;
  if not denied then raise exception 'Quota bypassed by rotating session timezone'; end if;
+ denied:=false;
+ for i in 1..10 loop
+   insert into public.business_profiles(owner_id,name,slug,business_type,is_claimed,verification_status)
+   values(auth.uid(),format('Quota fixture business %s',i),format('quota-fixture-business-%s',i),'dispensary',true,'unverified');
+ end loop;
+ begin
+   insert into public.business_profiles(owner_id,name,slug,business_type,is_claimed,verification_status)
+   values(auth.uid(),'Quota fixture business denied','quota-fixture-business-denied','dispensary',true,'unverified');
+ exception when sqlstate 'PT429' then denied:=true; end;
+ if not denied then raise exception 'Eleventh business claim was not rate-limited'; end if;
 end $$;
 reset role;
 

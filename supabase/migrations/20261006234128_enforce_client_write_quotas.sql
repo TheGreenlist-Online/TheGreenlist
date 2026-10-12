@@ -31,6 +31,7 @@ create trigger client_write_quota before insert on public.reports for each row e
 create trigger client_write_quota before insert on public.forum_threads for each row execute function private.enforce_client_write_quota('20');
 create trigger client_write_quota before insert on public.forum_posts for each row execute function private.enforce_client_write_quota('120');
 create trigger client_write_quota before insert on public.business_documents for each row execute function private.enforce_client_write_quota('20');
+create trigger client_write_quota before insert on public.business_profiles for each row execute function private.enforce_client_write_quota('10');
 create trigger client_write_quota before insert on public.education_resources for each row execute function private.enforce_client_write_quota('20');
 create trigger client_write_quota before insert on public.support_tickets for each row execute function private.enforce_client_write_quota('10');
 -- Failed transactions do not count. Read floods, AI spend, updates, drafts,
