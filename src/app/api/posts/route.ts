@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(post)
   } catch (error) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === '22001') {
+      return NextResponse.json({ error: 'Thread content must be at most 50,000 characters' }, { status: 400 })
+    }
     console.error('Error creating post:', error)
     return NextResponse.json(
       { error: 'Failed to create post' },

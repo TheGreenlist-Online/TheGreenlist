@@ -4,6 +4,8 @@ on:
     paths:
       - 'supabase/**'
       - 'src/app/api/forum-posts/**'
+      - 'src/app/api/posts/**'
+      - 'tests/posts.test.mjs'
       - 'tests/forum-posts.test.mjs'
       - 'scripts/test-forum-locks.py'
       - '.github/workflows/content-workflows.yml'

@@ -59,7 +59,8 @@ begin
   return new;
  end if;
  if tg_op='INSERT' then
-  if new.status='pending_review' and new.review_note is null then return new; end if;
+  if new.status='pending_review' and new.review_note is null
+   and new.uploaded_by is not distinct from auth.uid() then return new; end if;
  else
   before_review := jsonb_build_object('status',old.status,'review_note',old.review_note);
   if before_review=after_review then return new; end if;

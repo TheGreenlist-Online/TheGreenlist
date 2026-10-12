@@ -183,6 +183,7 @@ do $$ declare actor uuid; thread uuid; post uuid; field text; affected integer; 
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,parent_post_id,author_id,body) values(''33333333-3333-4333-8333-333333333333'',''bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'',%L,''Cross-thread reply'')',actor),'42501');
   perform pg_temp.expect_error(format('insert into public.forum_posts(thread_id,author_id,body) values(%L,%L,repeat(''x'',50001))',thread,actor),'22001');
   perform pg_temp.expect_error(format('update public.forum_threads set body=repeat(''x'',50001) where id=%L',thread),'22001');
+  perform pg_temp.expect_error(format('insert into public.forum_threads(forum_id,author_id,title,body) values((select id from public.forums limit 1),%L,''Oversized'',repeat(''x'',50001))',actor),'22001');
   perform pg_temp.expect_error('insert into private.forum_review_context values(txid_current(),auth.uid(),''forum_threads'',''33333333-3333-4333-8333-333333333333'')','42501');
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"is_locked":false}'','' '')','22023');
   perform pg_temp.expect_error('select public.moderate_forum_content(''thread'',''33333333-3333-4333-8333-333333333333'',''{"body":"overwrite"}'',''Rewrite'')','22023');
@@ -377,9 +378,24 @@ update public.business_documents set updated_at=now()+interval '1 second'
  where id='abcdefab-1111-4111-8111-abcdefabcdef';
 insert into public.business_documents(id,business_id,title,file_url,uploaded_by,status,review_note)
  values('abcdefab-2222-4222-8222-abcdefabcdef','77777777-7777-4777-8777-777777777777','Reviewed insert','private-file-path','22222222-2222-4222-8222-222222222222','approved','Imported review');
+-- Reviewer INSERT for another uploader is not an ordinary self-submission.
+insert into public.business_documents(id,business_id,title,file_url,uploaded_by)
+ values('abcdefab-4444-4444-8444-abcdefabcdef','77777777-7777-4777-8777-777777777777','Pending reviewer insert','private-file-path','22222222-2222-4222-8222-222222222222');
+-- Reviewer self-upload still uses the ordinary submission exemption.
+insert into public.business_documents(id,business_id,title,file_url,uploaded_by)
+ values('abcdefab-5555-4555-8555-abcdefabcdef','77777777-7777-4777-8777-777777777777','Reviewer self-upload','private-file-path',auth.uid());
 select pg_temp.expect_error('insert into public.audit_logs(action,entity_type) values(''business_document.review'',''business_documents'')','42501');
 reset role;
 do $$ declare expected jsonb; begin
+ if (select count(*) from public.audit_logs where entity_id='abcdefab-4444-4444-8444-abcdefabcdef'
+  and actor_id='55555555-5555-4555-8555-555555555555' and action='business_document.review'
+  and metadata='{"operation":"INSERT","before":null,"after":{"status":"pending_review","review_note":null}}'::jsonb)<>1 then
+  raise exception 'Missing pending reviewer-insert audit';
+ end if;
+ if exists(select 1 from public.audit_logs where entity_id='abcdefab-5555-4555-8555-abcdefabcdef') then
+  raise exception 'Reviewer self-upload incorrectly audited';
+ end if;
+
  if (select count(*) from public.audit_logs where entity_id='abcdefab-1111-4111-8111-abcdefabcdef')<>4 then
   raise exception 'Expected exactly four document decisions, including note-only edit';
  end if;
@@ -406,6 +422,7 @@ end $$;
 create trigger fixture_document_audit_failure before insert on public.audit_logs
  for each row when (new.action='business_document.review') execute function pg_temp.fail_forum_audit();
 set local role authenticated;
+select pg_temp.expect_error('insert into public.business_documents(business_id,title,file_url,uploaded_by) values(''77777777-7777-4777-8777-777777777777'',''Pending review must roll back'',''private-file-path'',''22222222-2222-4222-8222-222222222222'')','23514');
 select pg_temp.expect_error('update public.business_documents set status=''approved'' where id=''abcdefab-1111-4111-8111-abcdefabcdef''','23514');
 select pg_temp.expect_error('insert into public.business_documents(id,business_id,title,file_url,status) values(''abcdefab-3333-4333-8333-abcdefabcdef'',''77777777-7777-4777-8777-777777777777'',''Failed insert'',''private-file-path'',''approved'')','23514');
 reset role;
