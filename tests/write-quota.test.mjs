@@ -2,10 +2,11 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { writeQuotaResponse } from '../src/lib/write-quota.ts'
 
-test('quota response returns 429 and hides database detail', async () => {
+test('quota response returns 429 with the remaining hourly delay and hides database detail', async (context) => {
+ context.mock.method(Date, 'now', () => Date.UTC(2026, 9, 12, 12, 59, 0))
  const response = writeQuotaResponse({code:'PT429',message:'private database detail'})
  assert.equal(response.status,429)
- assert.equal(response.headers.get('Retry-After'),'3600')
+ assert.equal(response.headers.get('Retry-After'),'60')
  const text = await response.text()
  assert.equal(text.includes('private database detail'),false)
 })
