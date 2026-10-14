@@ -1,4 +1,6 @@
 -- One counter per account/table/operation, not one row per request or hour.
+create schema if not exists private;
+
 create table private.client_write_buckets (
  user_id uuid not null references auth.users(id) on delete cascade,
  action text not null,
