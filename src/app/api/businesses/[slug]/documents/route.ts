@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { normalizePlatformRole, hasPermission } from '@/lib/roles'
@@ -80,6 +81,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (error) throw error
     return NextResponse.json(data ?? [])
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error fetching business documents:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -141,6 +144,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error uploading business document:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

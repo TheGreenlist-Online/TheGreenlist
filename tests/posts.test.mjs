@@ -14,6 +14,7 @@ async function route({ dbError = null, user = { id: 'actor' }, content = 'x'.rep
     exports, crypto: { randomUUID: () => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' }, console: { error() {} },
     require(name) {
       if (name === 'next/server') return { NextResponse: { json: (body, { status = 200 } = {}) => ({ body, status }) } }
+      if (name === '@/lib/write-quota') return { writeQuotaResponse: () => null }
       if (name === '@/utils/validators') return validators
       if (name === '@/lib/supabase/server') return { createSupabaseServerClient: async () => ({
         auth: { getUser: async () => ({ data: { user } }) },

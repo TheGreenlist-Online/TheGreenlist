@@ -23,6 +23,7 @@ function route({ user = { id: 'actor' }, locked = false, dbError = null } = {}) 
     exports,
     require(name) {
       if (name === 'next/server') return { NextResponse: { json: (body, { status = 200 } = {}) => ({ body, status }) } }
+      if (name === '@/lib/write-quota') return { writeQuotaResponse: () => null }
       if (name === '@/lib/supabase/server') return { createSupabaseServerClient: async () => supabase }
       throw new Error(`Unexpected import ${name}`)
     },
