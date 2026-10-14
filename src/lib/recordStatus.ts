@@ -71,8 +71,8 @@ export const REPORT_STATUSES = [
   { value: 'submitted', label: 'Received', tone: 'neutral', meaning: 'The report exists in the private intake.' },
   { value: 'needs_more_info', label: 'Needs information', tone: 'review', meaning: 'Reviewers have asked for documentation or clarification.' },
   { value: 'under_review', label: 'Under review', tone: 'review', meaning: 'The report is being assessed against available evidence.' },
-  { value: 'published', label: 'Published finding', tone: 'confirmed', meaning: 'A source-backed finding has been published. Only this state and “Corrected” produce public content.' },
-  { value: 'corrected', label: 'Corrected', tone: 'confirmed', meaning: 'A published finding was amended; the change is logged.' },
+  { value: 'published', label: 'Published finding', tone: 'neutral', meaning: 'A source-backed finding has been published. Only this state and “Corrected” produce public content.' },
+  { value: 'corrected', label: 'Corrected', tone: 'neutral', meaning: 'A published finding was amended; the change is logged.' },
   { value: 'resolved', label: 'Closed', tone: 'neutral', meaning: 'Review is complete and no further action will be taken.' },
   { value: 'rejected', label: 'Closed', tone: 'neutral', meaning: 'The report could not be substantiated or falls outside scope.' },
 ] as const satisfies readonly ({ value: string } & RecordStatus)[]

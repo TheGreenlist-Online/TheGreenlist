@@ -20,6 +20,7 @@ import { StatTile } from '@/components/dashboard/StatTile'
 import { DashboardPanel } from '@/components/dashboard/DashboardPanel'
 import { ActivityList } from '@/components/dashboard/ActivityList'
 import { NotificationList } from '@/components/dashboard/NotificationList'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const metadata: Metadata = {
   title: 'Your desk - The Green List',
@@ -59,7 +60,7 @@ const businessCards = [
 const moderatorCards = [
   { title: 'Moderation queue', body: 'Flagged reports and public submissions awaiting a decision under your review permissions.', href: '/admin/moderation' },
   { title: 'Reports', body: 'Private evidence requires a report-specific signed NDA before access is granted.', href: '/reports' },
-  { title: 'Evidence Desk', body: 'Public discussions and open documentation requests.', href: '/forums' },
+  { title: EVIDENCE_DESK_NAV_ITEM.label, body: 'Public discussions and open documentation requests.', href: '/forums' },
 ]
 
 const adminCards = [

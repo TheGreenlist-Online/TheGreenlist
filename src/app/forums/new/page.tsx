@@ -5,10 +5,11 @@ import { PageShell } from '@/components/PageShell'
 import { PageIntro } from '@/components/PageIntro'
 import { Ledger, LimitationsPanel } from '@/components/record'
 import Link from 'next/link'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 
 export const metadata = {
-  title: 'Open a discussion - The Green List',
-  description: 'Open a discussion on the Evidence Desk',
+  title: `Open a discussion - ${EVIDENCE_DESK_NAV_ITEM.label} - The Green List`,
+  description: `Open a discussion on the ${EVIDENCE_DESK_NAV_ITEM.label}`,
 }
 
 type ForumOption = {
@@ -43,7 +44,7 @@ export default async function ForumsNewPage({
   return (
     <PageShell>
       <PageIntro
-        eyebrow="Evidence Desk"
+        eyebrow={EVIDENCE_DESK_NAV_ITEM.label}
         title="Open a discussion"
         lede="Discussions are moderated and attached to a desk. Use them to request documentation, question a source, or flag a possible error in a record. Do not publish allegations about identifiable people; file a report instead so it can be reviewed against evidence."
         meta={

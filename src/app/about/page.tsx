@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { EVIDENCE_DESK_NAV_ITEM } from '@/config/navigation'
 import Link from 'next/link'
 import { GovernancePage } from '@/components/GovernancePage'
 
@@ -52,7 +53,7 @@ export default function AboutPage() {
         structured accountability reports and their review status. <strong>Evidence</strong> is a private-by-default
         intake for documents. <strong>News</strong> carries source-linked coverage. <strong>Standards</strong> defines
         the status vocabulary and review rules. <strong>Learn</strong> explains testing, labelling, and consumer
-        rights. The <strong>Evidence Desk</strong> is where the public helps locate primary documents and flags
+        rights. The <strong>{EVIDENCE_DESK_NAV_ITEM.label}</strong> is where the public helps locate primary documents and flags
         errors.
       </p>
 
