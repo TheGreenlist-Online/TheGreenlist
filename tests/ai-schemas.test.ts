@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   businessTransparencyOutputSchema,
+  areTownGuideLinksSafe,
   forumSummaryOutputSchema,
   moderationReviewOutputSchema,
   reportAssistantOutputSchema,
@@ -90,6 +91,19 @@ describe('businessTransparencyOutputSchema', () => {
     const keys = Object.keys(businessTransparencyOutputSchema.shape).join(' ').toLowerCase()
     for (const banned of ['score', 'grade', 'rating', 'rank']) {
       expect(keys).not.toContain(banned)
+    }
+  })
+})
+
+describe('Town Guide links', () => {
+  it('accepts safe internal destinations and rejects external and protocol-relative URLs', () => {
+    expect(
+      areTownGuideLinksSafe({
+        destinations: [{ standardHref: '/businesses/green-co', townHref: '/town/business-district' }],
+      }),
+    ).toBe(true)
+    for (const href of ['https://example.com', '//example.com', '/\\example.com', 'javascript:alert(1)']) {
+      expect(areTownGuideLinksSafe({ destinations: [{ standardHref: href, townHref: null }] })).toBe(false)
     }
   })
 })

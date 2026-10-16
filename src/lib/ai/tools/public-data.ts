@@ -55,7 +55,7 @@ export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('business_profiles')
-      .select('id, name, state, city, verification_status')
+      .select('id, slug, name, state, city, verification_status')
       .ilike('name', toSearchPattern(input.query))
       .limit(SEARCH_LIMIT)
 
@@ -73,7 +73,7 @@ export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
           state: business.state,
           city: business.city,
           verificationStatus: business.verification_status,
-          standardHref: `/businesses/${business.id}`,
+          standardHref: business.slug ? `/businesses/${encodeURIComponent(business.slug)}` : '/businesses',
         })),
         note:
           businesses.length === 0
@@ -97,7 +97,7 @@ export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> =
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('business_profiles')
-      .select('id, name, state, city, verification_status, created_at')
+      .select('id, slug, name, state, city, verification_status, created_at')
       .eq('id', input.businessId)
       .maybeSingle()
 
@@ -119,7 +119,7 @@ export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> =
         city: data.city,
         verificationStatus: data.verification_status,
         listedSince: data.created_at,
-        standardHref: `/businesses/${data.id}`,
+        standardHref: data.slug ? `/businesses/${encodeURIComponent(data.slug)}` : '/businesses',
         note: 'Licence details are not yet tracked on the business profile. Never state or imply a licence number or licensing status.',
       },
       records: [{ recordType: 'business_profile', recordId: String(data.id) }],
@@ -150,6 +150,7 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
     const { data, error } = await principal.supabase
       .from('reports')
       .select('id, title, report_type, status, verification_status, business_id, created_at')
+      .eq('status', 'published')
       .eq('is_anonymous', false)
       .or(`title.ilike.${pattern},public_summary.ilike.${pattern}`)
       .order('created_at', { ascending: false })
@@ -193,6 +194,7 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
         'id, title, report_type, status, verification_status, business_id, public_summary, location_state, location_city, created_at, updated_at',
       )
       .eq('id', input.reportId)
+      .eq('status', 'published')
       .eq('is_anonymous', false)
       .maybeSingle()
 
@@ -251,7 +253,7 @@ export const searchPublicForumThreads: AiTool<{ query: string }, unknown> = {
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('forum_threads')
-      .select('id, title, forum_id, created_at')
+      .select('id, slug, title, forum_id, created_at, forums(slug)')
       .eq('status', 'published')
       .eq('visibility', 'public')
       .eq('is_anonymous', false)
@@ -270,7 +272,13 @@ export const searchPublicForumThreads: AiTool<{ query: string }, unknown> = {
         threads: threads.map((thread) => ({
           id: thread.id,
           title: thread.title,
-          standardHref: `/forums/${thread.id}`,
+          standardHref: (() => {
+            const relatedForum = thread.forums
+            const forum = Array.isArray(relatedForum) ? relatedForum[0] : relatedForum
+            return forum?.slug && thread.slug
+              ? `/forums/${encodeURIComponent(forum.slug)}/${encodeURIComponent(thread.slug)}`
+              : '/forums'
+          })(),
         })),
         note: threads.length === 0 ? 'No matching published public threads.' : 'Author identities are not available.',
       },

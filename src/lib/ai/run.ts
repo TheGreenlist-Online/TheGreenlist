@@ -4,8 +4,8 @@ import type { ResponseInput, ResponseInputItem } from 'openai/resources/response
 import { requireOpenAIClient } from './client'
 import { getAiConfig, type AiFeature } from './config'
 import { AiError, redact } from './errors'
-import { getSystemPrompt } from './prompts'
-import { toResponseJsonSchema } from './schemas'
+import { asUntrustedContent, getSystemPrompt } from './prompts'
+import { areTownGuideLinksSafe, toResponseJsonSchema } from './schemas'
 import type { AccessedRecord } from './audit'
 import type { AiPrincipal } from './permissions'
 import { findTool, isUnavailable, toResponsesTool, type AiTool } from './tools'
@@ -78,22 +78,25 @@ async function runToolCall(
   principal: AiPrincipal,
   call: OpenAI.Responses.ResponseFunctionToolCall,
 ): Promise<{ output: string; records: readonly AccessedRecord[] }> {
+  const wrapOutput = (output: string) => asUntrustedContent(`tool ${call.name} result`, output)
   const tool = findTool(feature, call.name)
   if (!tool) {
-    return { output: JSON.stringify({ error: 'This tool is not available.' }), records: [] }
+    return { output: wrapOutput(JSON.stringify({ error: 'This tool is not available.' })), records: [] }
   }
 
   let rawArguments: unknown
   try {
     rawArguments = JSON.parse(call.arguments || '{}')
   } catch {
-    return { output: JSON.stringify({ error: 'Arguments were not valid JSON.' }), records: [] }
+    return { output: wrapOutput(JSON.stringify({ error: 'Arguments were not valid JSON.' })), records: [] }
   }
 
   const parsed = tool.inputSchema.safeParse(rawArguments)
   if (!parsed.success) {
     return {
-      output: JSON.stringify({ error: 'Invalid arguments for this tool.', issues: parsed.error.issues.map((i) => i.message) }),
+      output: wrapOutput(
+        JSON.stringify({ error: 'Invalid arguments for this tool.', issues: parsed.error.issues.map((i) => i.message) }),
+      ),
       records: [],
     }
   }
@@ -101,14 +104,17 @@ async function runToolCall(
   try {
     const outcome = await tool.execute({ principal }, parsed.data)
     if (isUnavailable(outcome.result)) {
-      return { output: JSON.stringify(outcome.result), records: [] }
+      return { output: wrapOutput(JSON.stringify(outcome.result)), records: [] }
     }
-    return { output: JSON.stringify(outcome.result), records: outcome.records ?? [] }
+    return { output: wrapOutput(JSON.stringify(outcome.result)), records: outcome.records ?? [] }
   } catch (error) {
     console.error(
       `[ai:tool:${call.name}] execution failed: ${redact(error instanceof Error ? error.message : String(error))}`,
     )
-    return { output: JSON.stringify({ error: 'This tool failed. Continue without it.' }), records: [] }
+    return {
+      output: wrapOutput(JSON.stringify({ error: 'This tool failed. Continue without it.' })),
+      records: [],
+    }
   }
 }
 
@@ -148,6 +154,10 @@ export async function runAiFeature<TOutput>(request: AiRunRequest<TOutput>): Pro
   }
 
   for (let iteration = 0; iteration <= MAX_TOOL_ITERATIONS; iteration += 1) {
+    if (JSON.stringify(conversation).length > config.maxInputCharacters) {
+      throw new AiError('payload_too_large', 'This request exceeds the configured AI input limit.')
+    }
+
     let response: OpenAI.Responses.Response
     try {
       response = await client.responses.create({ ...requestBody, input: conversation })
@@ -186,6 +196,10 @@ export async function runAiFeature<TOutput>(request: AiRunRequest<TOutput>): Pro
         throw new AiError('invalid_model_output', 'The assistant returned output in an unexpected shape.', {
           cause: validated.error,
         })
+      }
+
+      if (request.feature === 'town-guide' && !areTownGuideLinksSafe(validated.data)) {
+        throw new AiError('invalid_model_output', 'The assistant returned an unsafe destination.')
       }
 
       return {

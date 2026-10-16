@@ -9,6 +9,7 @@ import {
   searchPublicForumThreads,
   searchPublicReports,
 } from '@/lib/ai/tools/public-data'
+import { getTownLocationDetail } from '@/lib/ai/tools/platform'
 
 /**
  * These tools were written against a guessed schema and every one of them was
@@ -66,21 +67,26 @@ function fakeSupabase(rows: Array<Record<string, unknown>> = []) {
 const A_UUID = '00000000-0000-4000-8000-000000000000'
 
 describe('business tools', () => {
-  it('reads name, state and city — the columns that actually exist', async () => {
-    const { principal, queries } = fakeSupabase([{ id: A_UUID, name: 'Verdant Co' }])
-    await searchPublicBusinesses.execute({ principal }, { query: 'verdant' })
+  it('reads business slugs and uses them for detail links', async () => {
+    const { principal, queries } = fakeSupabase([{ id: A_UUID, slug: 'verdant-co', name: 'Verdant Co' }])
+    const { result } = await searchPublicBusinesses.execute({ principal }, { query: 'verdant' })
 
     expect(queries[0].table).toBe('business_profiles')
-    expect(queries[0].columns).toBe('id, name, state, city, verification_status')
+    expect(queries[0].columns).toBe('id, slug, name, state, city, verification_status')
     expect(queries[0].filters).toContain(`ilike:name=%verdant%`)
+    expect((result as { businesses: Array<{ standardHref: string }> }).businesses[0].standardHref).toBe(
+      '/businesses/verdant-co',
+    )
   })
 
   it('never selects a licence column, because none exists', async () => {
-    const { principal, queries } = fakeSupabase([{ id: A_UUID, name: 'Verdant Co' }])
-    await getPublicBusinessProfile.execute({ principal }, { businessId: A_UUID })
+    const { principal, queries } = fakeSupabase([{ id: A_UUID, slug: 'verdant-co', name: 'Verdant Co' }])
+    const { result } = await getPublicBusinessProfile.execute({ principal }, { businessId: A_UUID })
 
     expect(queries[0].columns).not.toMatch(/licen/i)
     expect(queries[0].columns).not.toContain('business_name')
+    expect(queries[0].columns).toContain('slug')
+    expect((result as { standardHref: string }).standardHref).toBe('/businesses/verdant-co')
   })
 })
 
@@ -94,6 +100,7 @@ describe('report tools', () => {
     expect(queries[0].columns).not.toContain('category')
     expect(queries[0].columns).not.toContain('description')
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
+    expect(queries[0].filters).toContain('eq:status=published')
   })
 
   it('searches only the title and the curated public summary', async () => {
@@ -126,19 +133,39 @@ describe('report tools', () => {
     expect(queries[0].columns).toContain('location_city')
     expect(queries[0].columns).not.toContain('business_name')
     expect(queries[0].columns).not.toContain('description')
+    expect(queries[0].filters).toContain('eq:status=published')
+    expect(queries[0].filters).toContain('eq:is_anonymous=false')
   })
 })
 
 describe('forum and education tools', () => {
   it('searches forum_threads, not forum_posts, and only published public threads', async () => {
-    const { principal, queries } = fakeSupabase()
-    await searchPublicForumThreads.execute({ principal }, { query: 'delivery' })
+    const { principal, queries } = fakeSupabase([
+      { id: A_UUID, slug: 'shipping-rules', title: 'Delivery', forums: { slug: 'community' } },
+    ])
+    const { result } = await searchPublicForumThreads.execute({ principal }, { query: 'delivery' })
 
     expect(queries[0].table).toBe('forum_threads')
+    expect(queries[0].columns).toContain('slug')
     expect(queries[0].filters).toContain('eq:status=published')
     expect(queries[0].filters).toContain('eq:visibility=public')
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
     expect(queries[0].filters.join()).not.toContain('approved')
+    expect((result as { threads: Array<{ standardHref: string }> }).threads[0].standardHref).toBe(
+      '/forums/community/shipping-rules',
+    )
+  })
+
+  it('does not disclose details for a town location the caller cannot reach', async () => {
+    const { principal } = fakeSupabase()
+    const anonymous = { ...principal, isAuthenticated: false }
+    const resident = { ...principal, isAuthenticated: true }
+
+    const denied = await getTownLocationDetail.execute({ principal: anonymous }, { locationId: 'report-office' })
+    const allowed = await getTownLocationDetail.execute({ principal: resident }, { locationId: 'report-office' })
+
+    expect(denied.result).toMatchObject({ found: false })
+    expect(allowed.result).toMatchObject({ found: true, id: 'report-office' })
   })
 
   it('surfaces only APPROVED education resources', async () => {

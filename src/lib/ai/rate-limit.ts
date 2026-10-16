@@ -69,15 +69,14 @@ export function resetRateLimiterState() {
 
 /**
  * Identify the caller for rate-limiting. Authenticated users are limited by
- * user id; anonymous callers fall back to a proxy-provided IP. The IP is used
+ * user id; anonymous callers use Vercel's sanitized client IP. The IP is used
  * for counting only and is never logged or persisted.
  */
 export function getRateLimitSubject(principal: AiPrincipal, request: Request): string {
   if (principal.user) return `user:${principal.user.id}`
 
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const realIp = request.headers.get('x-real-ip')?.trim()
-  return `anon:${forwarded || realIp || 'unknown'}`
+  const clientIp = request.headers.get('x-vercel-forwarded-for')?.trim()
+  return `anon:${clientIp || 'unknown'}`
 }
 
 /**

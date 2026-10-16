@@ -32,7 +32,7 @@ describe('getCounterpartPath', () => {
   })
 
   it('merges a query already declared on the location href', () => {
-    expect(getCounterpartPath('/town/cultivator-grove?page=3')).toBe('/businesses?role=CULTIVATOR&page=3')
+    expect(getCounterpartPath('/town/cultivator-grove?page=3')).toBe('/businesses?business_type=CULTIVATOR&page=3')
   })
 
   it('deep-links an open record into the town view', () => {

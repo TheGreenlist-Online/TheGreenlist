@@ -127,9 +127,10 @@ export const getTownLocationDetail: AiTool<{ locationId: string }, unknown> = {
   }),
   async execute(_context, input) {
     const location = getTownLocation(input.locationId)
+    const reachableLocations = getReachableTownLocations(_context.principal.isAuthenticated)
 
-    if (!location) {
-      return { result: { found: false, note: 'No town location with that id.' } }
+    if (!location || !reachableLocations.some((reachable) => reachable.id === location.id)) {
+      return { result: { found: false, note: 'No accessible town location with that id.' } }
     }
 
     return {

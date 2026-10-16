@@ -131,10 +131,10 @@ would have meant widening a deliberately hardened policy. The two coexist: a mod
 *because of* an AI recommendation still writes its own `audit_logs` row referencing
 `ai_audit_logs.request_id`. Full rationale is in the migration header.
 
-RLS on the new table: residents read their own rows; admins and the platform owner read all;
-authenticated callers may insert only rows attributed to themselves; anonymous callers may insert
-only rows with `user_id IS NULL`. There is no `UPDATE` or `DELETE` policy, so the trail is
-append-only.
+RLS on the new table: residents read their own rows; admins and the platform owner read all.
+Only trusted server code using the service-role credential may insert audit rows; browser credentials
+for `anon` and `authenticated` have no `INSERT` privilege or policy. There is no `UPDATE` or `DELETE`
+policy, so the trail is append-only.
 
 ### Applying the migration
 

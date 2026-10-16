@@ -34,10 +34,7 @@ export const POST = createAiRoute({
         { role: 'developer', content: context },
         ...(request.history ?? []).map((turn) => ({
           role: turn.role,
-          content:
-            turn.role === 'user'
-              ? asUntrustedContent('previous visitor message', turn.content)
-              : turn.content,
+          content: asUntrustedContent(`previous ${turn.role} turn`, turn.content),
         })),
         { role: 'user', content: asUntrustedContent('visitor question', request.message) },
       ],

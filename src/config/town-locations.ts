@@ -181,7 +181,7 @@ export const TOWN_LOCATIONS: readonly TownLocation[] = [
     district: 'Commerce Transparency',
     themeSlug: 'businesses',
     townHref: '/town/cultivator-grove',
-    standardHref: '/businesses?role=CULTIVATOR',
+    standardHref: '/businesses?business_type=CULTIVATOR',
     description: 'A filtered view of verified cultivator profiles drawn from the shared business directory.',
     access: 'public',
     visibility: 'public',

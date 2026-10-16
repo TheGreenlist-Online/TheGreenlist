@@ -70,7 +70,7 @@ export const PLATFORM_POLICIES: readonly PlatformPolicy[] = [
     points: [
       'Unverified — no documentation has been reviewed.',
       'Pending — documentation has been submitted and is awaiting human review.',
-      'Verified — identity and licence documentation were reviewed and matched by a human reviewer.',
+      'Verified — submitted documentation was reviewed and matched by a human reviewer.',
       'Verification is not a quality rating, a safety guarantee, or a legal compliance certification.',
       'Verification status cannot be purchased, expedited by payment, or granted by an AI system.',
     ],

@@ -34,13 +34,22 @@ describe('getRateLimitSubject', () => {
     expect(subject).toBe('user:user-1')
   })
 
-  it('keys anonymous callers by the first forwarded address', () => {
-    const subject = getRateLimitSubject(principal(), requestFrom({ 'x-forwarded-for': '203.0.113.7, 70.41.3.18' }))
-    expect(subject).toBe('anon:203.0.113.7')
+  it('uses the Vercel-sanitized IP and ignores client-controlled forwarding headers', () => {
+    const subject = getRateLimitSubject(
+      principal(),
+      requestFrom({
+        'x-forwarded-for': '203.0.113.7',
+        'x-real-ip': '198.51.100.4',
+        'x-vercel-forwarded-for': '192.0.2.8',
+      }),
+    )
+    expect(subject).toBe('anon:192.0.2.8')
   })
 
-  it('falls back to x-real-ip and then to a stable unknown bucket', () => {
-    expect(getRateLimitSubject(principal(), requestFrom({ 'x-real-ip': '198.51.100.4' }))).toBe('anon:198.51.100.4')
+  it('ignores untrusted IP headers and falls back to a stable unknown bucket', () => {
+    expect(
+      getRateLimitSubject(principal(), requestFrom({ 'x-real-ip': '198.51.100.4', 'x-forwarded-for': '203.0.113.7' })),
+    ).toBe('anon:unknown')
     expect(getRateLimitSubject(principal(), requestFrom())).toBe('anon:unknown')
   })
 })

@@ -138,18 +138,23 @@ export const POST = createAiRoute({
 
     const instructions = [
       'Recommend an outcome for the human moderator reviewing this queue item.',
-      item.content_type ? `Content type: ${item.content_type}.` : '',
-      item.reason ? `It was flagged for: ${item.reason}.` : '',
-      report?.title ? `The associated report is titled: ${report.title}.` : '',
-      request.reviewerNote ? `The reviewer added this note: ${request.reviewerNote}` : '',
       'Give concrete reasons. You are advising, not deciding.',
     ]
-      .filter(Boolean)
       .join(' ')
+
+    const moderationContext = [
+      item.content_type ? `Content type: ${item.content_type}.` : '',
+      item.reason ? `Queue reason: ${item.reason}.` : '',
+      report?.title ? `Associated report title: ${report.title}.` : '',
+      request.reviewerNote ? `Reviewer note: ${request.reviewerNote}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
 
     return {
       input: [
         { role: 'developer', content: instructions },
+        { role: 'user', content: asUntrustedContent('moderation context', moderationContext) },
         { role: 'user', content: asUntrustedContent(`moderation queue item ${item.id}`, excerpt) },
       ],
       records: [

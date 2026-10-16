@@ -26,7 +26,7 @@ export const POST = createAiRoute({
     // to read a thread the user could not open themselves.
     const { data: thread, error: threadError } = await principal.supabase
       .from('forum_threads')
-      .select('id, title, body, status, is_anonymous, created_at')
+      .select('id, slug, title, body, status, is_anonymous, created_at, forums(slug)')
       .eq('id', request.threadId)
       .eq('status', 'published')
       .eq('visibility', 'public')
@@ -66,18 +66,33 @@ export const POST = createAiRoute({
       ...replies.map((reply, index) => `Reply ${index + 1}: ${String(reply.body ?? '').slice(0, MAX_REPLY_LENGTH)}`),
     ].join('\n\n')
 
+    const relatedForum = thread.forums
+    const forum = Array.isArray(relatedForum) ? relatedForum[0] : relatedForum
+    const threadHref =
+      forum?.slug && thread.slug
+        ? `/forums/${encodeURIComponent(forum.slug)}/${encodeURIComponent(thread.slug)}`
+        : null
     const instructions = [
       `Summarise this public thread. It has ${replies.length} public replies.`,
-      request.focus ? `The reader is specifically interested in: ${request.focus}` : '',
       'Participants are anonymised as "Reply N". Never guess who wrote something.',
-      'Link the reader back to the original thread at /forums/' + thread.id + '.',
+      ...(threadHref ? ['Link the reader back to the original thread using the route in the thread details.'] : []),
     ]
       .filter(Boolean)
       .join(' ')
 
+    const threadDetails = [
+      threadHref ? `Thread URL: ${threadHref}` : '',
+      request.focus ? `Reader focus: ${request.focus}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+
     return {
       input: [
         { role: 'developer', content: instructions },
+        ...(threadDetails
+          ? [{ role: 'user' as const, content: asUntrustedContent('thread details', threadDetails) }]
+          : []),
         { role: 'user', content: asUntrustedContent(`forum thread ${thread.id}`, transcript) },
       ],
       records: [

@@ -76,8 +76,8 @@ export const townGuideOutputSchema = z.object({
     .array(
       z.object({
         title: z.string(),
-        standardHref: z.string().describe('Path on the standard site, always starting with /.'),
-        townHref: z.string().nullable().describe('Equivalent town path, or null when the location has no town route.'),
+        standardHref: z.string().describe('Safe internal path on the standard site.'),
+        townHref: z.string().nullable().describe('Safe equivalent town path, or null when the location has no town route.'),
         reason: z.string().describe('Why this destination answers the question.'),
       }),
     )
@@ -148,6 +148,41 @@ export const moderationReviewOutputSchema = z.object({
 })
 
 export type ModerationReviewOutput = z.infer<typeof moderationReviewOutputSchema>
+
+function isSafeInternalPath(value: unknown): value is string {
+  if (
+    typeof value !== 'string' ||
+    !value.startsWith('/') ||
+    value.startsWith('//') ||
+    value.includes('\\') ||
+    /[\u0000-\u001f\u007f]/.test(value)
+  ) {
+    return false
+  }
+
+  try {
+    return new URL(value, 'https://greenlist.invalid').origin === 'https://greenlist.invalid'
+  } catch {
+    return false
+  }
+}
+
+export function areTownGuideLinksSafe(output: unknown): boolean {
+  if (typeof output !== 'object' || output === null || !('destinations' in output)) return false
+  const destinations = (output as { destinations: unknown }).destinations
+  if (!Array.isArray(destinations)) return false
+
+  return destinations.every(
+    (destination) =>
+      typeof destination === 'object' &&
+      destination !== null &&
+      'standardHref' in destination &&
+      isSafeInternalPath((destination as { standardHref: unknown }).standardHref) &&
+      'townHref' in destination &&
+      ((destination as { townHref: unknown }).townHref === null ||
+        isSafeInternalPath((destination as { townHref: unknown }).townHref)),
+  )
+}
 
 export const businessTransparencyOutputSchema = z.object({
   summary: z.string().describe('What the public record actually shows. No trust score, no overall grade.'),

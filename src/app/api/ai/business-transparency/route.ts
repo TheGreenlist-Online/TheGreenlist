@@ -41,6 +41,7 @@ export const POST = createAiRoute({
       .from('reports')
       .select('id, title, report_type, status, verification_status, created_at')
       .eq('business_id', business.id)
+      .eq('status', 'published')
       .eq('is_anonymous', false)
       .order('created_at', { ascending: false })
       .limit(MAX_REPORTS)
@@ -79,7 +80,7 @@ export const POST = createAiRoute({
       isOwner
         ? 'The requester owns this business, so also help them prepare stronger disclosures.'
         : 'The requester is a member of the public.',
-      request.question ? `They asked: ${request.question}` : '',
+      request.question ? 'Answer the requester’s question using the public record provided below.' : '',
       'Do not produce a score, grade, rating or ranking of any kind.',
       'Licence details are not tracked on this record. Never state or imply whether the business is licensed.',
       'Sponsorship is a paid placement and says nothing about conduct. Never treat it as a mark of trustworthiness.',
@@ -91,6 +92,9 @@ export const POST = createAiRoute({
     return {
       input: [
         { role: 'developer', content: instructions },
+        ...(request.question
+          ? [{ role: 'user' as const, content: asUntrustedContent('business transparency question', request.question) }]
+          : []),
         { role: 'user', content: asUntrustedContent(`business public record ${business.id}`, publicRecord) },
       ],
       records: [

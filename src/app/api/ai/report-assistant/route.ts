@@ -28,7 +28,6 @@ export const POST = createAiRoute({
   async buildInput(request) {
     const instructions = [
       'The reporter has NOT submitted this report. You are helping them prepare it.',
-      request.category ? `They selected the category: ${request.category}.` : '',
       'Work strictly from the draft text. Never add a fact, date, name, quantity or location that is not already there.',
       'Anything absent belongs in missingFields, not in the chronology.',
       'Flag names, contact details, licence plates, account handles and precise addresses under sensitiveInformation.',
@@ -39,6 +38,9 @@ export const POST = createAiRoute({
     return {
       input: [
         { role: 'developer', content: instructions },
+        ...(request.category
+          ? [{ role: 'user' as const, content: asUntrustedContent('report category', request.category) }]
+          : []),
         { role: 'user', content: asUntrustedContent('reporter draft', request.draft) },
       ],
       // No records read: the draft never touches the database.
