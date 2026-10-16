@@ -102,7 +102,11 @@ No live AI calls or credential provisioning are required for this specification.
 
 Review screen shows original pages next to proposed fields, corrections and unresolved flags. Extraction confidence, human transcription review, source authenticity and publication are independent. No AI promotion to verified, no self-review of sensitive submissions, and no automatic public exposure of original PDFs.
 
-Public view: source-specific headline metrics, panel outcomes, detail tables, missing-information notes and corrections. Use "Lab-reported panel results"; no global safety badge. Raw files require publication permission and privacy review, separate from field publication.
+Public view: source-specific headline metrics, panel outcomes, detail tables, missing-information notes and corrections. Every published COA projection must include visible source-authenticity and human-review status alongside the report identity and results, including list cards, detail pages and exported records. Use the fixed public status vocabulary; extraction success, transcription review and publication permission must never imply source authentication.
+
+If source authenticity has not been independently verified, display "Unverified" and the disclaimer: "Source authenticity has not been independently verified. These values were transcribed from the submitted document; attribution to the named laboratory or business has not been confirmed." Show this notice next to the results, including on mobile, rather than only in a tooltip, private review screen or original PDF. Do not label such results "Lab-reported panel results"; use "Submitted document panel results" until independent source verification is recorded. After verification, "Lab-reported panel results" remains an attribution label, not a safety endorsement. No global safety badge.
+
+Public responses must expose the public authenticity/review state and required disclaimer through an explicit allowlisted projection, while keeping reviewer identity, internal notes and private source links protected. Source authentication requires a recorded human decision with supporting provenance. Withdrawing verification must update every public projection and export generated thereafter, with a visible correction event. Raw files require publication permission and privacy review, separate from field publication.
 
 ## Delivery sequence and acceptance
 
@@ -110,7 +114,7 @@ Public view: source-specific headline metrics, panel outcomes, detail tables, mi
 2. Extraction PR: versioned adapters, embedded text/OCR fallback, validated schema, durable jobs, retry/cost limits, field provenance and protected JSON.
 3. Review/public-record PR: responsive reviewer comparison, field corrections, source authentication workflow, publication projections and correction history.
 
-Required checks: owner/non-owner/reviewer/anonymous direct database and Storage access; forged publication/reviewer fields; standalone uploads; foreign business source links; row and byte identity enforcement; unresolved batch matching; duplicate bytes without revealing private existence; revised reports; result qualifiers and Greek-name distinctions; unit/basis conversion; missing pages and partial extraction; queue retries and budget exhaustion; private identity/redaction; source withdrawal and corrections.
+Required checks: owner/non-owner/reviewer/anonymous direct database and Storage access; forged publication/reviewer fields; standalone uploads; foreign business source links; row and byte identity enforcement; unresolved batch matching; duplicate bytes without revealing private existence; revised reports; result qualifiers and Greek-name distinctions; unit/basis conversion; missing pages and partial extraction; queue retries and budget exhaustion; private identity/redaction; source withdrawal and corrections; published but unauthenticated COAs retain visible Unverified status and disclaimer on cards, detail views, mobile layouts and exports; review/publication never upgrades authenticity; verification withdrawal updates public projections without exposing private reviewer metadata.
 
 Test extraction on this PDF, a substantially different laboratory PDF, a scan and a phone photo before claiming broad format support. Track critical-field error rate and human correction effort, not only JSON validity.
 
