@@ -33,8 +33,8 @@ npm run dns:setup-all
 ## Environment Setup
 
 ```bash
-git clone https://github.com/TheBlacklistOnline/TheBlacklist.git
-cd TheBlacklist
+git clone https://github.com/TheGreenlist-Online/TheGreenlist.git
+cd TheGreenlist
 npm install
 cp .env.example .env.local
 npx prisma db push
