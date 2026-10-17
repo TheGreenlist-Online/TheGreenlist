@@ -1,7 +1,7 @@
 {
   "name": "thegreenlist-online",
   "version": "1.0.0",
-  "description": "The Green List \u2014 an independent public-interest records and accountability platform for the cannabis market",
+  "description": "The Green List — an independent public-interest records and accountability platform for the cannabis market",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -39,6 +39,7 @@
     "zod": "^4.4.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.10.0",
     "@types/react": "^19.0.0",
