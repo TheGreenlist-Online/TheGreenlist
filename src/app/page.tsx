@@ -11,6 +11,12 @@ export const metadata: Metadata = {
 
 const primaryActions = [
   {
+    title: 'Understand lab testing (COAs)',
+    body: 'See how Certificates of Analysis document a tested sample, what results can show, and how future batch-linked review will work. Public COA submissions are not open yet.',
+    href: '/coa',
+    cta: 'Explore COAs',
+  },
+  {
     title: 'Search records',
     body: 'Look up a business, licence, report, or jurisdiction and see what is documented, what is missing, and where each fact came from.',
     href: '/businesses',
@@ -82,9 +88,9 @@ export default function HomePage() {
       <section className="gl-section" aria-labelledby="actions-heading">
         <div className="gl-section__head">
           <h2 id="actions-heading">Start here</h2>
-          <p>Three ways to use the record.</p>
+          <p>Explore records, testing evidence, and the available participation routes.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {primaryActions.map((action) => (
             <OrnatePanel key={action.href} className="flex flex-col" innerClassName="flex h-full flex-col">
               <h3 className="greenlist-card-title">{action.title}</h3>
