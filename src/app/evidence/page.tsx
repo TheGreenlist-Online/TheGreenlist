@@ -11,6 +11,19 @@ export const metadata = {
 export default function EvidencePage() {
   return (
     <PageShell>
+      {/* The image is intentionally behind the introduction only, never the submission form.
+          Add the approved artwork at public/images/coa-qr-scan-hero.png before merging. */}
+      <div
+        className="relative isolate overflow-hidden rounded-2xl border border-emerald-900/50 bg-[#081b18] px-5 py-8 sm:px-8 sm:py-12"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, rgba(5, 21, 19, .98) 0%, rgba(5, 21, 19, .92) 42%, rgba(5, 21, 19, .32) 100%), url('/images/coa-qr-scan-hero.png')",
+          backgroundPosition: 'center, 65% center',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        <div className="relative z-10 max-w-2xl [&_h1]:!text-white [&_p]:!text-white/90">
       <PageIntro
         title="Evidence intake"
         lede="Attach photographs, receipts, labels, screenshots, PDFs, and written records to a report or a correction request. Submissions are private on receipt and remain private while authorised reviewers assess them."
@@ -32,6 +45,9 @@ export default function EvidencePage() {
           </>
         }
       />
+
+        </div>
+      </div>
 
       <Section title="How submissions are handled" aside={<span>Applies to every file</span>}>
         <Ledger
