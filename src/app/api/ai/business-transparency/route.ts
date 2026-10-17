@@ -38,7 +38,6 @@ export const POST = createAiRoute({
     // reports are excluded here as well as by RLS, and report descriptions are
     // never selected.
     const { data: reports, error: reportsError } = await principal.supabase
-      .from('reports')
       .select('id, title, report_type, status, verification_status, created_at')
       .eq('business_id', business.id)
       .eq('status', 'published')
