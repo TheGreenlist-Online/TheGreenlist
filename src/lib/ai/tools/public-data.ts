@@ -147,7 +147,6 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
   async execute({ principal }, input) {
     const pattern = toOrFilterPattern(input.query)
 
-    const { data, error } = await principal.supabase
       .from('reports')
       .select('id, title, report_type, status, verification_status, business_id, created_at')
       .eq('status', 'published')
