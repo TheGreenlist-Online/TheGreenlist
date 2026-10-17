@@ -44,8 +44,8 @@ Secondary domain: `https://greenlist.online`
 
 ```bash
 # Clone repository
-git clone https://github.com/TheBlacklistOnline/TheBlacklist.git
-cd TheBlacklist
+git clone https://github.com/TheGreenlist-Online/TheGreenlist.git
+cd TheGreenlist
 
 # Copy environment file
 cp .env.example .env.local
