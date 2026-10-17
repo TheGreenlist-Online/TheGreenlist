@@ -61,10 +61,34 @@ jobs:
         name: build-files
         path: .next/
 
-  deploy:
+  # `secrets` cannot be read in a job-level `if`, so a tiny job exposes whether the
+  # Vercel deploy secrets exist. Production is normally deployed by the Vercel Git
+  # integration; this job only runs when the CI-driven deploy is configured.
+  deploy-config:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+    - name: Check Vercel deploy secrets
+      id: check
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          echo "Vercel deploy secrets are not configured; skipping CI deploy (Vercel Git integration deploys main)."
+        fi
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: deploy-config
+    if: needs.deploy-config.outputs.enabled == 'true'
 
     steps:
     - name: Checkout code

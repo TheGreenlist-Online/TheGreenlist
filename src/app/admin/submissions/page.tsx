@@ -3,6 +3,7 @@ import { AdminSectionPage } from '@/components/AdminSectionPage'
 export default async function AdminSubmissionsPage() {
   return AdminSectionPage({
     title: 'Submissions',
-    description: 'Review reports, community submissions, source suggestions, and evidence intake status.',
+    description: 'Reports, public submissions, source suggestions, and evidence intake status.',
+    current: '/admin/submissions',
   })
 }

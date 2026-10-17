@@ -4,11 +4,10 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
 import { PageIntro } from '@/components/PageIntro'
-import { OrnatePanel } from '@/components/OrnatePanel'
 import { RoleBadge } from '@/components/RoleBadge'
-import { ScoreMeter } from '@/components/ScoreMeter'
+import { Ledger, Notice, StatusLabel } from '@/components/record'
 import { normalizePlatformRole } from '@/lib/roles'
-import { statusBadgeBase, toneClass, type StatusTone } from '@/lib/statusTones'
+import { toneClass, type StatusTone } from '@/lib/statusTones'
 import { ProfileSettingsForm, type EditableProfile } from '@/components/settings/ProfileSettingsForm'
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings'
 import { SecuritySettings } from '@/components/settings/SecuritySettings'
@@ -16,7 +15,7 @@ import { DataSettings } from '@/components/settings/DataSettings'
 import { SettingsNav } from '@/components/settings/SettingsNav'
 
 export const metadata: Metadata = {
-  title: 'Settings',
+  title: 'Account settings - The Green List',
   description: 'Manage your profile, privacy, appearance, security and account data.',
 }
 
@@ -34,14 +33,6 @@ type SettingsProfile = {
   is_public: boolean | null
   is_anonymous_allowed: boolean | null
   created_at: string | null
-}
-
-const VERIFICATION_TONES: Record<string, StatusTone> = {
-  verified: 'success',
-  pending: 'pending',
-  in_review: 'progress',
-  unverified: 'neutral',
-  rejected: 'danger',
 }
 
 const ACCOUNT_STATUS_TONES: Record<string, StatusTone> = {
@@ -109,96 +100,62 @@ export default async function SettingsPage() {
   return (
     <PageShell>
       <PageIntro
-        eyebrow="Settings"
+        eyebrow="Account"
         title="Account settings"
-        lede="Your identity, privacy, security and data — all in one place. Changes apply the moment you save them."
+        lede="Identity, privacy, security, and data. Changes apply when you save them."
+        meta={
+          <>
+            {user.email ? <span>{user.email}</span> : null}
+            {memberSince ? <span>Account opened {memberSince}</span> : null}
+          </>
+        }
         actions={
           <>
             <RoleBadge role={role} />
-            <span className={`${statusBadgeBase} ${toneClass(ACCOUNT_STATUS_TONES[accountStatus])}`}>
-              {formatLabel(accountStatus, 'active')}
-            </span>
-            {user.email ? <span className="text-sm text-zinc-400">{user.email}</span> : null}
+            <span className={toneClass(ACCOUNT_STATUS_TONES[accountStatus])}>{formatLabel(accountStatus, 'active')}</span>
           </>
         }
       >
-        <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-5 flex flex-wrap gap-2">
           <Link href="/dashboard" className="greenlist-quiet-button">
-            Back to dashboard
+            Your desk
           </Link>
           {profile?.username ? (
             <Link href={`/profile/${profile.username}`} className="greenlist-quiet-button">
-              View public profile
+              Public profile
             </Link>
           ) : null}
         </div>
       </PageIntro>
 
       {accountStatus !== 'active' ? (
-        <div className="mt-6 rounded-xl border border-amber-300/35 bg-amber-950/25 p-5">
-          <p className="text-sm font-semibold text-amber-100">
-            Your account is {formatLabel(accountStatus, 'restricted')}.
-          </p>
-          <p className="mt-1.5 text-sm leading-6 text-amber-200/80">
-            {profile?.status_reason ??
-              'Some actions are limited while this is in place. Contact support if you believe this is a mistake.'}
-          </p>
-        </div>
+        <Notice tone="review" className="mt-6" title={`Your account is ${formatLabel(accountStatus, 'restricted')}.`}>
+          {profile?.status_reason ?? 'Some actions are limited while this is in place. Contact support if you believe this is a mistake.'}
+        </Notice>
       ) : null}
 
       <div className="mt-8 gap-8 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start">
         <SettingsNav />
 
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 grid gap-6">
           <ProfileSettingsForm initial={initial} />
 
           <AppearanceSettings />
 
           <SecuritySettings email={user.email ?? ''} />
 
-          <section id="standing" className="scroll-mt-28">
-            <OrnatePanel>
-              <h2 className="greenlist-section-title">Account standing</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                Set by moderators and by your contribution history. These can&apos;t be edited here — they&apos;re the
-                record other members rely on.
-              </p>
-
-              <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-white/[.07] bg-white/[.02] p-4">
-                  <dt className="text-xs uppercase tracking-[0.14em] text-zinc-500">Role</dt>
-                  <dd className="mt-2">
-                    <RoleBadge role={role} />
-                  </dd>
-                </div>
-
-                <div className="rounded-lg border border-white/[.07] bg-white/[.02] p-4">
-                  <dt className="text-xs uppercase tracking-[0.14em] text-zinc-500">Verification</dt>
-                  <dd className="mt-2">
-                    <span className={`${statusBadgeBase} ${toneClass(VERIFICATION_TONES[verification])}`}>
-                      {formatLabel(verification, 'unverified')}
-                    </span>
-                  </dd>
-                </div>
-
-                <div className="rounded-lg border border-white/[.07] bg-white/[.02] p-4">
-                  <dt className="sr-only">Trust score</dt>
-                  <dd>
-                    <ScoreMeter label="Trust score" score={Number(profile?.trust_score ?? 0)} />
-                  </dd>
-                </div>
-
-                <div className="rounded-lg border border-white/[.07] bg-white/[.02] p-4">
-                  <dt className="sr-only">Transparency score</dt>
-                  <dd>
-                    <ScoreMeter label="Transparency" score={Number(profile?.transparency_score ?? 0)} />
-                  </dd>
-                </div>
-              </dl>
-
-              {memberSince ? <p className="mt-5 text-xs text-zinc-500">Member since {memberSince}.</p> : null}
-            </OrnatePanel>
-          </section>
+          <div id="standing" className="scroll-mt-28">
+            <Ledger
+              title="Account standing"
+              aside="Set by administrators; not editable here"
+              rows={[
+                { label: 'Role', value: <RoleBadge role={role} />, note: 'Platform permissions. Assigned by administrators.' },
+                { label: 'Identity check', value: <StatusLabel value={verification} fallback={{ label: 'Not verified', tone: 'neutral' }} /> },
+                { label: 'Account status', value: <span className={toneClass(ACCOUNT_STATUS_TONES[accountStatus])}>{formatLabel(accountStatus, 'active')}</span> },
+                { label: 'Account opened', value: memberSince ?? 'Not stated' },
+              ]}
+            />
+          </div>
 
           <DataSettings hasOpenRequest={Boolean(openClosureRequest)} />
         </div>

@@ -1,156 +1,74 @@
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageShell } from '@/components/PageShell'
+import { PageIntro } from '@/components/PageIntro'
+import { Ledger, Notice, RecordList, RecordRow } from '@/components/record'
 
 export const metadata = {
-  title: 'Legal & Compliance - The Green List',
-  description: 'Legal information, policies, and compliance documentation for The Green List',
+  title: 'Legal and compliance - The Green List',
+  description: 'Terms, privacy, disclosures, and copyright policy for The Green List.',
 }
+
+const DOCUMENTS = [
+  { title: 'Terms of use', href: '/legal/terms', body: 'Conditions governing use of the records, submissions, and discussion, including the enforcement ladder.' },
+  { title: 'Privacy policy', href: '/legal/privacy', body: 'What personal data is collected, why, how long it is kept, and how to request export or deletion.' },
+  { title: 'Paid relationships disclosure', href: '/legal/ftc', body: 'Where any sponsorship, affiliate, or compensated placement would be disclosed, and the standard that applies.' },
+  { title: 'Copyright policy', href: '/legal/dmca', body: 'Digital Millennium Copyright Act notice and takedown procedure.' },
+]
 
 export default function LegalHub() {
   return (
-    <>
-      <main className="min-h-screen pt-8 pb-20 text-foreground">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-12">
-              <h1 className="greenlist-page-title mb-4">Legal & Compliance</h1>
-              <p className="text-xl text-muted-foreground">
-                Important information about The Green List and our platform.
-              </p>
-            </div>
+    <PageShell width="reading">
+      <PageIntro
+        eyebrow="Legal"
+        title="Legal and compliance"
+        lede="The documents that govern the platform, and the standing notices that apply to every page."
+        meta={
+          <span>
+            <strong>Contact</strong> legal@thegreenlist.online
+          </span>
+        }
+      />
 
-            <Card className="mb-8 border-destructive/50 bg-destructive/5">
-              <CardHeader>
-                <CardTitle className="text-destructive">Critical Notice</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <p>
-                  <strong>The Green List is not a cannabis marketplace, dispensary, or e-commerce platform.</strong>
-                </p>
-                <p>
-                  We do not sell, distribute, ship, arrange deliveries for, order, or facilitate the sale of cannabis products in any form.
-                  Our platform is solely for:
-                </p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Educational content and industry transparency</li>
-                  <li>Community forums and user discussions</li>
-                  <li>Public reports and user-generated feedback</li>
-                  <li>Business information and accountability records</li>
-                  <li>News and industry reporting</li>
-                  <li>Accountability and public oversight</li>
-                </ul>
-              </CardContent>
-            </Card>
+      <Notice tone="info" className="mt-2" title="The Green List is not a marketplace, dispensary, or e-commerce platform.">
+        It does not sell, distribute, ship, arrange delivery of, order, or facilitate the sale of cannabis products in any form. The
+        platform publishes business records, reviewed report outcomes, source-linked Learn resources, aggregated outlet coverage, and
+        the discussion attached to those records.
+      </Notice>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              <Link href="/legal/terms">
-                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
-                  <CardHeader>
-                    <CardTitle>Terms of Service</CardTitle>
-                    <CardDescription>Platform usage terms and conditions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Read our terms governing your use of The Green List, including user responsibilities and limitations.
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+      <section className="mt-8" aria-label="Documents">
+        <RecordList ariaLabel="Legal documents">
+          {DOCUMENTS.map((doc) => (
+            <RecordRow key={doc.href} href={doc.href} title={doc.title} body={doc.body} />
+          ))}
+        </RecordList>
+      </section>
 
-              <Link href="/legal/privacy">
-                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
-                  <CardHeader>
-                    <CardTitle>Privacy Policy</CardTitle>
-                    <CardDescription>How we collect and use your data</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Learn how The Green List collects, processes, and protects your personal information.
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/legal/ftc">
-                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
-                  <CardHeader>
-                    <CardTitle>FTC Disclosures</CardTitle>
-                    <CardDescription>Sponsored content and affiliate links</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Information about affiliate partnerships, sponsored content, and compliance with FTC guidelines.
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/legal/dmca">
-                <Card className="h-full hover:bg-accent/10 transition-colors cursor-pointer border-primary/40">
-                  <CardHeader>
-                    <CardTitle>DMCA Policy</CardTitle>
-                    <CardDescription>Copyright and intellectual property</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Our Digital Millennium Copyright Act policy and copyright takedown procedures.
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-
-            <Card className="border-primary/40 bg-primary/5 mb-8">
-              <CardHeader>
-                <CardTitle>Compliance & Governance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="greenlist-card-title mb-2">Age Verification</h3>
-                  <p className="text-sm text-muted-foreground">
-                    By using The Green List, you confirm that you are at least 21 years of age or meet the minimum legal age in your jurisdiction. Content is for adults only.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="greenlist-card-title mb-2">Legal Compliance</h3>
-                  <p className="text-sm text-muted-foreground">
-                    The Green List complies with applicable federal, state, and local laws. We do not facilitate illegal activities. Cannabis regulations vary by jurisdiction, so consult local authorities.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="greenlist-card-title mb-2">User-Generated Content</h3>
-                  <p className="text-sm text-muted-foreground">
-                    All reviews, forum posts, reports, and community submissions are user-generated. Content is published for community discussion and accountability review.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="greenlist-card-title mb-2">Moderation & Safety</h3>
-                  <p className="text-sm text-muted-foreground">
-                    We maintain community standards and moderate content to prevent harassment, hate speech, defamation, and illegal activity. See our Terms for details on enforcement.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Legal & Compliance Contact</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm font-semibold">Send legal notices, takedown requests, or compliance questions to:</p>
-                  <p className="text-sm text-muted-foreground mt-2">legal@thegreenlist.online</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Response time: 5-10 business days for DMCA takedown requests and legal inquiries.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
-    </>
+      <div className="mt-8">
+        <Ledger
+          title="Standing notices"
+          rows={[
+            {
+              label: 'Age',
+              value: 'Use of the site is limited to people at least 21 years of age or the minimum legal age in their jurisdiction.',
+            },
+            {
+              label: 'Jurisdiction',
+              value: 'Cannabis regulation varies by state and locality. Records state the jurisdiction they concern; consult the relevant regulator for current law.',
+            },
+            {
+              label: 'Submitted content',
+              value: 'Reports are private on receipt and are published only as reviewed, source-backed findings. Discussion is published for documentation and review; it is not a finding of The Green List.',
+            },
+            {
+              label: 'Moderation',
+              value: 'Published standards are enforced against harassment, defamation, and unlawful activity. The enforcement ladder is set out in the Terms of use.',
+            },
+            {
+              label: 'Legal notices',
+              value: 'Send takedown requests, legal notices, and compliance questions to legal@thegreenlist.online. Response within 5 to 10 business days.',
+            },
+          ]}
+        />
+      </div>
+    </PageShell>
   )
 }

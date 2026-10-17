@@ -1,20 +1,9 @@
-import { SimplePage } from '@/components/SimplePage'
+import { redirect } from 'next/navigation'
 
+/**
+ * "Trending" implied engagement ranking, which a records platform does not
+ * publish. The URL is preserved and resolves to source-linked news coverage.
+ */
 export default function TrendingPage() {
-  return (
-    <SimplePage
-      title="Trending"
-      subtitle="A future signal board for emerging transparency topics, source-linked stories, forum activity, and public accountability patterns."
-      sections={[
-        {
-          heading: 'Trust signals',
-          body: 'Trending content should highlight verified patterns, public records, source-backed reports, and community education topics.',
-        },
-        {
-          heading: 'No commerce ranking',
-          body: 'This area should not rank products, menus, deals, inventory, deliveries, or marketplace activity.',
-        },
-      ]}
-    />
-  )
+  redirect('/news')
 }

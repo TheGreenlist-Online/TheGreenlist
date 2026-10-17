@@ -1,17 +1,13 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { formatDistanceToNow } from 'date-fns'
 import { requireAdmin } from '@/lib/supabase/authz'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { RoleBadge } from '@/components/RoleBadge'
+import { AdminPageFrame } from '@/components/AdminPageFrame'
+import { DataTable, Panel, Section, StatusLabel } from '@/components/record'
+import { formatDate, humanize } from '@/lib/recordStatus'
 import { NewsRefreshPanel } from './news-refresh-panel'
-import { ShieldAlert } from 'lucide-react'
-import { statusToneClass } from '@/lib/statusTones'
 
 export const metadata = {
-  title: 'News - Admin',
+  title: 'News feed - Review operations - The Green List',
 }
 
 export const revalidate = 0
@@ -24,13 +20,6 @@ type AutomationJobRow = {
   message: string | null
   started_at: string
   finished_at: string | null
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  running: statusToneClass.progress,
-  success: statusToneClass.success,
-  partial: statusToneClass.pending,
-  error: statusToneClass.danger,
 }
 
 export default async function AdminNewsPage() {
@@ -63,65 +52,34 @@ export default async function AdminNewsPage() {
   }
 
   return (
-    <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="greenlist-page-title">News controls</h1>
-        <p className="greenlist-page-lede">
-          Manage the automated news feed. Articles are pulled from free public RSS feeds every two
-          hours, summarized with OpenAI, and published to the /news page.
-        </p>
-        <div className="mt-5 flex items-center gap-3">
-          <RoleBadge role="ADMIN" />
-          {loadError ? (
-            <span className="inline-flex items-center gap-1.5 text-sm text-red-300">
-              <ShieldAlert className="h-4 w-4" /> {loadError}
-            </span>
-          ) : null}
-        </div>
-      </OrnatePanel>
+    <AdminPageFrame
+      title="News feed"
+      lede="The aggregation job pulls items from public RSS feeds every two hours, summarises them, and publishes them to News with a link to the original outlet. Aggregated items are not Green List findings."
+      current="/admin/news"
+      error={loadError}
+      meta={<span>{jobs.length} recent runs</span>}
+    >
+      <NewsRefreshPanel />
 
-      <section className="mt-8">
-        <NewsRefreshPanel />
-      </section>
-
-      <section className="mt-8">
-        <div className="rounded-xl border border-white/[.09] bg-brand-panel">
-          <div className="border-b border-white/10 p-4">
-            <h2 className="greenlist-card-title">Recent refresh runs</h2>
-          </div>
-          {jobs.length === 0 ? (
-            <p className="p-6 text-sm text-zinc-500">No refresh runs recorded yet.</p>
-          ) : (
-            <ul className="divide-y divide-white/[.06]">
-              {jobs.map((job) => (
-                <li key={job.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.1em] ${STATUS_STYLES[job.status] ?? 'border-zinc-400/35 bg-zinc-800/35 text-zinc-300'}`}
-                      >
-                        {job.status}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {formatDistanceToNow(new Date(job.started_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-zinc-300">{job.message ?? 'No message recorded.'}</p>
-                  </div>
-                  <span className="text-xs text-zinc-500">{job.items_processed} item(s)</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      <section className="mt-8 text-center">
-        <Link href="/admin" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to admin command center
-        </Link>
-      </section>
-    </PageShell>
+      <Section title="Recent refresh runs" aside={<span>Most recent first</span>}>
+        {jobs.length === 0 ? (
+          <Panel>
+            <p className="text-sm text-[var(--gl-text-muted)]">No refresh runs recorded.</p>
+          </Panel>
+        ) : (
+          <DataTable
+            caption="Recent news refresh runs"
+            rows={jobs}
+            rowKey={(job) => job.id}
+            columns={[
+              { key: 'status', header: 'Status', render: (job) => <StatusLabel value={job.status} fallback={{ label: humanize(job.status), tone: 'neutral' }} /> },
+              { key: 'started', header: 'Started', render: (job) => formatDate(job.started_at, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) },
+              { key: 'items', header: 'Items', render: (job) => job.items_processed },
+              { key: 'message', header: 'Message', render: (job) => job.message ?? 'No message recorded.' },
+            ]}
+          />
+        )}
+      </Section>
+    </AdminPageFrame>
   )
 }

@@ -1,17 +1,21 @@
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { OrnatePanel } from '@/components/OrnatePanel'
 import { DistrictLabel } from '@/components/DistrictLabel'
 
 type PageIntroProps = {
   title: ReactNode
-  /** Short standfirst under the title. */
+  /** Short standfirst under the title. State what the page holds, not a slogan. */
   lede?: ReactNode
-  /** Replaces the district name in the eyebrow (e.g. 'Admin command center'). */
+  /** Replaces the section name in the eyebrow (e.g. 'Review operations'). */
   eyebrow?: string
-  /** Buttons, filters or meta rendered under the lede. */
+  /** Buttons, filters or links rendered under the lede. */
   actions?: ReactNode
-  /** Anything else that belongs inside the intro panel. */
+  /**
+   * Record metadata row — jurisdiction, record type, ID, last-reviewed date.
+   * Rendered in monospace above the title so it reads as a file header.
+   */
+  meta?: ReactNode
+  /** Anything else that belongs inside the intro block. */
   children?: ReactNode
   align?: 'left' | 'center'
   className?: string
@@ -20,25 +24,29 @@ type PageIntroProps = {
 /**
  * The single page header used across the site — public and authenticated alike.
  *
- * Before this existed, every page hand-rolled the same panel and there were
- * sixteen different h1 treatments in the repo, so signed-in views drifted onto
- * a gilded amber title while public pages used white. Pages now pass content
- * and the shell decides how it looks.
+ * It is deliberately not a card. A records page opens like a document: a
+ * section label, a title, a plain statement of scope, then a rule. Pages pass
+ * content and the shell decides how it looks.
  */
 export function PageIntro({
   title,
   lede,
   eyebrow,
   actions,
+  meta,
   children,
   align = 'left',
   className,
 }: PageIntroProps) {
   return (
-    <OrnatePanel
-      className={cn('district-page-intro', className)}
-      innerClassName={align === 'center' ? 'text-center' : undefined}
+    <header
+      className={cn(
+        'district-page-intro border-b border-[var(--gl-border)] pb-8',
+        align === 'center' && 'text-center',
+        className,
+      )}
     >
+      {meta ? <div className={cn('gl-meta mb-3', align === 'center' && 'justify-center')}>{meta}</div> : null}
       <DistrictLabel override={eyebrow} />
       <h1 className="greenlist-page-title">{title}</h1>
       {lede ? <p className={cn('greenlist-page-lede', align === 'center' && 'mx-auto')}>{lede}</p> : null}
@@ -46,6 +54,6 @@ export function PageIntro({
         <div className={cn('greenlist-page-actions', align === 'center' && 'justify-center')}>{actions}</div>
       ) : null}
       {children}
-    </OrnatePanel>
+    </header>
   )
 }

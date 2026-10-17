@@ -64,16 +64,8 @@ module.exports = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
-        neon: '#39ff88',
         surface: '#0b0d0b',
         text: '#f7f7f2',
-        smoke: {
-          100: '#c8d4cc',
-          200: '#9daaa3',
-          300: '#72807a',
-          400: '#4a5450',
-          500: '#2c3330',
-        },
         brand: {
           panel: '#0d120f',
           raised: '#141c17',
@@ -82,6 +74,12 @@ module.exports = {
           lime: '#a3d93b',
           green: '#4ea83f',
         },
+        // The app used Tailwind's stock emerald (a blue-leaning teal) in ~300
+        // places, which fought the logo's yellow-green. Retinting the ramp
+        // brings every existing usage onto the brand palette at once.
+        // Amber carries caution/pending meaning in ~40 places (status badges,
+        // notices). Stock amber is an orange that clashes with the logo, so the
+        // ramp is retinted to the brand gold and the semantics survive.
         amber: {
           50: '#fbf6e4',
           100: '#f6ecc2',
@@ -109,40 +107,23 @@ module.exports = {
           950: '#06110a',
         },
       },
+      // The records shell uses one 2px radius everywhere. Pages that still
+      // carry rounded-xl / rounded-2xl utilities resolve to the same edge, so
+      // the whole site squares up without touching every route.
       borderRadius: {
+        none: '0',
+        sm: 'var(--radius)',
+        DEFAULT: 'var(--radius)',
+        md: 'var(--radius)',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        xl: 'var(--radius)',
+        '2xl': 'var(--radius)',
+        '3xl': 'var(--radius)',
+        full: '9999px',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['var(--font-display)', 'Inter', 'system-ui', 'sans-serif'],
-      },
-      animation: {
-        'shimmer-glow': 'shimmer-glow 6s ease-in-out infinite',
-        'neon-pulse': 'neon-pulse 3.5s ease-in-out infinite',
-        'smoke-drift': 'smoke-drift 12s ease-in-out infinite',
-        'card-border-glow': 'card-border-glow 4s ease-in-out infinite',
-      },
-      keyframes: {
-        'shimmer-glow': {
-          '0%, 100%': { opacity: '0.55', transform: 'scale(1)' },
-          '50%': { opacity: '0.85', transform: 'scale(1.06)' },
-        },
-        'neon-pulse': {
-          '0%, 100%': { textShadow: '0 0 8px rgba(57,255,136,0.45), 0 0 18px rgba(57,255,136,0.25)' },
-          '50%': { textShadow: '0 0 18px rgba(57,255,136,0.85), 0 0 38px rgba(57,255,136,0.5), 0 0 60px rgba(57,255,136,0.2)' },
-        },
-        'smoke-drift': {
-          '0%': { transform: 'translateY(0) translateX(0) rotate(0deg)', opacity: '0.3' },
-          '33%': { transform: 'translateY(-14px) translateX(8px) rotate(2deg)', opacity: '0.5' },
-          '66%': { transform: 'translateY(-8px) translateX(-6px) rotate(-1.5deg)', opacity: '0.4' },
-          '100%': { transform: 'translateY(0) translateX(0) rotate(0deg)', opacity: '0.3' },
-        },
-        'card-border-glow': {
-          '0%, 100%': { boxShadow: '0 0 12px rgba(57,255,136,0.06)' },
-          '50%': { boxShadow: '0 0 24px rgba(57,255,136,0.16)' },
-        },
+        sans: ['var(--font-sans)', 'Archivo', 'Arial', 'sans-serif'],
+        mono: ['var(--font-mono)', 'IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
     },
   },

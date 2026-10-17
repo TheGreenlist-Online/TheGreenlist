@@ -48,14 +48,15 @@ export function AppearanceSettings() {
     >
       <Toggle
         id="calm-mode"
-        label="Calm background"
-        description="Dims the smoke backdrop and removes panel lift and glow. Easier to read for long stretches, and gentler on low-contrast screens."
+        label="Larger reading text"
+        description="Increases body text size and line spacing across records and documents. Easier to read for long stretches."
         checked={calm}
         onChange={update}
       />
 
-      <p className="text-xs leading-5 text-zinc-500">
-        If your operating system is set to reduce motion, the site already honours that automatically.
+      <p className="text-xs leading-5 text-[var(--gl-text-muted)]">
+        The interface uses no decorative motion. If your operating system is set to reduce motion, smooth scrolling
+        is disabled automatically.
       </p>
     </SettingsSection>
   )

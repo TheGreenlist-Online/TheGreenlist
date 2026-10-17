@@ -1,5 +1,4 @@
-import { BadgeCheck, ExternalLink } from 'lucide-react'
-import { OrnatePanel } from '@/components/OrnatePanel'
+import { Panel, SourceCard } from '@/components/record'
 
 export type VerifiedFact = {
   id: string
@@ -29,47 +28,28 @@ function formatDate(dateString: string) {
  */
 export function VerifiedWall({ facts }: { facts: VerifiedFact[] }) {
   return (
-    <OrnatePanel>
-      <div className="flex items-center gap-2">
-        <BadgeCheck className="h-4 w-4 text-emerald-300" />
-        <p className="greenlist-eyebrow">Verified Wall</p>
-      </div>
-      <p className="mt-1 text-xs text-zinc-500">Facts and credentials confirmed by Green List moderators.</p>
-
+    <Panel title="Confirmed facts" aside={<span>Staff-reviewed against a stated source</span>}>
       {facts.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">No verified facts yet.</p>
+        <p className="text-sm text-[var(--gl-text-muted)]">No facts have been confirmed for this record.</p>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="grid gap-3">
           {facts.map((fact) => {
             const dateLabel = formatDate(fact.verified_at)
             return (
-              <li
-                key={fact.id}
-                className="rounded-lg border border-white/10 bg-black/20 p-4"
-              >
+              <li key={fact.id} className="border border-[var(--gl-border)] bg-[var(--gl-ink)] p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200">
-                    {formatCategory(fact.category)}
-                  </span>
-                  {dateLabel ? <span className="text-xs text-zinc-500">Verified {dateLabel}</span> : null}
+                  <span className="gl-status gl-status--confirmed">{formatCategory(fact.category)}</span>
+                  {dateLabel ? <span className="gl-meta">Reviewed {dateLabel}</span> : null}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-zinc-200">{fact.fact_text}</p>
-                {fact.source_url ? (
-                  <a
-                    href={fact.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:underline"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Source
-                  </a>
-                ) : null}
+                <p className="mt-2 text-sm leading-6 text-[var(--gl-text)]">{fact.fact_text}</p>
+                <div className="mt-3">
+                  <SourceCard sourceClass="Primary document" url={fact.source_url} date={fact.verified_at} method="Reviewed by staff" />
+                </div>
               </li>
             )
           })}
         </ul>
       )}
-    </OrnatePanel>
+    </Panel>
   )
 }

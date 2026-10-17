@@ -39,7 +39,7 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 - **Auth**: Supabase Auth with server-verified sessions and PostgreSQL RLS
 - **Database**: Supabase/PostgreSQL with Prisma
 - **Storage**: Supabase
-- **AI**: OpenAI API for moderation and summarization
+- **AI**: Vercel AI Gateway (OpenAI-compatible client, streamed responses) for assistance and summarization
 - **Deployment**: Vercel, Docker, GitHub Actions
 - **Infrastructure**: Porkbun DNS, Redis-compatible cache where configured
 
@@ -47,7 +47,7 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL 15+
 - Git
 
@@ -55,8 +55,8 @@ IMPORTANT: This platform is designed for transparency, education, reporting, new
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/TheBlacklistOnline/TheBlacklist.git
-   cd TheBlacklist
+   git clone https://github.com/TheGreenlist-Online/TheGreenlist.git
+   cd TheGreenlist
    ```
 
 2. **Install dependencies**

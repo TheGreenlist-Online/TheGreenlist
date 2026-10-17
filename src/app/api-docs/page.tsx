@@ -1,18 +1,24 @@
 import { SimplePage } from '@/components/SimplePage'
 
+export const metadata = {
+  title: 'Data access - The Green List',
+}
+
 export default function ApiDocsPage() {
   return (
     <SimplePage
-      title="API Docs"
-      subtitle="Developer documentation placeholder for future The Green List data, reporting, moderation, and verification APIs."
+      eyebrow="Reference"
+      documentId="GL-DOC-API"
+      title="Data access"
+      subtitle="Programmatic access to published records is planned. This page states the scope and the conditions; no endpoints are live."
       sections={[
         {
-          heading: 'Future API access',
-          body: 'API documentation can eventually describe endpoints for reports, business profiles, moderation workflows, and verification signals.',
+          heading: 'Planned scope',
+          body: 'Read access to published business records, report outcomes, Learn resources, and source metadata, in the same form and with the same limitations statements shown on the site.',
         },
         {
-          heading: 'Access control',
-          body: 'Any API should use strong authentication, rate limits, audit logs, and privacy-aware data handling.',
+          heading: 'Conditions',
+          body: 'Any interface will require authentication, apply rate limits, log requests in the audit trail, and exclude private report contents and personal data.',
         },
       ]}
     />

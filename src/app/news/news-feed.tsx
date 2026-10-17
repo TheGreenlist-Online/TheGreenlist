@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
-import { Loader2, Newspaper } from 'lucide-react'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { cn } from '@/lib/utils'
+import { Notice, Panel, RecordList, RecordRow, StatusLabel } from '@/components/record'
+import { formatDate } from '@/lib/recordStatus'
 
 export type NewsRow = {
   id: string
@@ -25,56 +23,29 @@ const CATEGORY_LABELS: Record<string, string> = {
   culture: 'Culture',
 }
 
-function formatPublished(dateString: string) {
-  try {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true })
-  } catch {
-    return ''
-  }
-}
-
-function NewsCard({ item }: { item: NewsRow }) {
+function NewsItem({ item }: { item: NewsRow }) {
   return (
-    <OrnatePanel className="h-full" innerClassName="flex h-full flex-col">
-      <div className="flex items-center gap-2 text-xs text-zinc-500">
-        {item.category ? (
-          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2 py-0.5 font-semibold uppercase tracking-[0.1em] text-emerald-200">
-            {CATEGORY_LABELS[item.category] ?? item.category}
-          </span>
-        ) : null}
-        <span>{formatPublished(item.published_at)}</span>
-      </div>
-
-      <h3 className="greenlist-card-title mt-3">{item.title}</h3>
-
-      {item.summary ? (
-        <p className="mt-2 flex-1 text-sm leading-6 text-zinc-400">{item.summary}</p>
-      ) : null}
-
-      {item.tags && item.tags.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {item.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-white/10 bg-white/[.04] px-2 py-0.5 text-[11px] text-zinc-400"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      {item.source_url ? (
-        <a
-          href={item.source_url}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-300 hover:underline"
-        >
-          {item.source_name ? `Read more at ${item.source_name}` : 'Read more'}
-        </a>
-      ) : null}
-    </OrnatePanel>
+    <RecordRow
+      title={
+        item.source_url ? (
+          <a href={item.source_url} target="_blank" rel="noopener noreferrer nofollow">
+            {item.title}
+          </a>
+        ) : (
+          item.title
+        )
+      }
+      body={item.summary ?? undefined}
+      meta={
+        <>
+          <span>{item.source_name ?? 'Outlet not recorded'}</span>
+          <span>Published {formatDate(item.published_at)}</span>
+          {item.category ? <span>{CATEGORY_LABELS[item.category] ?? item.category}</span> : null}
+          {item.tags && item.tags.length ? <span>{item.tags.slice(0, 4).join(' · ')}</span> : null}
+        </>
+      }
+      aside={<StatusLabel label="Outlet coverage" tone="neutral" title="Aggregated from a named outlet. Not a Green List finding." />}
+    />
   )
 }
 
@@ -139,49 +110,48 @@ export function NewsFeed({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2">
-        {availableCategories.map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setCategory(value)}
-            className={cn(
-              'rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition',
-              category === value
-                ? 'border-emerald-300/50 bg-emerald-300/15 text-emerald-200'
-                : 'border-white/10 bg-white/[.03] text-zinc-400 hover:border-white/20 hover:text-zinc-200',
-            )}
-          >
-            {CATEGORY_LABELS[value] ?? value}
-          </button>
-        ))}
-        {loading ? <Loader2 className="h-4 w-4 animate-spin text-emerald-300" /> : null}
-      </div>
+      <Panel title="Filter by category" aside={loading ? <span>Loading…</span> : <span>{total} item{total === 1 ? '' : 's'}</span>}>
+        <div className="flex flex-wrap items-center gap-2">
+          {availableCategories.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setCategory(value)}
+              aria-pressed={category === value}
+              className={category === value ? 'greenlist-secondary-button' : 'greenlist-quiet-button'}
+            >
+              {CATEGORY_LABELS[value] ?? value}
+            </button>
+          ))}
+        </div>
+      </Panel>
 
-      {error ? <p className="mt-4 text-sm text-red-300">{error}</p> : null}
+      {error ? (
+        <Notice tone="alert" className="mt-4">
+          {error}
+        </Notice>
+      ) : null}
 
       {items.length === 0 && !loading ? (
-        <OrnatePanel className="mt-6">
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <Newspaper className="h-8 w-8 text-emerald-300/60" />
-            <p className="text-lg font-semibold text-zinc-200">No news yet. Check back soon.</p>
-            <p className="max-w-md text-sm text-zinc-500">
-              The automated news refresh runs every two hours and pulls the latest cannabis industry
-              and policy headlines. Nothing has synced yet for this category.
-            </p>
-          </div>
-        </OrnatePanel>
+        <Panel className="mt-6">
+          <p className="text-sm font-semibold text-[var(--gl-text)]">No items in this category.</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--gl-text-secondary)]">
+            The aggregation job runs every two hours and records industry, policy, enforcement, and recall coverage from named outlets. Nothing has been recorded for this category yet.
+          </p>
+        </Panel>
       ) : (
-        <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <RecordList className="mt-6" ariaLabel="News items">
           {items.map((item) => (
-            <NewsCard key={item.id} item={item} />
+            <NewsItem key={item.id} item={item} />
           ))}
-        </section>
+        </RecordList>
       )}
 
       {items.length > 0 ? (
-        <p className="mt-6 text-center text-xs text-zinc-500">
-          Showing {items.length} of {total} update{total === 1 ? '' : 's'}.
+        <p className="gl-meta mt-4 justify-end">
+          <span>
+            Showing {items.length} of {total} item{total === 1 ? '' : 's'}
+          </span>
         </p>
       ) : null}
     </div>

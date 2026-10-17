@@ -1,3 +1,4 @@
+import { writeQuotaResponse } from '@/lib/write-quota'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { REPORT_TYPE_VALUES } from '@/lib/report-types'
@@ -34,6 +35,8 @@ export async function GET() {
 
     return NextResponse.json({ reports: reports ?? [] })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error fetching reports:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -112,6 +115,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id: report.id }, { status: 201 })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error creating report:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

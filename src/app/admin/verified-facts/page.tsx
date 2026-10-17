@@ -1,13 +1,10 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/authz'
-import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { RoleBadge } from '@/components/RoleBadge'
+import { AdminPageFrame } from '@/components/AdminPageFrame'
 import { VerifiedFactsAdmin } from './verified-facts-admin'
 
 export const metadata = {
-  title: 'Verified Facts - Admin',
+  title: 'Confirmed facts - Review operations - The Green List',
 }
 
 export const revalidate = 0
@@ -32,29 +29,14 @@ export default async function AdminVerifiedFactsPage() {
   const facts = data ?? []
 
   return (
-    <PageShell>
-      <OrnatePanel>
-        <p className="greenlist-eyebrow">Admin command center</p>
-        <h1 className="greenlist-page-title">Verified Wall</h1>
-        <p className="greenlist-page-lede">
-          Add or remove moderator-verified facts shown on user profiles and business pages. This is
-          moderator-curated content only — users and businesses cannot self-add entries.
-        </p>
-        <div className="mt-5 flex items-center gap-3">
-          <RoleBadge role="ADMIN" />
-          {error ? <span className="text-sm text-red-300">Failed to load facts: {error.message}</span> : null}
-        </div>
-      </OrnatePanel>
-
-      <section className="mt-8">
-        <VerifiedFactsAdmin initialFacts={facts} />
-      </section>
-
-      <section className="mt-8 text-center">
-        <Link href="/admin" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to admin command center
-        </Link>
-      </section>
-    </PageShell>
+    <AdminPageFrame
+      title="Confirmed facts"
+      lede="Add or remove staff-confirmed facts shown on account and business records. Each fact carries a source and a review date. Subjects cannot add or edit entries."
+      current="/admin/verified-facts"
+      error={error ? `Facts could not be loaded: ${error.message}` : null}
+      meta={<span>{facts.length} on record</span>}
+    >
+      <VerifiedFactsAdmin initialFacts={facts} />
+    </AdminPageFrame>
   )
 }

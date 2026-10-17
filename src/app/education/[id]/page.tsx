@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { OrnatePanel } from '@/components/OrnatePanel'
-import { ArrowLeft, BookOpen, FlaskConical, Scale, ShieldCheck, Users } from 'lucide-react'
+import { LimitationsPanel, Panel, RecordHeader, SourceCard } from '@/components/record'
+import { educationCategoryLabel } from '@/lib/educationCategories'
+import { formatDate, recordId } from '@/lib/recordStatus'
 
 type EducationDetailRow = {
   id: string
@@ -25,18 +26,7 @@ type EducationAttachment = {
   url?: string
 }
 
-const CATEGORY_META: Record<string, { label: string; icon: typeof ShieldCheck }> = {
-  SAFETY_GUIDE: { label: 'Safety Guide', icon: ShieldCheck },
-  REGULATORY_RESOURCE: { label: 'Regulatory Resource', icon: Scale },
-  WORKER_RIGHTS: { label: 'Worker Rights', icon: Users },
-  RESEARCH_SUMMARY: { label: 'Research Summary', icon: FlaskConical },
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createSupabaseServerClient()
   const { data: resource } = await supabase
@@ -51,11 +41,15 @@ export async function generateMetadata({
   }
 }
 
-export default async function EducationDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+function hostOf(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+export default async function EducationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createSupabaseServerClient()
 
@@ -70,8 +64,6 @@ export default async function EducationDetailPage({
     notFound()
   }
 
-  const meta = CATEGORY_META[resource.category]
-  const Icon = meta?.icon ?? BookOpen
   const paragraphs = resource.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
   const sourceUrls = (resource.source_urls ?? []).filter(Boolean)
   const { data: attachmentRows } = await supabase
@@ -80,80 +72,73 @@ export default async function EducationDetailPage({
     .eq('resource_id', resource.id)
     .order('created_at')
     .returns<EducationAttachment[]>()
-  const attachments = await Promise.all((attachmentRows ?? []).map(async (attachment) => {
-    const { data } = await supabase.storage
-      .from(attachment.storage_bucket)
-      .createSignedUrl(attachment.storage_path, 3600)
-    return { ...attachment, url: data?.signedUrl }
-  }))
+  const attachments = await Promise.all(
+    (attachmentRows ?? []).map(async (attachment) => {
+      const { data } = await supabase.storage.from(attachment.storage_bucket).createSignedUrl(attachment.storage_path, 3600)
+      return { ...attachment, url: data?.signedUrl }
+    }),
+  )
 
   return (
-    <PageShell>
-      <Link href="/education" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:underline">
-        <ArrowLeft className="h-4 w-4" />
-        Back to Knowledge Library
-      </Link>
+    <PageShell width="record">
+      <RecordHeader
+        eyebrow="Learn"
+        kind={educationCategoryLabel(resource.category)}
+        recordId={recordId('EDU', resource.id)}
+        title={resource.title}
+        lede={resource.summary}
+        status={{ label: 'Reviewed', tone: 'confirmed', meaning: 'Reviewed for accuracy and sourcing before publication.' }}
+        meta={[
+          { label: 'Published', value: formatDate(resource.created_at) },
+          { label: 'Sources', value: `${sourceUrls.length} listed` },
+        ]}
+        actions={
+          <Link href="/education" className="greenlist-quiet-button">
+            All resources
+          </Link>
+        }
+      />
 
-      <OrnatePanel className="mt-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/35 bg-emerald-950/25 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200">
-          <Icon className="h-3.5 w-3.5" />
-          {meta?.label ?? resource.category.replace(/_/g, ' ')}
-        </span>
+      <Panel className="mt-8" bodyClassName="gl-prose">
+        {paragraphs.map((paragraph, index) => (
+          <p key={index} className="whitespace-pre-wrap">
+            {paragraph}
+          </p>
+        ))}
+      </Panel>
 
-        <h1 className="greenlist-page-title">{resource.title}</h1>
-        <p className="mt-2 text-xs text-zinc-500">
-          Published {new Date(resource.created_at).toLocaleDateString()}
-        </p>
+      <Panel title="Sources" aside={sourceUrls.length ? `${sourceUrls.length} cited` : 'None listed'} className="mt-6">
+        {sourceUrls.length ? (
+          <div className="grid gap-3">
+            {sourceUrls.map((url) => (
+              <SourceCard key={url} sourceClass="Cited source" origin={hostOf(url)} url={url} method="Listed by the author; checked by reviewers" />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--gl-text-muted)]">The author did not list external sources for this resource.</p>
+        )}
+      </Panel>
 
-        <p className="mt-5 text-lg leading-8 text-zinc-300">{resource.summary}</p>
-
-        <div className="mt-6 space-y-4 border-t border-white/10 pt-6">
-          {paragraphs.map((paragraph, index) => (
-            <p key={index} className="leading-7 text-zinc-300 whitespace-pre-wrap">
-              {paragraph}
-            </p>
-          ))}
-        </div>
-
-        {sourceUrls.length > 0 ? (
-          <div className="mt-8 border-t border-white/10 pt-6">
-            <h2 className="greenlist-eyebrow">Sources</h2>
-            <ul className="mt-3 space-y-2">
-              {sourceUrls.map((url) => (
-                <li key={url}>
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="break-all text-sm text-emerald-300 hover:underline"
-                  >
-                    {url}
+      {attachments.length > 0 ? (
+        <Panel title="Supporting materials" aside="Links expire after one hour" className="mt-6">
+          <ul className="grid gap-2 text-sm">
+            {attachments.map((attachment) => (
+              <li key={attachment.id} className="gl-meta">
+                {attachment.url ? (
+                  <a href={attachment.url} className="gl-link">
+                    {attachment.file_name}
                   </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+                ) : (
+                  <span>{attachment.file_name}</span>
+                )}
+                <span>{attachment.file_type}</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
 
-        {attachments.length > 0 ? (
-          <div className="mt-8 border-t border-white/10 pt-6">
-            <h2 className="greenlist-eyebrow">Supporting materials</h2>
-            <ul className="mt-3 space-y-2">
-              {attachments.map((attachment) => (
-                <li key={attachment.id}>
-                  {attachment.url ? (
-                    <a href={attachment.url} className="text-sm text-emerald-300 hover:underline">
-                      {attachment.file_name}
-                    </a>
-                  ) : (
-                    <span className="text-sm text-zinc-400">{attachment.file_name}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </OrnatePanel>
+      <LimitationsPanel subject="resource" className="mt-8" />
     </PageShell>
   )
 }

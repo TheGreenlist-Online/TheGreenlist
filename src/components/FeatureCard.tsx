@@ -11,14 +11,14 @@ type FeatureCardProps = {
 
 export function FeatureCard({ title, description, href, icon }: FeatureCardProps) {
   const content = (
-    <OrnatePanel className="h-full transition hover:-translate-y-0.5 hover:border-emerald-300/35" innerClassName="h-full">
+    <OrnatePanel className="h-full transition-colors hover:border-[var(--gl-border-strong)]" innerClassName="h-full">
       <div className="flex items-start gap-3">
         {icon ? (
-          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[.06] p-2 text-emerald-300">{icon}</div>
+          <div className="border border-[var(--gl-border)] p-2 text-[var(--gl-text-secondary)]">{icon}</div>
         ) : null}
         <div>
           <h3 className="greenlist-card-title">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--gl-text-secondary)]">{description}</p>
         </div>
       </div>
     </OrnatePanel>
@@ -31,7 +31,7 @@ export function FeatureCard({ title, description, href, icon }: FeatureCardProps
   return (
     <Link
       href={href}
-      className="block rounded-2xl transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060b08]"
+      className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gl-accent-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--gl-ink)]"
     >
       {content}
     </Link>

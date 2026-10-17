@@ -2,33 +2,33 @@ import Link from 'next/link'
 
 const updates = [
   {
-    status: 'NEW REPORT',
-    title: 'Transparency activity will appear here as reports are published.',
-    time: 'Live feed initializing',
+    status: 'REPORTS',
+    title: 'Published findings will be listed here with their review status.',
+    time: 'No published findings yet',
     href: '/reports',
   },
   {
-    status: 'VERIFICATION',
-    title: 'Verified business updates will appear here.',
-    time: 'Awaiting activity',
+    status: 'RECORDS',
+    title: 'Record updates and status changes will be listed here.',
+    time: 'No record updates yet',
     href: '/businesses',
   },
   {
-    status: 'COMMUNITY',
-    title: 'Community events and platform updates will appear here.',
-    time: 'Awaiting activity',
+    status: 'CORRECTIONS',
+    title: 'Published corrections will be listed here with the reason for each change.',
+    time: 'No corrections published yet',
     href: '/forums',
   },
 ]
 
 export function GreenlistWatch() {
   return (
-    <aside className="greenlist-watch" aria-label="Greenlist live transparency updates">
+    <aside className="greenlist-watch" aria-label="Recent record activity">
       <div className="greenlist-watch__header">
-        <span>🌱</span>
+        <span aria-hidden="true" />
         <div>
-          <p>Greenlist Watch</p>
-          <h2>Live Transparency Feed</h2>
+          <p>Record log</p>
+          <h2>Recent record activity</h2>
         </div>
       </div>
 

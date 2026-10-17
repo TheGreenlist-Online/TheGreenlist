@@ -44,8 +44,8 @@ Secondary domain: `https://greenlist.online`
 
 ```bash
 # Clone repository
-git clone https://github.com/TheBlacklistOnline/TheBlacklist.git
-cd TheBlacklist
+git clone https://github.com/TheGreenlist-Online/TheGreenlist.git
+cd TheGreenlist
 
 # Copy environment file
 cp .env.example .env.local
@@ -73,7 +73,7 @@ docker run -p 3000:3000 --env-file .env.local thegreenlist
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Optional
-- [ ] `OPENAI_API_KEY`
+- [ ] `AI_GATEWAY_API_KEY` (Vercel AI Gateway; `OPENAI_API_KEY` is only a direct-provider fallback)
 - [ ] `RESEND_API_KEY` or `SENDGRID_API_KEY`
 - [ ] `REDIS_URL`
 

@@ -3,6 +3,7 @@ import { AdminSectionPage } from '@/components/AdminSectionPage'
 export default async function AdminReviewPage() {
   return AdminSectionPage({
     title: 'Review queue',
-    description: 'Review pending reports, flagged submissions, evidence context, and transparency items before public action.',
+    description: 'Pending reports, flagged submissions, and evidence context awaiting a documentary decision before any public action.',
+    current: '/admin/review',
   })
 }

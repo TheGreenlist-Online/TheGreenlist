@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FormActions, Notice, Select, Textarea } from '@/components/record'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
@@ -113,154 +113,101 @@ export function ReportForm({ businesses }: { businesses: BusinessOption[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Card className="border-primary/40">
-        <CardHeader>
-          <CardTitle>File a Report</CardTitle>
-          <CardDescription>
-            Document a mislabeling, contamination, licensing, worker-safety, deceptive-marketing, or other
-            accountability concern. Reports are reviewed before any public action is taken.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {showRestoredBanner && restoredAt ? (
-            <div className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent-foreground">
-              <span>Restored your unsaved draft from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
-              <button
-                type="button"
-                onClick={() => setShowRestoredBanner(false)}
-                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
-                aria-label="Dismiss"
-              >
+    <form className="gl-panel" onSubmit={handleSubmit}>
+      <div className="gl-panel__head">
+        <h2>Report</h2>
+        <span className="gl-meta">
+          {isSaving ? <span>Saving draft…</span> : savedAt ? <span>Draft saved {formatDistanceToNow(savedAt, { addSuffix: true })}</span> : <span>Draft autosaves</span>}
+        </span>
+      </div>
+      <div className="gl-panel__body">
+        {showRestoredBanner && restoredAt ? (
+          <Notice tone="info" className="mb-5">
+            <span className="flex items-start justify-between gap-3">
+              <span>Unsaved draft restored from {formatDistanceToNow(restoredAt, { addSuffix: true })}.</span>
+              <button type="button" onClick={() => setShowRestoredBanner(false)} className="gl-link shrink-0 text-xs" aria-label="Dismiss">
                 Dismiss
               </button>
-            </div>
-          ) : null}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <label className="block space-y-2 text-sm font-medium" htmlFor="report-type">
-              Report type
-              <select
-                id="report-type"
-                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={reportType}
-                onChange={(event) => setReportType(event.target.value)}
-              >
-                {REPORT_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            </span>
+          </Notice>
+        ) : null}
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="report-title">
-              Title
-              <Input
-                id="report-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                minLength={8}
-                maxLength={160}
-                required
-                placeholder="Briefly identify the concern"
-              />
-            </label>
+        <Field label="Report type" htmlFor="report-type">
+          <Select id="report-type" value={reportType} onChange={(event) => setReportType(event.target.value)}>
+            {REPORT_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="report-description">
-              Description
-              <textarea
-                id="report-description"
-                className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                minLength={20}
-                required
-                placeholder="Describe the facts, dates, location, and why this matters."
-              />
-            </label>
+        <Field label="Title" htmlFor="report-title" required help="Identify the matter in one line. 8–160 characters.">
+          <Input id="report-title" value={title} onChange={(event) => setTitle(event.target.value)} minLength={8} maxLength={160} required />
+        </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block space-y-2 text-sm font-medium" htmlFor="report-state">
-                State
-                <Input
-                  id="report-state"
-                  value={locationState}
-                  onChange={(event) => setLocationState(event.target.value)}
-                  placeholder="e.g. CA"
-                />
-              </label>
-              <label className="block space-y-2 text-sm font-medium" htmlFor="report-city">
-                City
-                <Input
-                  id="report-city"
-                  value={locationCity}
-                  onChange={(event) => setLocationCity(event.target.value)}
-                  placeholder="e.g. Oakland"
-                />
-              </label>
-            </div>
+        <Field label="Account" htmlFor="report-description" required help="Facts, dates, location, and what you observed directly. Separate what you saw from what you were told.">
+          <Textarea id="report-description" className="min-h-32" value={description} onChange={(event) => setDescription(event.target.value)} minLength={20} required />
+        </Field>
 
-            <label className="block space-y-2 text-sm font-medium" htmlFor="report-business">
-              Related business <span className="font-normal text-muted-foreground">(optional)</span>
-              <select
-                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={businessId}
-                onChange={(event) => {
-                  setBusinessId(event.target.value)
-                  if (event.target.value) setRelatedBusiness('')
-                }}
-              >
-                <option value="">Business is not listed</option>
-                {businesses.map((business) => (
-                  <option key={business.id} value={business.id}>{business.name}</option>
-                ))}
-              </select>
-              <Input
-                id="report-business"
-                value={relatedBusiness}
-                onChange={(event) => setRelatedBusiness(event.target.value)}
-                disabled={Boolean(businessId)}
-                maxLength={160}
-                placeholder="Business name, if applicable"
-              />
-              <span className="block text-xs font-normal text-muted-foreground">
-                Select a directory business, or enter its name when it is not yet listed.
-              </span>
-            </label>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <Field label="State" htmlFor="report-state" help="Two-letter code, e.g. CA">
+            <Input id="report-state" value={locationState} onChange={(event) => setLocationState(event.target.value)} />
+          </Field>
+          <Field label="City" htmlFor="report-city">
+            <Input id="report-city" value={locationCity} onChange={(event) => setLocationCity(event.target.value)} />
+          </Field>
+        </div>
 
-            <label className="flex items-start gap-3 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={isAnonymous}
-                onChange={(event) => setIsAnonymous(event.target.checked)}
-              />
-              <span>
-                <span className="block font-medium">Request public anonymity</span>
-                <span className="text-muted-foreground">
-                  Authorized reviewers can still identify the submitting account for safety and due process.
-                </span>
-              </span>
-            </label>
+        <Field label="Business concerned" htmlFor="report-business-select" help="Select a business on record, or enter its name if it is not yet listed. Optional.">
+          <Select
+            id="report-business-select"
+            value={businessId}
+            onChange={(event) => {
+              setBusinessId(event.target.value)
+              if (event.target.value) setRelatedBusiness('')
+            }}
+          >
+            <option value="">Not on record / not applicable</option>
+            {businesses.map((business) => (
+              <option key={business.id} value={business.id}>
+                {business.name}
+              </option>
+            ))}
+          </Select>
+          <Input
+            id="report-business"
+            className="mt-2"
+            value={relatedBusiness}
+            onChange={(event) => setRelatedBusiness(event.target.value)}
+            disabled={Boolean(businessId)}
+            maxLength={160}
+            placeholder="Business name, if not listed above"
+            aria-label="Business name, if not listed"
+          />
+        </Field>
 
-            {error ? (
-              <p role="alert" className="rounded-lg border border-red-400/40 bg-red-950/35 p-3 text-sm text-red-100">
-                {error}
-              </p>
-            ) : null}
+        <label className="mt-3 flex items-start gap-3 text-sm text-[var(--gl-text-secondary)]">
+          <input type="checkbox" className="mt-1" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} />
+          <span>
+            <span className="block font-medium text-[var(--gl-text)]">Request public anonymity</span>
+            <span>Authorised reviewers can still identify the submitting account for safety and due process.</span>
+          </span>
+        </label>
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">
-                {isSaving ? 'Saving…' : savedAt ? `Draft saved ${formatDistanceToNow(savedAt, { addSuffix: true })}` : ''}
-              </span>
-            </div>
+        {error ? (
+          <Notice tone="alert" className="mt-5">
+            {error}
+          </Notice>
+        ) : null}
 
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting…' : 'Submit Report'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <FormActions>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting…' : 'Submit report'}
+          </Button>
+          <span className="text-xs text-[var(--gl-text-muted)]">Private on receipt. Reviewed before any publication.</span>
+        </FormActions>
+      </div>
+    </form>
   )
 }

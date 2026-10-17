@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { gohighlevel } from '@/lib/integrations/gohighlevel'
+import { writeQuotaResponse } from '@/lib/write-quota'
 
 function slugify(value: string) {
   return value
@@ -134,6 +135,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(business, { status: 201 })
   } catch (error) {
+    const quotaResponse = writeQuotaResponse(error)
+    if (quotaResponse) return quotaResponse
     console.error('Error creating business:', error)
     return NextResponse.json({ error: 'Failed to create business profile' }, { status: 500 })
   }

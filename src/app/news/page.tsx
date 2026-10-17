@@ -1,11 +1,15 @@
-import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/PageShell'
-import { TrustBadge } from '@/components/TrustBadge'
+import { LimitationsPanel, Section } from '@/components/record'
 import { NewsFeed, type NewsRow } from './news-feed'
 import { PageIntro } from '@/components/PageIntro'
 
 export const revalidate = 0
+
+export const metadata = {
+  title: 'News - The Green List',
+  description: 'Industry, policy, enforcement, and recall coverage aggregated from named public outlets.',
+}
 
 export default async function NewsPage() {
   const supabase = await createSupabaseServerClient()
@@ -22,19 +26,21 @@ export default async function NewsPage() {
     <PageShell>
       <PageIntro
         title="News"
-        lede="Cannabis industry updates, policy shifts, consumer alerts, accountability stories, and transparency-focused reporting — refreshed automatically every two hours from trusted public sources."
+        lede="Industry, policy, enforcement, and recall coverage aggregated from named public outlets and linked to the original publication. Items refresh automatically every two hours. Aggregated coverage is not a Green List finding."
+        meta={
+          <>
+            <span>{count ?? 0} items on file</span>
+            <span>Refreshed every two hours</span>
+            <span>Linked to original publication</span>
+          </>
+        }
       />
 
-      <section className="mt-8">
+      <Section title="Coverage" aside={<span>Newest first</span>}>
         <NewsFeed initialItems={items} initialTotal={count ?? 0} />
-      </section>
+      </Section>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="text-sm font-semibold text-emerald-300 hover:underline">
-          Back to homepage
-        </Link>
-        <TrustBadge />
-      </div>
+      <LimitationsPanel subject="news" />
     </PageShell>
   )
 }

@@ -27,8 +27,7 @@ export function SecuritySettings({ email }: { email: string }) {
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword
   const canSubmit = password.length >= MIN_PASSWORD_LEN && password === confirmPassword && !isSaving
 
-  const inputClass =
-    'mt-2 w-full rounded-lg border border-white/[.12] bg-black/30 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 transition focus:border-emerald-300/60 focus:outline-none focus:ring-2 focus:ring-emerald-300/20'
+  const inputClass = 'gl-input'
 
   const handlePasswordChange = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -65,8 +64,8 @@ export function SecuritySettings({ email }: { email: string }) {
       footer={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-zinc-100">Sign out everywhere</p>
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
+            <p className="text-sm font-semibold text-[var(--gl-text)]">Sign out everywhere</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--gl-text-muted)]">
               Ends your session on every device, including this one. Use it if you signed in somewhere you no longer
               trust.
             </p>
@@ -75,7 +74,7 @@ export function SecuritySettings({ email }: { email: string }) {
             type="button"
             onClick={handleGlobalSignOut}
             disabled={isSigningOut}
-            className="shrink-0 rounded-lg border border-red-300/30 bg-red-950/25 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-950/40 disabled:opacity-50"
+            className="greenlist-secondary-button shrink-0 disabled:opacity-50"
           >
             {isSigningOut ? 'Signing out…' : 'Sign out everywhere'}
           </button>
@@ -83,11 +82,11 @@ export function SecuritySettings({ email }: { email: string }) {
       }
     >
       <div>
-        <span className="text-sm font-semibold text-zinc-100">Email address</span>
-        <p className="mt-2 rounded-lg border border-white/[.08] bg-white/[.03] px-3 py-2.5 text-sm text-zinc-400">
+        <span className="text-sm font-semibold text-[var(--gl-text)]">Email address</span>
+        <p className="mt-2 gl-input text-sm text-[var(--gl-text-secondary)]">
           {email}
         </p>
-        <p className="mt-1.5 text-xs leading-5 text-zinc-500">
+        <p className="mt-1.5 text-xs leading-5 text-[var(--gl-text-muted)]">
           Your email is your sign-in identity and can&apos;t be changed here. Contact support to move your account to a
           new address.
         </p>
@@ -95,7 +94,7 @@ export function SecuritySettings({ email }: { email: string }) {
 
       <form onSubmit={handlePasswordChange} className="space-y-5">
         <div>
-          <label htmlFor="new-password" className="block text-sm font-semibold text-zinc-100">
+          <label htmlFor="new-password" className="gl-label">
             New password
           </label>
           <input
@@ -108,14 +107,14 @@ export function SecuritySettings({ email }: { email: string }) {
             className={inputClass}
           />
           {tooShort ? (
-            <p className="mt-1.5 text-xs font-medium text-red-300">
+            <p className="mt-1.5 gl-help text-[#f0a094]">
               Use at least {MIN_PASSWORD_LEN} characters.
             </p>
           ) : null}
         </div>
 
         <div>
-          <label htmlFor="confirm-password" className="block text-sm font-semibold text-zinc-100">
+          <label htmlFor="confirm-password" className="gl-label">
             Confirm new password
           </label>
           <input
@@ -127,7 +126,7 @@ export function SecuritySettings({ email }: { email: string }) {
             placeholder="Re-enter the new password"
             className={inputClass}
           />
-          {mismatch ? <p className="mt-1.5 text-xs font-medium text-red-300">The two passwords don&apos;t match.</p> : null}
+          {mismatch ? <p className="mt-1.5 gl-help text-[#f0a094]">The two passwords don&apos;t match.</p> : null}
         </div>
 
         {result ? <StatusMessage tone={result.tone}>{result.text}</StatusMessage> : null}
