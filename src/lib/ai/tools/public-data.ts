@@ -188,7 +188,6 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
     'The full description, evidence files, reporter identity, and anonymous reports are never returned.',
   inputSchema: z.object({ reportId: z.uuid().describe('The report id.') }),
   async execute({ principal }, input) {
-    const { data, error } = await principal.supabase
       .from('reports')
       .select(
         'id, title, report_type, status, verification_status, business_id, public_summary, location_state, location_city, created_at, updated_at',
