@@ -65,32 +65,36 @@ create policy organization_memberships_read on public.organization_memberships
 for select to authenticated using (
   user_id = (select auth.uid()) or public.can_manage_organization_members(organization_id)
 );
-create policy organization_memberships_manage on public.organization_memberships
-for all to authenticated using (public.can_manage_organization_members(organization_id))
-with check (public.can_manage_organization_members(organization_id) and role <> 'owner');
+-- Owner rows are seeded only by the database. An admin cannot change an
+-- identity or move a membership to another organization via UPDATE.
+create policy organization_memberships_insert on public.organization_memberships
+for insert to authenticated with check (
+  public.can_manage_organization_members(organization_id) and role <> 'owner'
+);
+create policy organization_memberships_update on public.organization_memberships
+for update to authenticated using (
+  public.can_manage_organization_members(organization_id) and role <> 'owner'
+) with check (public.can_manage_organization_members(organization_id) and role <> 'owner');
+create policy organization_memberships_delete on public.organization_memberships
+for delete to authenticated using (
+  public.can_manage_organization_members(organization_id) and role <> 'owner'
+);
 
--- The root owner row is system-created and cannot be changed or removed by the
--- member-management workflow.
-create or replace function public.protect_organization_owner_membership()
-returns trigger language plpgsql security definer set search_path = '' as $$
+create or replace function public.guard_organization_membership_update()
+returns trigger language plpgsql set search_path = '' as $$
 begin
-  if tg_op = 'DELETE' and old.role = 'owner' then
-    raise exception 'The organization owner membership cannot be removed.';
+  if new.id is distinct from old.id
+     or new.organization_id is distinct from old.organization_id
+     or new.user_id is distinct from old.user_id then
+    raise exception 'Membership identity is immutable; remove and re-invite instead.';
   end if;
-  if tg_op = 'UPDATE' and old.role = 'owner' and new.role <> 'owner' then
-    raise exception 'The organization owner membership cannot be changed.';
-  end if;
-  if tg_op = 'UPDATE' then
-    new.updated_at := now();
-    return new;
-  end if;
-  return old;
+  new.updated_at := now();
+  return new;
 end;
 $$;
-revoke all on function public.protect_organization_owner_membership() from public;
-drop trigger if exists trg_protect_organization_owner_membership on public.organization_memberships;
-create trigger trg_protect_organization_owner_membership before update or delete on public.organization_memberships
-for each row execute function public.protect_organization_owner_membership();
+revoke all on function public.guard_organization_membership_update() from public;
+create trigger trg_guard_organization_membership_update before update on public.organization_memberships
+for each row execute function public.guard_organization_membership_update();
 
 create table if not exists public.organization_verification_requests (
   id uuid primary key default gen_random_uuid(),
@@ -119,6 +123,7 @@ for select to authenticated using (
 create policy organization_verification_requests_submit on public.organization_verification_requests
 for insert to authenticated with check (
   submitted_by = (select auth.uid()) and public.can_manage_organization_members(organization_id)
+  and status = 'submitted' and reviewed_by is null and reviewed_at is null and review_note is null
 );
 create policy organization_verification_requests_withdraw on public.organization_verification_requests
 for update to authenticated using (
@@ -130,10 +135,25 @@ for update to authenticated using (public.is_reviewer()) with check (public.is_r
 create or replace function public.touch_organization_verification_request()
 returns trigger language plpgsql set search_path = '' as $$
 begin
-  new.updated_at := now();
-  if new.status in ('approved', 'rejected') and old.status is distinct from new.status then
-    new.reviewed_at := coalesce(new.reviewed_at, now());
+  if new.id is distinct from old.id
+     or new.organization_id is distinct from old.organization_id
+     or new.submitted_by is distinct from old.submitted_by
+     or new.created_at is distinct from old.created_at then
+    raise exception 'Verification request identity is immutable.';
   end if;
+  if not public.is_reviewer() then
+    -- The applicant can only withdraw, never rewrite evidence or review fields.
+    if new.status <> 'withdrawn'
+       or old.status not in ('submitted', 'needs_information')
+       or (to_jsonb(new) - 'status' - 'updated_at') is distinct from
+          (to_jsonb(old) - 'status' - 'updated_at') then
+      raise exception 'Applicants may only withdraw an open request.';
+    end if;
+  else
+    new.reviewed_by := auth.uid();
+    new.reviewed_at := now();
+  end if;
+  new.updated_at := now();
   return new;
 end;
 $$;
@@ -146,3 +166,10 @@ comment on table public.organization_memberships is
   'Private organization-to-user membership. business_profiles remains the public organization record.';
 comment on table public.organization_verification_requests is
   'Private verification metadata. Store source documents in protected object storage, not in this table.';
+
+-- Do not depend on provider default privileges for newly created tables.
+revoke all on public.organization_memberships from public, anon, authenticated;
+grant select, insert, update, delete on public.organization_memberships to authenticated;
+revoke all on public.organization_verification_requests from public, anon, authenticated;
+grant select, insert, update on public.organization_verification_requests to authenticated;
+grant all on public.organization_memberships, public.organization_verification_requests to service_role;

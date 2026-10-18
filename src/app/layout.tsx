@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Archivo, IBM_Plex_Mono } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { Analytics } from '@vercel/analytics/next'
+import { PrivacyAnalytics } from '@/components/analytics/privacy-analytics'
 import { Providers } from './providers'
 import { SiteFrame } from '@/components/SiteFrame'
 import { Footer } from '@/components/Footer'
@@ -85,7 +85,7 @@ export default function RootLayout({
         <Providers>
           <SiteFrame footer={<Footer />}>{children}</SiteFrame>
         </Providers>
-        <Analytics />
+        <PrivacyAnalytics />
         <SpeedInsights />
       </body>
     </html>
