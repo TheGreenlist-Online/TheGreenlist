@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { SettingsSection } from '@/components/settings/SettingsSection'
 import { StatusMessage } from '@/components/settings/SettingsControls'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
@@ -16,6 +17,7 @@ const MIN_PASSWORD_LEN = 10
  * which is the control you want after a lost or shared device.
  */
 export function SecuritySettings({ email }: { email: string }) {
+  const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -52,8 +54,9 @@ export function SecuritySettings({ email }: { email: string }) {
   const handleGlobalSignOut = async () => {
     setIsSigningOut(true)
     await supabase.auth.signOut({ scope: 'global' })
-    // Full reload so every server component re-renders without the session.
-    window.location.href = '/'
+    router.push('/')
+    // Re-render server components without the session.
+    router.refresh()
   }
 
   return (
