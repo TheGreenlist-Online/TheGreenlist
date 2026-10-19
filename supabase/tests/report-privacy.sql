@@ -24,4 +24,38 @@ do $$ begin
 end $$;
 reset role;
 
+-- A published finding must remain public after an editorial correction.
+update public.reports set status='corrected'
+where id='33333333-3333-4333-8333-333333333333';
+set local role anon;
+do $$ begin
+ if not exists(select 1 from public.read_public_report_findings() where id='33333333-3333-4333-8333-333333333333' and status='corrected') then raise exception 'Corrected public finding missing'; end if;
+end $$;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
+do $$ begin
+ if not exists(select 1 from public.read_public_report_findings() where id='33333333-3333-4333-8333-333333333333' and status='corrected') then raise exception 'Authenticated corrected finding missing'; end if;
+ if exists(select 1 from public.reports where id='33333333-3333-4333-8333-333333333333') then raise exception 'Another account can read corrected raw report'; end if;
+end $$;
+reset role;
+
+-- Public status alone is insufficient: blank summaries must not be exposed.
+update public.reports set public_summary='   '
+where id='33333333-3333-4333-8333-333333333333';
+set local role anon;
+do $$ begin
+ if exists(select 1 from public.read_public_report_findings() where id='33333333-3333-4333-8333-333333333333') then raise exception 'Blank corrected summary exposed'; end if;
+end $$;
+reset role;
+
+-- Returning a finding to review removes it from the public RPC.
+update public.reports set status='under_review',public_summary='Reviewed fixture finding'
+where id='33333333-3333-4333-8333-333333333333';
+set local role anon;
+do $$ begin
+ if exists(select 1 from public.read_public_report_findings() where id='33333333-3333-4333-8333-333333333333') then raise exception 'Non-public finding exposed'; end if;
+end $$;
+reset role;
+
 rollback;
