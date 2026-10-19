@@ -6,6 +6,7 @@ import { PageShell } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
 import { TownLocationIcon } from '@/components/town/TownLocationIcon'
 import { TOWN_LOCATIONS, getTownLocation } from '@/config/town-locations'
+import { getCounterpartPath } from '@/lib/view-switch'
 
 /**
  * Town location pages are a themed entrance to a real platform feature — they
@@ -13,7 +14,10 @@ import { TOWN_LOCATIONS, getTownLocation } from '@/config/town-locations'
  * standard route, which is where authentication and RLS actually apply.
  */
 
-type PageProps = { params: Promise<{ locationId: string }> }
+type PageProps = {
+  params: Promise<{ locationId: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
 export function generateStaticParams() {
   return TOWN_LOCATIONS.filter((location) => location.townHref !== '/town').map((location) => ({
@@ -45,11 +49,24 @@ const VISIBILITY_LABELS: Record<string, string> = {
   mixed: 'Contains both public and restricted records',
 }
 
-export default async function TownLocationPage({ params }: PageProps) {
-  const { locationId } = await params
+export default async function TownLocationPage({ params, searchParams }: PageProps) {
+  const [{ locationId }, queryParams] = await Promise.all([params, searchParams])
   const location = getTownLocation(locationId)
 
   if (!location || location.townHref === '/town') notFound()
+
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (Array.isArray(value)) {
+      value.forEach((item) => query.append(key, item))
+    } else if (value !== undefined) {
+      query.set(key, value)
+    }
+  }
+  const queryString = query.toString()
+  const entryHref = queryString
+    ? getCounterpartPath(`${location.townHref}?${queryString}`)
+    : location.standardHref
 
   const neighbours = TOWN_LOCATIONS.filter(
     (candidate) => candidate.district === location.district && candidate.id !== location.id,
@@ -102,7 +119,7 @@ export default async function TownLocationPage({ params }: PageProps) {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href={location.standardHref}>Enter {location.name}</Link>
+              <Link href={entryHref}>Enter {location.name}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/town">Explore the town</Link>

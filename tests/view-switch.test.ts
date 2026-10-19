@@ -43,6 +43,12 @@ describe('getCounterpartPath', () => {
     expect(getCounterpartPath('/town/transparency-archives?record=abc-123')).toBe('/reports/abc-123')
   })
 
+  it('preserves record and query context when entering a town location', () => {
+    expect(getCounterpartPath('/town/transparency-archives?record=abc-123&tab=evidence')).toBe(
+      '/reports/abc-123?tab=evidence',
+    )
+  })
+
   it('round-trips a record without losing unrelated query state', () => {
     const standard = '/reports/abc-123?tab=evidence'
     const town = getCounterpartPath(standard)
