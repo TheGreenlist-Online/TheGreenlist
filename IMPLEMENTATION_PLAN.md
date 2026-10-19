@@ -72,7 +72,7 @@ Each exposes `GET` (availability probe) and `POST`.
 
 ### 6. Audit migration
 
-`prisma/migrations/20260728120000_ai_audit_logs/migration.sql` — one new table, purely additive.
+`supabase/migrations/20261019050000_ai_audit_logs.sql` — one new table, purely additive.
 
 ---
 

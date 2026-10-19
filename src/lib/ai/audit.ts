@@ -7,7 +7,7 @@ import { redact } from './errors'
  *
  * Writes one row per AI request to `public.ai_audit_logs`. The table stores
  * *metadata and references only* — never prompt text, report drafts, evidence,
- * or model output. See `prisma/migrations/20260728120000_ai_audit_logs/`.
+ * or model output. See `supabase/migrations/20261019050000_ai_audit_logs.sql`.
  *
  * Auditing must never break the feature it audits: a failed insert (missing
  * table in an un-migrated environment, RLS denial, transient error) is logged

@@ -138,7 +138,7 @@ policy, so the trail is append-only.
 
 ### Applying the migration
 
-`prisma/migrations/20260728120000_ai_audit_logs/migration.sql` is **purely additive** — it creates
+`supabase/migrations/20261019050000_ai_audit_logs.sql` is **purely additive** — it creates
 one table with its indexes and policies and alters nothing that already exists.
 
 It has **not** been applied to production. Apply it through a Supabase development branch:
