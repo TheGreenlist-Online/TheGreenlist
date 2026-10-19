@@ -1,5 +1,46 @@
 # Organization onboarding
 
+## Merge-readiness review — October 18, 2026
+
+**Hold merge and remote migration promotion.** Review of `f37f112a310fa12df27e1160eb67123368cc8f7e`
+confirmed its successful CI/test/build, role-RPC, write-quota and content-workflow
+runs, the later owner approval, and no inline review threads. Main subsequently
+advanced by four commits to `87dbf56dec8d2798fbfc7b58aa20a8324b190ca5`.
+The integration refresh retains both `test` and `test:onboarding`, Next.js and
+eslint-config-next 16.4.1, and main's pinned PGlite 0.3.14 with its lockfile.
+
+Security validation found these unresolved release blockers:
+
+- A reviewer who submitted a request can approve it themselves. Executing the
+  actual migration in the isolated PostgreSQL fixture reproduced `approved`
+  with `reviewed_by` equal to `submitted_by`.
+- That same reviewer UPDATE can replace `legal_name` and registration details;
+  only identity columns are immutable. The fixture reproduced replacement of
+  `legal_name` in the approval statement. Review decisions must not rewrite the
+  applicant's submitted evidence.
+- Verification policies use `is_reviewer()`, rather than the specific
+  `business.review` permission. Read-only inspection of the actual parent
+  project's helper and role catalog confirmed MODERATOR is in category REVIEW
+  but has no `business.review` permission. Organization membership must never
+  substitute for platform review authority.
+- Direct review updates set actor/time but create no immutable review audit
+  event. The documented application audit workflow is unfinished; do not enable
+  decisions until audit enforcement and conflict-of-interest checks exist.
+
+A temporary Supabase branch provisioned successfully but contained zero public
+application tables: `business_profiles`, `profiles`, and `is_reviewer()` were
+absent. Consequently it cannot establish compatibility with existing policies,
+and the proposed migration was not applied there. The unusable temporary branch
+was deleted after inspection. Restore a schema-only baseline from the intended
+parent, verify policies/grants/functions/storage parity, and rerun the owner,
+admin, editor, viewer, unrelated-user, anonymous and authorized-reviewer matrix
+before merging. Synthetic dependency stubs do not satisfy this gate.
+
+Production received no writes or migration deployment. Invitation, verification
+UI, public verification synchronization and membership-based editor access remain
+unfinished. Any subsequent fixes/integration commits require fresh checks and
+review of their new head; the approval and CI above cover `f37f112` only.
+
 ## Data model
 
 `business_profiles` stays the public-facing organization record. The new private tables separate access from public identity:
