@@ -118,7 +118,7 @@ create index if not exists organization_verification_requests_organization_idx
 alter table public.organization_verification_requests enable row level security;
 create policy organization_verification_requests_read on public.organization_verification_requests
 for select to authenticated using (
-  submitted_by = (select auth.uid()) or public.can_manage_organization_members(organization_id) or public.is_reviewer()
+  submitted_by = (select auth.uid()) or public.can_manage_organization_members(organization_id) or coalesce(public.has_permission('business.review'), false)
 );
 create policy organization_verification_requests_submit on public.organization_verification_requests
 for insert to authenticated with check (
@@ -130,10 +130,10 @@ for update to authenticated using (
   submitted_by = (select auth.uid()) and status in ('submitted', 'needs_information')
 ) with check (submitted_by = (select auth.uid()) and status = 'withdrawn');
 create policy organization_verification_requests_reviewer_update on public.organization_verification_requests
-for update to authenticated using (public.is_reviewer()) with check (public.is_reviewer());
+for update to authenticated using (coalesce(public.has_permission('business.review'), false)) with check (coalesce(public.has_permission('business.review'), false));
 
 create or replace function public.touch_organization_verification_request()
-returns trigger language plpgsql set search_path = '' as $$
+returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if new.id is distinct from old.id
      or new.organization_id is distinct from old.organization_id
@@ -141,15 +141,37 @@ begin
      or new.created_at is distinct from old.created_at then
     raise exception 'Verification request identity is immutable.';
   end if;
-  if not public.is_reviewer() then
-    -- The applicant can only withdraw, never rewrite evidence or review fields.
-    if new.status <> 'withdrawn'
-       or old.status not in ('submitted', 'needs_information')
+  if auth.uid() is null then
+    raise exception 'Verification updates require an authenticated actor.';
+  end if;
+  -- Submitters retain withdrawal even when they also hold review permission.
+  if old.submitted_by = auth.uid() and new.status = 'withdrawn' then
+    if old.status not in ('submitted', 'needs_information')
        or (to_jsonb(new) - 'status' - 'updated_at') is distinct from
           (to_jsonb(old) - 'status' - 'updated_at') then
       raise exception 'Applicants may only withdraw an open request.';
     end if;
   else
+    if not coalesce(public.has_permission('business.review'), false) then
+      raise exception 'Verification review requires business.review.';
+    end if;
+    if old.submitted_by = auth.uid()
+       or exists(select 1 from public.business_profiles b
+                 where b.id = old.organization_id and b.owner_id = auth.uid())
+       or exists(select 1 from public.organization_memberships m
+                 where m.organization_id = old.organization_id and m.user_id = auth.uid()) then
+      raise exception 'Reviewers cannot review affiliated organizations.';
+    end if;
+    if (to_jsonb(new) - array['status','review_note','updated_at']) is distinct from
+       (to_jsonb(old) - array['status','review_note','updated_at']) then
+      raise exception 'Review cannot rewrite submitted details or attribution.';
+    end if;
+    if old.status not in ('submitted', 'in_review', 'needs_information') then
+      raise exception 'Closed verification requests cannot be reviewed.';
+    end if;
+    if new.status not in ('in_review', 'needs_information', 'approved', 'rejected') then
+      raise exception 'Invalid verification review status.';
+    end if;
     new.reviewed_by := auth.uid();
     new.reviewed_at := now();
   end if;
@@ -173,3 +195,18 @@ grant select, insert, update, delete on public.organization_memberships to authe
 revoke all on public.organization_verification_requests from public, anon, authenticated;
 grant select, insert, update on public.organization_verification_requests to authenticated;
 grant all on public.organization_memberships, public.organization_verification_requests to service_role;
+
+-- Audit only decision metadata; legal names and registration details stay private.
+create or replace function public.audit_organization_verification_review()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if new.status = 'withdrawn' then return new; end if;
+  insert into public.audit_logs(actor_id, action, entity_type, entity_id, metadata)
+  values(auth.uid(), 'organization_verification.review', 'organization_verification_requests', new.id,
+    jsonb_build_object('before_status', old.status, 'after_status', new.status));
+  return new;
+end;
+$$;
+revoke all on function public.audit_organization_verification_review() from public, anon, authenticated, service_role;
+create trigger trg_audit_organization_verification_review after update on public.organization_verification_requests
+for each row execute function public.audit_organization_verification_review();

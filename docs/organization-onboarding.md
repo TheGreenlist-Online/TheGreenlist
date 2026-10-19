@@ -9,23 +9,11 @@ advanced by four commits to `87dbf56dec8d2798fbfc7b58aa20a8324b190ca5`.
 The integration refresh retains both `test` and `test:onboarding`, Next.js and
 eslint-config-next 16.4.1, and main's pinned PGlite 0.3.14 with its lockfile.
 
-Security validation found these unresolved release blockers:
-
-- A reviewer who submitted a request can approve it themselves. Executing the
-  actual migration in the isolated PostgreSQL fixture reproduced `approved`
-  with `reviewed_by` equal to `submitted_by`.
-- That same reviewer UPDATE can replace `legal_name` and registration details;
-  only identity columns are immutable. The fixture reproduced replacement of
-  `legal_name` in the approval statement. Review decisions must not rewrite the
-  applicant's submitted evidence.
-- Verification policies use `is_reviewer()`, rather than the specific
-  `business.review` permission. Read-only inspection of the actual parent
-  project's helper and role catalog confirmed MODERATOR is in category REVIEW
-  but has no `business.review` permission. Organization membership must never
-  substitute for platform review authority.
-- Direct review updates set actor/time but create no immutable review audit
-  event. The documented application audit workflow is unfinished; do not enable
-  decisions until audit enforcement and conflict-of-interest checks exist.
+The review-security patch requires `business.review`, rejects submitter/owner/
+membership conflicts, preserves submitted details and writes a transactional audit
+record. Isolated tests exercise affiliated reviewers, permission denial, attempted
+submission rewrites and rollback when the audit sink rejects a write. These tests
+do not establish compatibility with production or satisfy the staging gate.
 
 A temporary Supabase branch provisioned successfully but contained zero public
 application tables: `business_profiles`, `profiles`, and `is_reviewer()` were
