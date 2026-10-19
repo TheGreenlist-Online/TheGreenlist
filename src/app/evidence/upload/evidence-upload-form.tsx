@@ -86,7 +86,11 @@ export function EvidenceUploadForm({
   const [reportMode, setReportMode] = useState<'existing' | 'new'>(
     startsAsCorrection || !reports.length ? 'new' : 'existing',
   )
-  const [selectedReportId, setSelectedReportId] = useState(reports[0]?.id ?? '')
+  const reportIdValue = reports[0]?.id ?? ''
+  if (reportIdValue.includes('..')) {
+    throw new Error('Invalid report ID')
+  }
+  const [selectedReportId, setSelectedReportId] = useState(reportIdValue)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [reportType, setReportType] = useState<string>(initialReportType ?? 'mislabeling')
@@ -99,6 +103,11 @@ export function EvidenceUploadForm({
 
   async function removeUploadedFiles(paths: string[]) {
     if (paths.length) {
+      for (const path of paths) {
+        if (path.includes('..')) {
+          throw new Error('Invalid file path')
+        }
+      }
       await supabase.storage.from(EVIDENCE_BUCKET).remove(paths)
     }
   }
