@@ -5,6 +5,9 @@ import { OrnatePanel } from '@/components/OrnatePanel'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
 
+// Keep availability in sync with the server-side intake gate.
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'The Green List — Cannabis Records & Accountability',
 }
@@ -48,6 +51,7 @@ const cannotYetVerify = [
 ] as const
 
 export default function HomePage() {
+  const coaEnabled = process.env.COA_INTAKE_ENABLED === 'true'
   return (
     <PageShell className="greenlist-home">
       {/* Statement of purpose */}
@@ -61,6 +65,18 @@ export default function HomePage() {
           testing, and compliance information readable, comparable, and checkable against its sources — and it says
           plainly when something cannot be verified.
         </p>
+
+        <div className="gl-panel gl-panel__body mt-6 max-w-3xl" aria-labelledby="home-coa-heading">
+          <h2 id="home-coa-heading" className="greenlist-card-title">Understand a product’s laboratory certificate</h2>
+          <p className="mt-3 text-sm leading-6 text-[var(--gl-text-secondary)]">
+            A Certificate of Analysis (COA) records test results for a submitted sample: what was tested,
+            reported amounts, and testing limits. Contribute an original PDF privately without filing a misconduct report.
+            Receiving a document does not verify its authenticity or establish product safety.
+          </p>
+          <Link href={coaEnabled ? '/coa/submit' : '/coa'} className="greenlist-secondary-button mt-4">
+            {coaEnabled ? 'Submit a COA privately' : 'Learn about COAs and upcoming intake'}
+          </Link>
+        </div>
 
         <div className="mt-8 max-w-3xl">
           <GlobalSearch placeholder="Business, licence, brand, report, or jurisdiction" />
