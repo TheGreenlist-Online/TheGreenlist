@@ -13,6 +13,7 @@
     "dns:setup-clerk": "npx ts-node scripts/porkbun-dns.ts setup-clerk",
     "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all",
     "check:roles": "node scripts/check-role-sync.mjs",
+    "test:onboarding": "node --test tests/organization-schema.test.mjs tests/analytics-privacy.test.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.38.4",
     "@tanstack/react-query": "^5.14.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
