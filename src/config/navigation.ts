@@ -33,6 +33,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   { label: 'Records', href: '/businesses', purpose: 'Business, licence, and documentation records.' },
   { label: 'Reports', href: '/reports', purpose: 'Structured accountability reports and their review status.' },
   { label: 'Evidence', href: '/evidence', purpose: 'Private-by-default document intake supporting reports.' },
+  { label: 'COA', href: '/coa', purpose: 'Certificate of Analysis intake preparation and batch-linked lab results.' },
   { label: 'News', href: '/news', purpose: 'Source-linked industry, policy, and enforcement coverage.' },
   { label: 'Standards', href: '/about/methodology', purpose: 'Status definitions, review rules, and record scope.' },
   { label: 'Learn', href: '/education', purpose: 'Testing, labelling, licensing, and consumer-rights explainers.' },

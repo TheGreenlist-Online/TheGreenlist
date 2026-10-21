@@ -23,6 +23,7 @@ export type Section = District
 
 export const districts: readonly District[] = [
   { prefixes: ['/reports', '/report'], slug: 'reports', name: 'Reports', description: 'Structured accountability reports and review status' },
+  { prefixes: ['/coa'], slug: 'coa', name: 'COA', description: 'Certificates of Analysis and batch-linked laboratory records' },
   { prefixes: ['/evidence'], slug: 'evidence', name: 'Evidence', description: 'Private-by-default document intake' },
   { prefixes: ['/forums'], slug: 'evidence-desk', name: 'Evidence Desk', description: 'Public discussion attached to records and sources' },
   { prefixes: ['/businesses'], slug: 'records', name: 'Records', description: 'Business, licence, and documentation records' },

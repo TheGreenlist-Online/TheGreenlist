@@ -1,23 +1,56 @@
 import Link from 'next/link'
 import { PageShell } from '@/components/PageShell'
 import { PageIntro } from '@/components/PageIntro'
+import { OrnatePanel } from '@/components/OrnatePanel'
 import { Notice } from '@/components/record/Notice'
+import { Section, Ledger } from '@/components/record'
 
-// Keep availability in sync with the server-side intake gate.
-export const dynamic = 'force-dynamic'
-
-export const metadata = { title: 'Understand and contribute a COA — The Green List' }
+export const metadata = {
+  title: 'COA intake | The Green List',
+  description: 'Understand laboratory certificates and prepare documentation for private review.',
+}
 
 export default function CoaPage() {
-  const enabled = process.env.COA_INTAKE_ENABLED === 'true'
-  return <PageShell>
-    <PageIntro eyebrow="Laboratory documentation" title="Start with the certificate" lede="A Certificate of Analysis (COA) records a laboratory’s test results for a submitted sample. It can help you understand what was tested, which units were used, and what information is missing." />
-    <div className="gl-panel gl-panel__body mt-6 space-y-5">
-      <h2 className="greenlist-card-title">Have a laboratory certificate?</h2>
-      <p>Download the original PDF from the laboratory or the product’s “View COA” link. Keep the batch or package identifier so the document can later be matched to the right sample. A product-page summary or “TestPassed” label alone does not establish the original document’s authenticity.</p>
-      <p>You can contribute documentation without making a misconduct report. The first intake step preserves your PDF privately and gives you a receipt. It does not extract results, verify the laboratory, publish a record, or establish that a product is safe.</p>
-      <Notice tone="info">Source authenticity, transcription review, and permission to publish are separate decisions. An upload alone establishes none of them.</Notice>
-      {enabled ? <Link href="/coa/submit" className="greenlist-primary-button">Submit a COA privately</Link> : <Notice tone="review">COA submissions are not open yet. The private upload workflow requires staging validation before it is enabled.</Notice>}
-    </div>
-  </PageShell>
+  return (
+    <PageShell>
+      <PageIntro
+        title="Upload a Certificate of Analysis"
+        lede="A Certificate of Analysis (COA) records a laboratory’s test results for a submitted sample. It can help you understand what was tested, which units were used, and what information is missing."
+      />
+      <section aria-labelledby="coa-upload-title" className="gl-document-hero mt-6">
+        <div className="gl-document-hero__art" aria-hidden="true" />
+        <OrnatePanel className="gl-document-hero__panel">
+          <h2 id="coa-upload-title" className="greenlist-card-title">Upload COA</h2>
+          <p className="mt-3">Prepare the original laboratory PDF or clear photographs of the full certificate, including its batch identifier.</p>
+          <div id="coa-availability" className="mt-4">
+            <Notice tone="review">
+              COA submissions are not open yet. The private upload workflow requires staging validation before it is enabled.
+            </Notice>
+          </div>
+          <button
+            type="button"
+            disabled
+            aria-describedby="coa-availability coa-no-transfer"
+            className="greenlist-primary-button mt-4 w-full justify-center cursor-not-allowed"
+          >
+            Choose file · Coming soon
+          </button>
+          <p id="coa-no-transfer" className="mt-3">No file is selected or sent from this page.</p>
+        </OrnatePanel>
+      </section>
+      <Section title="Before contributing documentation">
+        <Ledger rows={[
+          { label: 'Private by default', value: 'You can contribute documentation without making a misconduct report. Documents are not automatically public.' },
+          { label: 'Human review', value: 'Source authenticity, transcription review, and permission to publish are separate decisions. Extraction is not verification.' },
+          { label: 'Batch-linked records', value: 'Keep the batch or package identifier so the document can be matched to the tested sample. An upload does not establish that a product is safe.' },
+          { label: 'Original source', value: 'Download the original PDF from the laboratory or the product’s “View COA” link. A product-page summary or “TestPassed” label alone does not establish authenticity.' },
+        ]} />
+      </Section>
+      <p className="mt-6">
+        Need to submit evidence for an existing report instead?{' '}
+        <Link href="/evidence/upload" className="gl-link">Open the existing evidence workflow</Link>.
+        {' '}A COA alone should not require an allegation.
+      </p>
+    </PageShell>
+  )
 }
