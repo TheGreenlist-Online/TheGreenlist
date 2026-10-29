@@ -1,0 +1,71 @@
+name: Disposable migration replay diagnostic
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: disposable_only
+          POSTGRES_DB: migration_scratch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d migration_scratch"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: disposable_only
+      PGDATABASE: migration_scratch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run clean-database replay diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p migration-results
+          printf 'migration,status,detail\n' > migration-results/replay.csv
+          count=0
+          first_failure=""
+          shopt -s nullglob
+          migrations=(supabase/migrations/*.sql)
+          if (( ${#migrations[@]} == 0 )); then
+            echo "::error title=FAIL_MIGRATION::No SQL migrations found"
+            exit 1
+          fi
+          for migration in "${migrations[@]}"; do
+            name="$(basename "$migration")"
+            count=$((count+1))
+            if psql -X -v ON_ERROR_STOP=1 --single-transaction -f "$migration" > migration-results/current.log 2>&1; then
+              printf '%s,PASS,applied\n' "$name" >> migration-results/replay.csv
+            else
+              first_failure="$name"
+              printf '%s,FAIL,see-first-failure.log\n' "$name" >> migration-results/replay.csv
+              cp migration-results/current.log migration-results/first-failure.log
+              echo "::error title=FAIL_MIGRATION::First clean-database replay failure: $name"
+              break
+            fi
+          done
+          rm -f migration-results/current.log
+          printf 'attempted=%s\nfirst_failure=%s\n' "$count" "$first_failure" > migration-results/summary.txt
+          if [[ -n "$first_failure" ]]; then
+            echo "Expected diagnostic failure until a reviewed base schema exists."
+            exit 1
+          fi
+          echo "::notice title=Replay complete::All migration files applied to disposable database; semantic parity remains unverified"
+      - name: Upload diagnostic results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: disposable-migration-replay
+          path: migration-results/
+          if-no-files-found: ignore

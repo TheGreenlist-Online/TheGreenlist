@@ -1,0 +1,114 @@
+name: Staging baseline gate
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: staging-baseline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  baseline:
+    name: R1 schema / staging readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_PROJECT_REF: otmaxtjstvbfckpgbwdi
+      PRODUCTION_PROJECT_REF: idtnlninotxwqpznbwur
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify migration sources and isolation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$STAGING_PROJECT_REF" != "$PRODUCTION_PROJECT_REF"
+          test -d supabase/migrations
+          test -f supabase/tests/production-release-preflight.sql
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, os
+          migrations=sorted(Path('supabase/migrations').glob('*.sql'))
+          assert migrations, 'No migration SQL files found'
+          versions=[p.name.split('_',1)[0] for p in migrations]
+          assert len(versions)==len(set(versions)), 'Duplicate migration versions'
+          assert all(len(v)==14 and v.isdigit() for v in versions), 'Invalid migration version'
+          Path('baseline-gate.json').write_text(json.dumps({'commit':os.getenv('GITHUB_SHA'),'migration_count':len(migrations),'migration_versions':versions,'staging_ref':os.environ['STAGING_PROJECT_REF'],'production_ref':os.environ['PRODUCTION_PROJECT_REF']},indent=2))
+          PY
+      - name: Test staging URL isolation without credentials
+        run: python3 -m unittest discover -s tests -p 'test_staging_url_guard.py'
+      - name: R1 live schema gate
+        env:
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${STAGING_DATABASE_URL:-}" ]; then
+            echo "::error title=BLOCKED R1::STAGING_DATABASE_URL secret is missing; live schema cannot be verified"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import os, re, sys
+          from urllib.parse import urlsplit, parse_qsl, unquote
+          
+          def approved_url(raw):
+              try:
+                  # Reject parser normalization and ambiguous encodings before parsing.
+                  if not raw or re.search(r"[\s\x00-\x1f\x7f]", raw):
+                      return False
+                  if re.search(r"%(?![0-9a-fA-F]{2})", raw):
+                      return False
+                  u = urlsplit(raw)
+                  if u.scheme not in ("postgres", "postgresql"):
+                      return False
+                  if u.hostname != "db.otmaxtjstvbfckpgbwdi.supabase.co":
+                      return False
+                  if u.port not in (None, 5432) or u.path != "/postgres":
+                      return False
+                  if not u.username or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", u.username):
+                      return False
+                  if not u.password or u.fragment or "#" in raw:
+                      return False
+                  # A closed allowlist also rejects host, hostaddr, service, options,
+                  # encoded override names, duplicates and future libpq parameters.
+                  if parse_qsl(u.query, keep_blank_values=True, strict_parsing=True) not in (
+                      [], [("sslmode", "require")], [("sslmode", "verify-full")]
+                  ):
+                      return False
+                  if any(ord(c) < 32 or ord(c) == 127 for c in unquote(u.password)):
+                      return False
+                  return True
+              except (ValueError, UnicodeError):
+                  return False
+          
+          if not approved_url(os.environ.get("STAGING_DATABASE_URL", "")):
+              print("::error title=BLOCKED R1::Invalid or non-approved staging connection URL")
+              sys.exit(1)
+          PY
+          # Clear inherited libpq routing, service and TLS overrides.
+          for name in ${!PG@}; do unset "$name"; done
+          export PGSSLMODE=require PGCONNECT_TIMEOUT=10
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client >/dev/null
+          count=$(psql "$STAGING_DATABASE_URL" -X -A -t -v ON_ERROR_STOP=1 -c "select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p')")
+          if [ "$count" -eq 0 ]; then
+            echo "::error title=FAIL R1::Staging has zero public application tables; baseline restore required"
+            exit 1
+          fi
+          psql "$STAGING_DATABASE_URL" -X -v ON_ERROR_STOP=1 -c "select relname, relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') and not c.relrowsecurity" | tee missing-rls.txt
+          missing=$(psql "$STAGING_DATABASE_URL" -X -A -t -v ON_ERROR_STOP=1 -c "select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') and not c.relrowsecurity")
+          if [ "$missing" -gt 0 ]; then
+            echo "::error title=FAIL R3::Public tables without RLS detected"
+            exit 1
+          fi
+          echo "::error title=BLOCKED R1::Found tables, but full schema parity and role tests are not yet implemented; fail closed"
+          exit 1
+      - name: Upload non-secret inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-baseline-inventory
+          path: |
+            baseline-gate.json
+            missing-rls.txt
+          if-no-files-found: ignore
