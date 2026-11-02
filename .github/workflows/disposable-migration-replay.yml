@@ -44,6 +44,10 @@ jobs:
           fi
           for migration in "${migrations[@]}"; do
             name="$(basename "$migration")"
+            if [[ -n "$first_failure" ]]; then
+              printf '%s,NOT_RUN,blocked-by-earlier-failure\n' "$name" >> migration-results/replay.csv
+              continue
+            fi
             count=$((count+1))
             if psql -X -v ON_ERROR_STOP=1 --single-transaction -f "$migration" > migration-results/current.log 2>&1; then
               printf '%s,PASS,applied\n' "$name" >> migration-results/replay.csv
@@ -52,7 +56,6 @@ jobs:
               printf '%s,FAIL,see-first-failure.log\n' "$name" >> migration-results/replay.csv
               cp migration-results/current.log migration-results/first-failure.log
               echo "::error title=FAIL_MIGRATION::First clean-database replay failure: $name"
-              break
             fi
           done
           rm -f migration-results/current.log

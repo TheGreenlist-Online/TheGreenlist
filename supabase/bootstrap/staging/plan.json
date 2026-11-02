@@ -1,0 +1,128 @@
+{
+  "format_version": 1,
+  "status": "pending_review",
+  "source_ref": "idtnlninotxwqpznbwur",
+  "target_ref": "otmaxtjstvbfckpgbwdi",
+  "repository_sha": "4e4563a6722b518aa2c8b6a552c2cd1bb5d42616",
+  "snapshot_utc": null,
+  "review_reference": null,
+  "organization_drift_resolution": null,
+  "disposable_restore_evidence": null,
+  "artifacts": [],
+  "migrations": [
+    {
+      "path": "supabase/migrations/20260912213426_phase1_scalability_search_and_indexes.sql",
+      "sha256": "510ddc5702aa624917a42dd545a61e8439368d5638e8d0cfb4f0227e5498367b",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260912213610_correct_search_result_routes.sql",
+      "sha256": "9c23b127119cb29e373111dc57d458dc6f4ea828567e83c19814274540855966",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260913061000_notifications_on_status_change.sql",
+      "sha256": "b389b0c9253752558c1c5c0ed3d75a21f59c95c311ee3a86f9203d86e8c959b0",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260913062000_business_claim_submission_and_guards.sql",
+      "sha256": "e7c8c340035e8979f0789bb01a6ab1f915fcb09b592e7376b6ebd3275889f6f0",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260913071000_unify_role_system.sql",
+      "sha256": "057ac3fffcd28f47bc3e79f21b3e820fedc6d2bf4995902befaafe4171e9aae5",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260913094000_fix_report_status_casing.sql",
+      "sha256": "693564e2bea4e0b267b58180928b7c3341e2df39c894dec5fe7f5be597b3fe96",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260913120000_lock_down_table_privileges.sql",
+      "sha256": "55e0aedb45cfad2560fa4c76d1f3d2577ef586b13e8bab36386f8d954d420ad8",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260915023500_repair_production_schema_connection_drift.sql",
+      "sha256": "de0899f5dc53865acb5070763e2dc5b65370a965390b6b3e395d919a0b34c1a7",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260915031415_align_content_information_model.sql",
+      "sha256": "66a7e456554df7d5fa70ecdd9b0160f0429d2438f0f15200797c54ff9720611a",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260915031906_qualify_business_document_storage_path.sql",
+      "sha256": "b9d3675997699c50c01afbc35b5eef8acaab363d6a5729b1cf32db50e8d35257",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260915032015_optimize_education_attachment_policies.sql",
+      "sha256": "6bed689ca71c58044f0b525a448a5e90832daa14e99b7501baef03421d49144a",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20260928000000_add_correction_workflow.sql",
+      "sha256": "29378d6784302742f31ace7fe65a0538330527b8f59b87ae2a1e274294ad0271",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261006233439_harden_report_writes_and_public_rpc_limits.sql",
+      "sha256": "ccace924998813381f1b573cfb89eb9d3e2320b2273690515acd7c023803d566",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261006234128_enforce_client_write_quotas.sql",
+      "sha256": "1e6206201b44fd9852335849a54845a33c505241d51599b13ef9f9c41a015ef9",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261006234138_restrict_cross_user_role_rpc.sql",
+      "sha256": "f71848095323899b932be4956efac564b288a63be96d5fa9b8a04c78b50ceb20",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261006234146_guard_content_review_fields.sql",
+      "sha256": "cffc846b13ca525e0cfeb10be7082440292934b0eb35bb8d1496ecec0a2c7aa8",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261017202824_private_coa_intake.sql",
+      "sha256": "1899167d88537669b10d38e5b508455e543a5758e214e888dd4e24e46f09c657",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261019040103_fix_profile_role_audit_uuid.sql",
+      "sha256": "28f69a99aa45f5058df35fc6ee2405faa85b39de5d727586e05d86958d5c34d8",
+      "decision": "unresolved",
+      "evidence": null
+    },
+    {
+      "path": "supabase/migrations/20261019040245_align_permission_role_comparison.sql",
+      "sha256": "0a33d4732068feb284380b89ede5d0bc95137c9924c6b52312c6da4c756db829",
+      "decision": "unresolved",
+      "evidence": null
+    }
+  ]
+}
