@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * n8n Integration Framework
  * 
@@ -58,16 +60,15 @@ async function sendN8nWebhook(
 
     console.log(`[n8n] Webhook sent: ${workflowName}`)
     return { ok: true }
-  } catch (error) {
-    console.error(`[n8n] Webhook error: ${error instanceof Error ? error.message : String(error)}`)
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  } catch {
+    console.error('[n8n] Webhook request failed')
+    return { ok: false, error: 'Webhook request failed' }
   }
 }
 
 // Export webhook triggers for future workflows
 export const n8n = {
   isConfigured: () => getN8nConfig().isConfigured,
-  config: getN8nConfig,
   send: sendN8nWebhook,
 
   // Workflow trigger helpers
