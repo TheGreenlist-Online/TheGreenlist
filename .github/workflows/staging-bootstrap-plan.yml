@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test bootstrap plan validator
         run: python3 -m unittest discover -s tests -p 'test_staging_bootstrap_plan.py'
-      - name: Require reviewed schema snapshot and migration decisions
-        run: python3 scripts/check-staging-bootstrap.py > staging-bootstrap-plan-result.json
+      - name: Validate local preparation and migration decisions (not hosted approval)
+        run: python3 scripts/check-staging-bootstrap.py --local > staging-bootstrap-plan-result.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

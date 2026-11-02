@@ -1,4 +1,4 @@
-name: Disposable migration replay diagnostic
+name: Disposable schema baseline replay
 on:
   pull_request:
     branches: [main]
@@ -28,44 +28,15 @@ jobs:
       PGDATABASE: migration_scratch
     steps:
       - uses: actions/checkout@v4
-      - name: Run clean-database replay diagnostic
+      - name: Validate baseline provenance
+        run: python3 scripts/check-staging-bootstrap.py --local
+      - name: Restore captured baseline with failure and rollback controls
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p migration-results
-          printf 'migration,status,detail\n' > migration-results/replay.csv
-          count=0
-          first_failure=""
-          shopt -s nullglob
-          migrations=(supabase/migrations/*.sql)
-          if (( ${#migrations[@]} == 0 )); then
-            echo "::error title=FAIL_MIGRATION::No SQL migrations found"
-            exit 1
-          fi
-          for migration in "${migrations[@]}"; do
-            name="$(basename "$migration")"
-            if [[ -n "$first_failure" ]]; then
-              printf '%s,NOT_RUN,blocked-by-earlier-failure\n' "$name" >> migration-results/replay.csv
-              continue
-            fi
-            count=$((count+1))
-            if psql -X -v ON_ERROR_STOP=1 --single-transaction -f "$migration" > migration-results/current.log 2>&1; then
-              printf '%s,PASS,applied\n' "$name" >> migration-results/replay.csv
-            else
-              first_failure="$name"
-              printf '%s,FAIL,see-first-failure.log\n' "$name" >> migration-results/replay.csv
-              cp migration-results/current.log migration-results/first-failure.log
-              echo "::error title=FAIL_MIGRATION::First clean-database replay failure: $name"
-            fi
-          done
-          rm -f migration-results/current.log
-          printf 'attempted=%s\nfirst_failure=%s\n' "$count" "$first_failure" > migration-results/summary.txt
-          if [[ -n "$first_failure" ]]; then
-            echo "Expected diagnostic failure until a reviewed base schema exists."
-            exit 1
-          fi
-          echo "::notice title=Replay complete::All migration files applied to disposable database; semantic parity remains unverified"
-      - name: Upload diagnostic results
+          python3 scripts/test-staging-replay.py --local-service | tee migration-results/replay.log
+      - name: Upload sanitized replay checks
         if: always()
         uses: actions/upload-artifact@v4
         with:

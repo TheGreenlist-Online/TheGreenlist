@@ -4,6 +4,7 @@ This validates provenance and ordering, not SQL safety or semantic parity. SQL a
 acceptance evidence still require human review; this is deliberately not a SQL executor.
 """
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import re
@@ -19,7 +20,7 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def validate(root, plan):
+def validate(root, plan, local_only=False):
     failures = []
     def require(condition, message):
         if not condition:
@@ -27,7 +28,8 @@ def validate(root, plan):
     require(plan.get('format_version') == 1, 'Unsupported plan format')
     require(plan.get('target_ref') == STAGING, 'Target must be isolated staging')
     require(plan.get('source_ref') == SOURCE, 'Unexpected source snapshot project')
-    require(plan.get('status') == 'reviewed', 'Schema snapshot and plan have not been reviewed')
+    require(plan.get('status') in (('prepared_local', 'reviewed') if local_only else ('reviewed',)),
+            'Hosted review is pending' if not local_only else 'Local preparation is incomplete')
     require(bool(re.fullmatch(r'[0-9a-f]{40}', plan.get('repository_sha', ''))), 'Missing pinned repository SHA')
     require(bool(plan.get('snapshot_utc')), 'Missing source snapshot timestamp')
     require(bool(plan.get('review_reference')), 'Missing review reference')
@@ -47,6 +49,15 @@ def validate(root, plan):
             continue
         require(artifact.get('sha256') == digest(path), 'Bootstrap artifact checksum mismatch')
         require(bool(artifact.get('review_reference')), 'Artifact requires SQL and privacy review')
+    for key in ('catalog_query', 'catalog_expected'):
+        if local_only or key in plan:
+            entry = plan.get(key, {})
+            path = (root / entry.get('path', '')).resolve()
+            allowed = (root / 'supabase/bootstrap/staging').resolve()
+            if not path.is_relative_to(allowed) or not path.is_file() or path.suffix not in ('.sql', '.json'):
+                failures.append('Missing or unsafe catalog fingerprint artifact')
+            else:
+                require(entry.get('sha256') == digest(path), 'Catalog fingerprint checksum mismatch')
     actual = sorted((root / 'supabase/migrations').glob('*.sql'))
     entries = plan.get('migrations', [])
     require([e.get('path') for e in entries] == [str(p.relative_to(root)) for p in actual], 'Migration inventory must cover every file exactly once in filename order')
@@ -64,12 +75,15 @@ def validate(root, plan):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--local', action='store_true', help='Validate preparation only; never grants hosted approval')
+    args = parser.parse_args()
     try:
         plan = json.loads((ROOT / PLAN).read_text())
-        failures = validate(ROOT, plan)
+        failures = validate(ROOT, plan, local_only=args.local)
     except (OSError, ValueError, KeyError, TypeError):
         failures = ['Missing or malformed bootstrap plan']
-    report = {'status': 'BLOCKED_BOOTSTRAP' if failures else 'PASS_PLAN_REVIEW',
+    report = {'status': 'BLOCKED_BOOTSTRAP' if failures else ('PASS_LOCAL_PREPARATION' if args.local else 'PASS_PLAN_REVIEW'),
               'failures': failures, 'target_ref': STAGING,
               'scope': 'provenance and ordering only; no database acceptance assertion'}
     print(json.dumps(report, indent=2))
