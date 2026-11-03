@@ -842,3 +842,23 @@ html.gl-calm .gl-prose li { font-size: 1.08rem; }
 .greenlist-hero, .greenlist-section, .greenlist-civic-panel { background: transparent; }
 .greenlist-wordmark { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -.02em; }
 .greenlist-piece, .greenlist-seal { display: none; }
+
+/* Document intake hero: artwork has its own region on narrow screens.
+   All text stays on the standard opaque panel, independent of image pixels. */
+.gl-document-hero {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--gl-border);
+  border-radius: var(--gl-radius);
+  background: var(--gl-surface);
+}
+.gl-document-hero__art {
+  min-height: 180px;
+  background: url('/images/coa-qr-scan-hero.png') 85% center / cover no-repeat;
+}
+.gl-document-hero__panel { min-width: 0; }
+@media (min-width: 768px) {
+  .gl-document-hero { position: relative; padding: var(--gl-space-4); }
+  .gl-document-hero__art { position: absolute; inset: 0; background-position: center; }
+  .gl-document-hero__panel { position: relative; width: 50%; }
+}
