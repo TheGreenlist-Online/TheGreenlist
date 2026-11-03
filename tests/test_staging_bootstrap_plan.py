@@ -34,6 +34,17 @@ class BootstrapPlanTest(unittest.TestCase):
     def test_complete_plan_validates_only_provenance(self):
         self.assertEqual(bootstrap.validate(self.root, self.plan), [])
 
+    def test_local_preparation_does_not_approve_hosted_restore(self):
+        self.plan['status'] = 'prepared_local'
+        for key, name in (('catalog_query', 'catalog.sql'), ('catalog_expected', 'catalog.json')):
+            p = self.root / 'supabase/bootstrap/staging' / name
+            p.write_text('{}' if name.endswith('.json') else '-- synthetic query')
+            self.plan[key] = {'path':str(p.relative_to(self.root)), 'sha256':bootstrap.digest(p)}
+        self.assertEqual(bootstrap.validate(self.root, self.plan, local_only=True), [])
+        self.assertTrue(bootstrap.validate(self.root, self.plan))
+        self.plan['catalog_expected']['sha256'] = '0' * 64
+        self.assertTrue(bootstrap.validate(self.root, self.plan, local_only=True))
+
     def test_rejects_unreviewed_or_wrong_target(self):
         for key, value in (('status', 'pending_review'), ('target_ref', bootstrap.SOURCE), ('snapshot_utc', None), ('organization_drift_resolution', None), ('disposable_restore_evidence', None)):
             plan = copy.deepcopy(self.plan)

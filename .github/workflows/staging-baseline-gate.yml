@@ -90,18 +90,10 @@ jobs:
           export PGSSLMODE=require PGCONNECT_TIMEOUT=10
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client >/dev/null
-          count=$(psql "$STAGING_DATABASE_URL" -X -A -t -v ON_ERROR_STOP=1 -c "select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p')")
-          if [ "$count" -eq 0 ]; then
-            echo "::error title=FAIL R1::Staging has zero public application tables; baseline restore required"
-            exit 1
-          fi
-          psql "$STAGING_DATABASE_URL" -X -v ON_ERROR_STOP=1 -c "select relname, relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') and not c.relrowsecurity" | tee missing-rls.txt
-          missing=$(psql "$STAGING_DATABASE_URL" -X -A -t -v ON_ERROR_STOP=1 -c "select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') and not c.relrowsecurity")
-          if [ "$missing" -gt 0 ]; then
-            echo "::error title=FAIL R3::Public tables without RLS detected"
-            exit 1
-          fi
-          echo "::error title=BLOCKED R1::Found tables, but full schema parity and role tests are not yet implemented; fail closed"
+          psql "$STAGING_DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 \
+            -f supabase/bootstrap/staging/catalog-fingerprint.sql > catalog-actual.json
+          python3 scripts/check-catalog-fingerprint.py catalog-actual.json | tee catalog-result.json
+          echo "::error title=BLOCKED_HOSTED_ACCEPTANCE::Catalog check completed; real Auth/JWT/Storage HTTP and recovery acceptance remain unimplemented"
           exit 1
       - name: Upload non-secret inventory
         if: always()
@@ -110,5 +102,5 @@ jobs:
           name: staging-baseline-inventory
           path: |
             baseline-gate.json
-            missing-rls.txt
+            catalog-result.json
           if-no-files-found: ignore

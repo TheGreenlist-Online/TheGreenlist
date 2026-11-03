@@ -1,128 +1,191 @@
 {
   "format_version": 1,
-  "status": "pending_review",
+  "status": "prepared_local",
   "source_ref": "idtnlninotxwqpznbwur",
   "target_ref": "otmaxtjstvbfckpgbwdi",
-  "repository_sha": "4e4563a6722b518aa2c8b6a552c2cd1bb5d42616",
-  "snapshot_utc": null,
-  "review_reference": null,
-  "organization_drift_resolution": null,
-  "disposable_restore_evidence": null,
-  "artifacts": [],
+  "repository_sha": "0550df87e1d6cf403af5d96eb3e81a1f43ec4ff9",
+  "snapshot_utc": "2026-10-27T23:44:41.392447+00:00",
+  "review_reference": "docs/staging-catalog-baseline.md#review-scope",
+  "organization_drift_resolution": "Captured organization definitions matched PR29 candidate 09ccaa3 in the isolated October 28 comparison; no migration-history attribution asserted.",
+  "disposable_restore_evidence": "scripts/test-staging-replay.py and tests/staging-baseline.test.mjs; local PostgreSQL 17 and PGlite SQL only, not hosted Supabase acceptance",
+  "artifacts": [
+    {
+      "category": "extensions_roles",
+      "path": "supabase/bootstrap/staging/00-platform-contract.sql",
+      "sha256": "439273b461c28949ac3ac73607876ce2d0cec92a7b870ab37922f7a06201fffc",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "application_schema",
+      "path": "supabase/bootstrap/staging/10-structure.sql",
+      "sha256": "e0c9bb1100cc922a00121671a709ec2294f3a2f71ef4f55e6f49982b0bfb0e01",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "application_schema",
+      "path": "supabase/bootstrap/staging/20-functions.sql",
+      "sha256": "63913638b52e80026cce6988ab99da86cc51415f9811a3eab9563430da1d4c11",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "application_schema",
+      "path": "supabase/bootstrap/staging/30-post-data.sql",
+      "sha256": "1c328adb2b3638e203da53177caefc61ad98a8e2b9131423986b0ddc77a96347",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "auth_storage_customizations",
+      "path": "supabase/bootstrap/staging/40-triggers.sql",
+      "sha256": "4d2b38894fa4135bb6ca94ad19a0681a9c7bfe453fa8c446c53f3cc0bbe8b430",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "auth_storage_customizations",
+      "path": "supabase/bootstrap/staging/50-policies-grants.sql",
+      "sha256": "68d3be5fc17218808d48b5a392ba6c8434359aa9be79731c7cc336b0994810eb",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "application_schema",
+      "path": "supabase/bootstrap/staging/60-default-privileges.sql",
+      "sha256": "b268a50cf0e765b9f2c1ec0314a846805150938b55a58d1e5e9d3914dfa32df8",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "reference_configuration",
+      "path": "supabase/bootstrap/staging/70-reference-config.sql",
+      "sha256": "b0e410305c06408139e328c38799adfb1d1c95389ce2063c999f70cab651c523",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    },
+    {
+      "category": "application_schema",
+      "path": "supabase/bootstrap/staging/80-comments.sql",
+      "sha256": "55ea86e74ff92182af5a400a7be0c8880b02dd57f4dedfdf6356f986b930515f",
+      "review_reference": "docs/staging-catalog-baseline.md#review-scope"
+    }
+  ],
   "migrations": [
     {
       "path": "supabase/migrations/20260912213426_phase1_scalability_search_and_indexes.sql",
       "sha256": "510ddc5702aa624917a42dd545a61e8439368d5638e8d0cfb4f0227e5498367b",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final indexes, generated search vectors, search RPC and draft policies are captured; later RPC limits supersede the original body. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260912213610_correct_search_result_routes.sql",
       "sha256": "9c23b127119cb29e373111dc57d458dc6f4ea828567e83c19814274540855966",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Captured search_public_content resolves reviewed application routes; later bounds logic is retained. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260913061000_notifications_on_status_change.sql",
       "sha256": "b389b0c9253752558c1c5c0ed3d75a21f59c95c311ee3a86f9203d86e8c959b0",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Both notification trigger functions and their report/business triggers are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260913062000_business_claim_submission_and_guards.sql",
       "sha256": "e7c8c340035e8979f0789bb01a6ab1f915fcb09b592e7376b6ebd3275889f6f0",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Business claim guards and final policies are captured; source effective ACLs are preserved separately. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260913071000_unify_role_system.sql",
       "sha256": "057ac3fffcd28f47bc3e79f21b3e820fedc6d2bf4995902befaafe4171e9aae5",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Enum/profile role, compatibility view, six catalog rows, 42 mappings and final helper/policy definitions are captured; current_platform_role returns text in this source. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260913094000_fix_report_status_casing.sql",
       "sha256": "693564e2bea4e0b267b58180928b7c3341e2df39c894dec5fe7f5be597b3fe96",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final lower-case report constraints, read policies and published index are captured; no historical report row rewrites are replayed. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260913120000_lock_down_table_privileges.sql",
       "sha256": "55e0aedb45cfad2560fa4c76d1f3d2577ef586b13e8bab36386f8d954d420ad8",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Current client table grants omit TRUNCATE/TRIGGER/REFERENCES. Broad supabase_admin defaults are preserved and explicitly unresolved; not silently hardened. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260915023500_repair_production_schema_connection_drift.sql",
       "sha256": "de0899f5dc53865acb5070763e2dc5b65370a965390b6b3e395d919a0b34c1a7",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "NDA default/version, business owner auth.uid default and invoker compatibility view are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260915031415_align_content_information_model.sql",
       "sha256": "66a7e456554df7d5fa70ecdd9b0160f0429d2438f0f15200797c54ff9720611a",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Content DDL, attachment table and bucket policies are captured; historical forum-category row updates are deliberately not copied or replayed. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260915031906_qualify_business_document_storage_path.sql",
       "sha256": "b9d3675997699c50c01afbc35b5eef8acaab363d6a5729b1cf32db50e8d35257",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Captured business-document object policies qualify the object name path. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260915032015_optimize_education_attachment_policies.sql",
       "sha256": "6bed689ca71c58044f0b525a448a5e90832daa14e99b7501baef03421d49144a",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Captured education attachment policies retain the final ownership/reviewer expressions. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20260928000000_add_correction_workflow.sql",
       "sha256": "29378d6784302742f31ace7fe65a0538330527b8f59b87ae2a1e274294ad0271",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final correction-workflow columns, constraints and policies are captured; historical data updates are not replayed. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261006233439_harden_report_writes_and_public_rpc_limits.sql",
       "sha256": "ccace924998813381f1b573cfb89eb9d3e2320b2273690515acd7c023803d566",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final report write guard and bounded public search routine are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261006234128_enforce_client_write_quotas.sql",
       "sha256": "1e6206201b44fd9852335849a54845a33c505241d51599b13ef9f9c41a015ef9",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Private client_write_buckets, quota function and per-table triggers are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261006234138_restrict_cross_user_role_rpc.sql",
       "sha256": "f71848095323899b932be4956efac564b288a63be96d5fa9b8a04c78b50ceb20",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "platform_role signature, cross-user restriction and role RPC ACLs are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261006234146_guard_content_review_fields.sql",
       "sha256": "cffc846b13ca525e0cfeb10be7082440292934b0eb35bb8d1496ecec0a2c7aa8",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final content review guard functions, context table and audit triggers are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261017202824_private_coa_intake.sql",
       "sha256": "1899167d88537669b10d38e5b508455e543a5758e214e888dd4e24e46f09c657",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "COA schema, immutable receipt guard, RLS, restrictive Storage policies and private PDF bucket are captured. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261019040103_fix_profile_role_audit_uuid.sql",
       "sha256": "28f69a99aa45f5058df35fc6ee2405faa85b39de5d727586e05d86958d5c34d8",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final profile-authority trigger function uses UUID audit identity. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     },
     {
       "path": "supabase/migrations/20261019040245_align_permission_role_comparison.sql",
       "sha256": "0a33d4732068feb284380b89ede5d0bc95137c9924c6b52312c6da4c756db829",
-      "decision": "unresolved",
-      "evidence": null
+      "decision": "included_in_snapshot",
+      "evidence": "Final has_permission compares enum/text roles as text; retained owner override semantics are documented. See the fingerprinted final-state schema and docs/staging-catalog-baseline.md."
     }
-  ]
+  ],
+  "catalog_query": {
+    "path": "supabase/bootstrap/staging/catalog-fingerprint.sql",
+    "sha256": "aba15155a93064c1a5e44f23b2074b91ae6fb9cd8611442dfc378c2f8807b6bb"
+  },
+  "catalog_expected": {
+    "path": "supabase/bootstrap/staging/catalog-fingerprint.json",
+    "sha256": "1baf866b46e240b059d3dfdaf385038e68e2f32a56bb557a198a8c497ce62fc3"
+  }
 }
