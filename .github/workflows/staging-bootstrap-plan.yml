@@ -1,0 +1,22 @@
+name: Staging bootstrap provenance and ordering
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test bootstrap plan validator
+        run: python3 -m unittest discover -s tests -p 'test_staging_bootstrap_plan.py'
+      - name: Validate local preparation and migration decisions (not hosted approval)
+        run: python3 scripts/check-staging-bootstrap.py --local > staging-bootstrap-plan-result.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: staging-bootstrap-plan-result
+          path: staging-bootstrap-plan-result.json

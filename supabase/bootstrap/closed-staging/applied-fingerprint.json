@@ -1,0 +1,70 @@
+{
+  "10": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "11": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "13": {
+    "md5": "0bf76b39b9159b801d43440e8b108c1c",
+    "count": 6
+  },
+  "16": {
+    "md5": "6d13cc84d0e372d4fb9deaaa1192f745",
+    "count": 245
+  },
+  "02": {
+    "md5": "0b13aba8c6c3adb9357c5b7817083ad2",
+    "count": 2
+  },
+  "03": {
+    "md5": "8e0b366d05a2bc8e30a93e9a8f794246",
+    "count": 131
+  },
+  "04": {
+    "md5": "44cae30f8ca0a8de9d82e082e701e3e6",
+    "count": 461
+  },
+  "05": {
+    "md5": "6e2b15698be939dfbdedc984f28c7e3f",
+    "count": 80
+  },
+  "06": {
+    "md5": "b48f669dd4d5a1b2d7eb3558a63b839c",
+    "count": 127
+  },
+  "07": {
+    "md5": "20b5691620cb08c4683dcb7e393da0f3",
+    "count": 101
+  },
+  "08": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "09": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "comments": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "role-reference": {
+    "md5": "a421fbf8fcaff7d88b39b8415ac77204",
+    "count": 6
+  },
+  "bucket-reference": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  },
+  "permission-reference": {
+    "md5": "b1eabd9ef6ade886bdafed968513d8ed",
+    "count": 42
+  },
+  "application-event-trigger": {
+    "md5": "d751713988987e9331980363e24189ce",
+    "count": 0
+  }
+}
