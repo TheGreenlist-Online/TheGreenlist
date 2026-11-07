@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+// Execute server routes in Node; the client boundary is tested separately.
+vi.mock('server-only', () => ({}))
 import type { AiPrincipal } from '@/lib/ai/permissions'
 import { buildBusinessTransparencyInput } from '@/app/api/ai/business-transparency/route'
 import { buildForumSummaryInput } from '@/app/api/ai/forum-summary/route'

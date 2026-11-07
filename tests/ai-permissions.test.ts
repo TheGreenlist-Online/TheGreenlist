@@ -36,7 +36,7 @@ beforeEach(() => {
   savedKey = process.env.OPENAI_API_KEY
   savedFlag = process.env.OPENAI_AI_FEATURES_ENABLED
   process.env.OPENAI_API_KEY = 'sk-test-key'
-  delete process.env.OPENAI_AI_FEATURES_ENABLED
+  process.env.OPENAI_AI_FEATURES_ENABLED = 'true'
 })
 
 afterEach(() => {

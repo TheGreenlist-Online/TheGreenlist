@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { AlertTriangle, Loader2, Search, Send, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Notice } from '@/components/record/Notice'
 import type { RecordsGuideOutput } from '@/lib/ai/schemas'
 
 type Turn = { role: 'user' | 'assistant'; content: string }
@@ -159,30 +160,44 @@ export function RecordsGuide() {
             ) : null}
             {answer ? (
               <div ref={answerRef} tabIndex={-1} className="mt-5 border-t border-[var(--gl-border)] pt-4">
-                <p className="text-sm leading-6">{answer.message}</p>
-                {answer.destinations.length > 0 ? (
-                  <ul className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Suggested records pages">
-                    {answer.destinations.map((destination) => (
-                      <li key={`${destination.standardHref}:${destination.title}`}>
-                        <Link className="greenlist-secondary-button" href={destination.standardHref}>
-                          <Search className="h-4 w-4" aria-hidden="true" />
-                          {destination.title}
-                        </Link>
-                        <p className="mt-1 text-xs text-[var(--gl-text-muted)]">{destination.reason}</p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {answer.sources.length > 0 ? (
-                  <p className="gl-meta mt-3">
-                    Sources: {answer.sources.map((source) => source.label).join('; ')}
-                  </p>
-                ) : null}
+                <RecordsGuideAnswer answer={answer} />
               </div>
             ) : null}
           </div>
         </div>
       </div>
     </section>
+  )
+}
+
+/** Keep the safety notice alongside the answer in every rendered result. */
+export function RecordsGuideAnswer({ answer }: { answer: RecordsGuideOutput }) {
+  return (
+    <>
+      <p className="text-sm leading-6">{answer.message}</p>
+      {answer.safetyNotice ? (
+        <Notice title="Safety notice" tone="review" role="note" className="mt-3">
+          {answer.safetyNotice}
+        </Notice>
+      ) : null}
+      {answer.destinations.length > 0 ? (
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Suggested records pages">
+          {answer.destinations.map((destination) => (
+            <li key={`${destination.standardHref}:${destination.title}`}>
+              <Link className="greenlist-secondary-button" href={destination.standardHref}>
+                <Search className="h-4 w-4" aria-hidden="true" />
+                {destination.title}
+              </Link>
+              <p className="mt-1 text-xs text-[var(--gl-text-muted)]">{destination.reason}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {answer.sources.length > 0 ? (
+        <p className="gl-meta mt-3">
+          Sources: {answer.sources.map((source) => source.label).join('; ')}
+        </p>
+      ) : null}
+    </>
   )
 }

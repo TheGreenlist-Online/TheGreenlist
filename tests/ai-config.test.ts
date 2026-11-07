@@ -32,14 +32,26 @@ describe('getAiConfig', () => {
   it('reports AI as unavailable without an API key, and never throws', () => {
     const config = getAiConfig()
     expect(config.enabled).toBe(false)
-    expect(config.disabledReason).toBe('AI features are not configured for this deployment.')
+    expect(config.disabledReason).toBe('AI features are turned off for this deployment.')
   })
 
-  it('enables AI once a key is present', () => {
+  it('enables AI only with an explicit rollout flag and key', () => {
+    process.env.OPENAI_AI_FEATURES_ENABLED = 'true'
     process.env.OPENAI_API_KEY = 'sk-test-key'
     const config = getAiConfig()
     expect(config.enabled).toBe(true)
     expect(config.disabledReason).toBeNull()
+  })
+
+  it.each([undefined, '', 'false', '0', 'no', 'typo'])('stays off with a key when the flag is %s', (flag) => {
+    process.env.OPENAI_API_KEY = 'sk-test-key'
+    if (flag !== undefined) process.env.OPENAI_AI_FEATURES_ENABLED = flag
+    expect(getAiConfig().enabled).toBe(false)
+  })
+
+  it('requires a key even after an explicit opt-in', () => {
+    process.env.OPENAI_AI_FEATURES_ENABLED = 'true'
+    expect(getAiConfig().disabledReason).toBe('AI features are not configured for this deployment.')
   })
 
   it('honours the kill switch even when a key is present', () => {

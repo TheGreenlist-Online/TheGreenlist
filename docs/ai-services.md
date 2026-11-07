@@ -25,13 +25,14 @@ src/lib/ai/run.ts                   one Responses API call + bounded tool loop +
 src/lib/ai/audit.ts                 metadata-only row in public.ai_audit_logs
 ```
 
-Routes never import the OpenAI SDK. `src/lib/ai/client.ts` is the only module that reads
-`OPENAI_API_KEY`, and it throws if it is ever evaluated in a browser bundle.
+Routes never import the OpenAI SDK. `src/lib/ai/client.ts` creates the AI foundation client.
+Both it and the credential-bearing audit writer import `server-only`, so Next.js rejects client
+imports at build time. Configuration checks key presence without returning the key.
 
 | Module | Responsibility |
 | --- | --- |
 | `config.ts` | Env parsing and feature flags. Never throws — build runs without secrets. |
-| `client.ts` | The single `OPENAI_API_KEY` read. `assertServerOnly()` guard. |
+| `client.ts` | Server-only OpenAI client factory; build-time boundary plus runtime guard. |
 | `errors.ts` | `AiError` + code→HTTP-status map + `redact()` for logs. |
 | `permissions.ts` | Who may call what, and the per-tier daily allowance. |
 | `rate-limit.ts` | Burst + daily counters. Swappable via `setRateLimiter()`. |
@@ -120,9 +121,11 @@ aborting the request.
 
 ## 4. Audit trail
 
-Every AI request writes one row to `public.ai_audit_logs` — successes, refusals, rate limits and
+Every AI request attempts to write one row to `public.ai_audit_logs` — successes, refusals, rate limits and
 errors alike. Audit failure never fails the user's request (`recordAiAudit()` warns and returns
-`false`).
+`false`). SDK construction, returned database errors, and rejected transport promises are all
+contained. Audit warnings include only the feature, request ID, and a fixed diagnostic, never
+upstream error text.
 
 **The table stores metadata only.** Never a prompt, a draft, a model response, evidence, or an
 upstream error body. Records the AI read are stored as `{ record_type, record_id }` references.
@@ -148,8 +151,21 @@ policies. `supabase/migrations/20261107010000_ai_audit_permissions.sql` is a fol
 instances where the table already exists: it adds the records-guide feature value, uses the canonical
 audit permission helper, and removes service-role row mutation privileges. The retired `town-guide`
 value remains accepted only so existing audit rows continue to satisfy the constraint.
+`20261107020000_ai_audit_moderation_columns.sql` adds the two optional, bounded moderation
+metadata columns when a separately bootstrapped audit table lacks them. It changes no grants or
+policies and preserves historical rows with null values.
 
-Staging now contains the tables, but application permissions and hosted tests are not complete.
+**Existing staging is not a clean migration target.** Its closed foundation has no application
+policies, canonical `has_permission(text)` helper, or fixture data. Its audit table lacks
+`moderation_recommendation` and `moderation_confidence`. Apply the additive column repair first
+when those columns are absent: the older base migration comments on them and fails otherwise.
+The permissions migration must still fail until the separately reviewed canonical permission
+foundation exists. Do not invent a permissive helper or use production records to make tests pass.
+
+Reconcile migration history and get approval for the exact staging access changes before applying
+anything. Do not use a blanket chronological `db push` or promote a development database to production.
+
+Staging contains tables, but application permissions and hosted tests are not complete.
 Do not treat table presence as proof of effective permissions. The follow-up migration has not been
 applied to staging or production. This task does not apply migrations or change live grants; production
 state is not re-queried here.
@@ -181,16 +197,24 @@ Then run the Supabase advisors on the branch and confirm no new findings before 
 
 | Variable | Required | Default | Notes |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | no | — | Server-only. Absent ⇒ every AI route 503s and the Records Guide hides itself. |
+| `OPENAI_API_KEY` | no | — | Server-only. Absent ⇒ AI POST requests return 503; status GETs report disabled and the Records Guide hides itself. |
 | `OPENAI_MODEL` | no | `gpt-4o-mini` | Used by all features. |
 | `OPENAI_MODERATION_MODEL` | no | `omni-moderation-latest` | Classification model. |
-| `OPENAI_AI_FEATURES_ENABLED` | no | `true` | Master kill switch. `false` disables AI even with a key. |
+| `OPENAI_AI_FEATURES_ENABLED` | no | `false` | Explicit rollout gate. AI stays off with an existing key unless opted in. |
 | `OPENAI_REQUEST_TIMEOUT_MS` | no | `30000` | Clamped to 5 000–120 000. |
 | `OPENAI_MAX_INPUT_CHARACTERS` | no | `8000` | Clamped to 500–40 000. |
 | `OPENAI_MAX_OUTPUT_TOKENS` | no | `1200` | Clamped to 256–8 000. |
 
 Never prefix any of these with `NEXT_PUBLIC_`. Out-of-range tuning values are clamped rather than
 rejected, so a typo degrades behaviour instead of breaking the deployment.
+
+**Activation:** keep the flag unset or `false` through code deployment. Enable it only in the
+approved isolated staging environment after its schema, auth, grants and RLS have been verified.
+Check the existing deployment value: an explicit `true` remains an opt-in and is not reset by this code.
+Use approved synthetic/de-identified fixtures for the four UI-less routes and each supported
+moderation content type. Verify unauthorized requests, audit writes, and the Records Guide safety
+notice before a separate production activation decision. Credential setup requires its own approval.
+The retired `/town` interface and view switcher are not acceptance targets.
 
 **Disabling AI in an incident:** set `OPENAI_AI_FEATURES_ENABLED=false` and redeploy. No code change,
 no database change. `getAiConfig()` is read fresh per request, so instances pick it up without a
@@ -238,13 +262,19 @@ logged and never persisted.
 ## 8. Testing
 
 ```bash
-npm test           # vitest run
+npm test           # Vitest + Node tests, including isolated PostgreSQL migration tests
 npm run test:watch
 ```
 
-Tests are in `tests/` and cover pure logic only — no network, no database, no API key. The
+Tests are in `tests/` and use no live network, database, or API key. Audit migration tests execute
+the real SQL in disposable PGlite PostgreSQL with fixture auth helpers; they do not prove that
+hosted staging has the required foundation. The
 safety-critical assertions are:
 
+- `ai-audit.test.ts` — construction, query, transport and returned errors remain fail-soft; no upstream details reach logs.
+- `ai-audit-migrations.test.mjs` — fresh and existing tables, metadata constraints, effective role writes, RLS row visibility, and explicit missing-helper failure.
+- `records-guide.test.ts` — safety notice visibility, absence, and escaped text rendering.
+- `server-secret-boundaries.test.mjs` — client imports fail before either AI credential module loads SDKs.
 - `ai-prompts.test.ts` — untrusted-content delimiters cannot be forged.
 - `ai-schemas.test.ts` — `requiresHumanReview` is a literal `true` and cannot be set false; the
   business output has no field capable of carrying a score or grade; report-assistant has no field

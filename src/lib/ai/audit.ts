@@ -1,6 +1,6 @@
+import 'server-only'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { AiFeature } from './config'
-import { redact } from './errors'
 
 /**
  * AI audit trail.
@@ -108,6 +108,20 @@ export function estimateCostUsd(
  * Never throws.
  */
 export async function recordAiAudit(entry: AiAuditEntry): Promise<boolean> {
+  try {
+    return await insertAiAudit(entry)
+  } catch {
+    // SDK construction and rejected transport requests can throw instead of
+    // returning a PostgREST error. Never log their messages: they may include
+    // credentials, connection strings, or request data.
+    console.warn(
+      `[ai:audit] could not write audit row feature=${entry.feature} request=${entry.requestId} reason=audit_unavailable`,
+    )
+    return false
+  }
+}
+
+async function insertAiAudit(entry: AiAuditEntry): Promise<boolean> {
   const supabase = getAuditClient()
   if (!supabase) {
     console.warn(
@@ -148,7 +162,7 @@ export async function recordAiAudit(entry: AiAuditEntry): Promise<boolean> {
   if (error) {
     console.warn(
       `[ai:audit] could not write audit row feature=${entry.feature} request=${entry.requestId} ` +
-        `reason=${redact(error.message)}`,
+        'reason=insert_failed',
     )
     return false
   }

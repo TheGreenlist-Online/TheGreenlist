@@ -1,3 +1,4 @@
+import 'server-only'
 import OpenAI from 'openai'
 import { getAiConfig } from './config'
 import { AiError } from './errors'
@@ -7,7 +8,7 @@ import { AiError } from './errors'
  *
  * The client is created per request rather than at module scope so that a
  * deployment without `OPENAI_API_KEY` still builds and boots. `OPENAI_API_KEY`
- * is read here and nowhere else in the application.
+ * stays on the server. The build-time boundary prevents client imports.
  */
 
 function assertServerOnly() {

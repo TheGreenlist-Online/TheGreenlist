@@ -59,7 +59,8 @@ function readIntEnv(name: string, fallback: number, min: number, max: number) {
  */
 export function getAiConfig(): AiConfig {
   const hasApiKey = readEnv('OPENAI_API_KEY').length > 0
-  const flagEnabled = readBooleanEnv('OPENAI_AI_FEATURES_ENABLED', true)
+  // An existing provider key must not activate unverified routes on deployment.
+  const flagEnabled = readBooleanEnv('OPENAI_AI_FEATURES_ENABLED', false)
 
   let disabledReason: string | null = null
   if (!flagEnabled) {

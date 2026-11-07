@@ -6,6 +6,8 @@ import ts from 'typescript'
 
 const modules = [
   'openai.ts',
+  'ai/client.ts',
+  'ai/audit.ts',
   'supabase/admin.ts',
   'integrations/n8n.ts',
   'integrations/gohighlevel.ts',
