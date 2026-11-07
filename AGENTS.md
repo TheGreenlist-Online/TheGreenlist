@@ -8,6 +8,7 @@ This file defines the architecture, security, development, and compliance standa
 - Keep frontend and backend concerns separated: `src/app` for UI routes, `src/api`/`src/routes` for server APIs, `src/lib` for shared utilities.
 - Prefer composition over duplication: reusable components, hooks, and API helpers.
 - Design for a civic-tech transparency platform, not commerce: support news, reporting, forums, directories, moderation, and analytics.
+- COA intake accepts neutral laboratory documents independently of misconduct reports; source receipt, transcription review, authenticity, and publication are separate states.
 - Data models must enforce explicit legal compliance and avoid any direct cannabis commerce or payments flow.
 - Build for observability and auditability: logging, audit trails, moderation events, and analytics should be traceable.
 
