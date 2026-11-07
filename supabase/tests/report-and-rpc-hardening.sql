@@ -55,7 +55,19 @@ reset role;
 do $$
 begin
  if has_table_privilege('anon','public.ai_audit_logs','INSERT') then raise exception 'Anonymous audit inserts remain allowed'; end if;
+ if has_table_privilege('authenticated','public.ai_audit_logs','INSERT') then raise exception 'Authenticated audit inserts remain allowed'; end if;
+ if not has_table_privilege('service_role','public.ai_audit_logs','INSERT') then raise exception 'Trusted audit inserts are not allowed'; end if;
+ if has_table_privilege('service_role','public.ai_audit_logs','UPDATE') then raise exception 'Trusted audit updates remain allowed'; end if;
+ if has_table_privilege('service_role','public.ai_audit_logs','DELETE') then raise exception 'Trusted audit deletes remain allowed'; end if;
+ if has_table_privilege('service_role','public.ai_audit_logs','TRUNCATE') then raise exception 'Trusted audit truncates remain allowed'; end if;
  if has_function_privilege('anon','public.notify_report_status_change()','EXECUTE') then raise exception 'Trigger RPC execute remains allowed'; end if;
+ if not exists (
+   select 1 from pg_policies
+   where schemaname = 'public'
+     and tablename = 'ai_audit_logs'
+     and policyname = 'ai_audit_logs_self_read'
+     and qual ilike '%has_permission%'
+ ) then raise exception 'AI audit read policy does not use canonical permissions'; end if;
 end $$;
 
 -- Also exercise real reports RLS with throwaway identities in this transaction.

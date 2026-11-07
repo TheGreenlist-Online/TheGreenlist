@@ -37,3 +37,9 @@ Advisor remediation references:
 - https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
 - https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - https://supabase.com/docs/guides/api/securing-your-api
+
+## Current staging status — 2026-11-07
+
+Staging now contains the relevant tables, but application permissions and hosted tests are not
+complete. Table presence alone does not establish effective grants or RLS behavior. No live grants
+or production settings were changed for this update.

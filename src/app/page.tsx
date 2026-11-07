@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PageShell } from '@/components/PageShell'
 import { OrnatePanel } from '@/components/OrnatePanel'
+import { RecordsGuide } from '@/components/ai/RecordsGuide'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { GOVERNANCE_LINKS, PRIMARY_NAV } from '@/config/navigation'
 
@@ -93,6 +94,8 @@ export default function HomePage() {
           <li>No marketplace</li>
         </ul>
       </section>
+
+      <RecordsGuide />
 
       {/* Three primary actions */}
       <section className="gl-section" aria-labelledby="actions-heading">
