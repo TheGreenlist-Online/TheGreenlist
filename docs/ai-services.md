@@ -85,9 +85,9 @@ Codes map to status via `STATUS_BY_CODE` in `errors.ts`: `ai_disabled` → 503, 
 
 Four independent layers. Any one of them failing does not by itself expose a record.
 
-1. **RLS.** Every tool queries through the caller's session-bound Supabase client
+1. **RLS.** Every data tool queries through the caller's session-bound Supabase client
    (`resolveAiPrincipal()` → `getCurrentPrincipal()`). The database refuses rows the caller cannot
-   see. The service-role key is never used in any AI path.
+   see. The service-role credential is used only by the separate metadata-only audit writer.
 2. **Second-layer filters in the tool.** Business tools filter `is_active = true`; report tools filter
    for public statuses (`published` or `corrected`) and `is_anonymous = false`; discussion tools
    require a published public thread in an active forum and exclude anonymous threads. The Education
@@ -137,15 +137,17 @@ would have meant widening a deliberately hardened policy. The two coexist: a mod
 RLS on the table: residents read their own rows; callers with the canonical `audit.read` permission
 read all rows. Only trusted server code using the service-role credential may insert audit rows;
 browser credentials for `anon` and `authenticated` have no `INSERT` privilege or policy. The pending
-permissions migration also revokes `UPDATE`, `DELETE`, and `TRUNCATE` from `service_role`; the corresponding SQL
-regression checks effective table privileges rather than relying only on the absence of RLS policies.
+permissions migration explicitly grants only `INSERT` to `service_role` and revokes `UPDATE`, `DELETE`,
+and `TRUNCATE`; the corresponding SQL regression checks effective table privileges rather than relying
+only on the absence of RLS policies.
 
 ### Applying the migration
 
 `supabase/migrations/20261019050000_ai_audit_logs.sql` creates the audit table, indexes, and base
 policies. `supabase/migrations/20261107010000_ai_audit_permissions.sql` is a follow-up for staging
 instances where the table already exists: it adds the records-guide feature value, uses the canonical
-audit permission helper, and removes service-role row mutation privileges.
+audit permission helper, and removes service-role row mutation privileges. The retired `town-guide`
+value remains accepted only so existing audit rows continue to satisfy the constraint.
 
 Staging now contains the tables, but application permissions and hosted tests are not complete.
 Do not treat table presence as proof of effective permissions. The follow-up migration has not been

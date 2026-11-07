@@ -80,9 +80,9 @@ describe('business tools', () => {
     expect(queries[0].columns).toBe('id, slug, name, state, city, verification_status')
     expect(queries[0].filters).toContain('eq:is_active=true')
     expect(queries[0].filters).toContain(`ilike:name=%verdant%`)
-    expect(
-      (result as { result: { businesses: Array<{ standardHref: string }> } }).result.businesses[0].standardHref,
-    ).toBe('/businesses/verdant-co')
+    expect((result as { businesses: Array<{ standardHref: string }> }).businesses[0].standardHref).toBe(
+      '/businesses/verdant-co',
+    )
   })
 
   it('never selects a licence column, because none exists', async () => {
@@ -93,7 +93,7 @@ describe('business tools', () => {
     expect(queries[0].columns).not.toContain('business_name')
     expect(queries[0].columns).toContain('slug')
     expect(queries[0].filters).toContain('eq:is_active=true')
-    expect((result as { result: { standardHref: string } }).result.standardHref).toBe('/businesses/verdant-co')
+    expect((result as { standardHref: string }).standardHref).toBe('/businesses/verdant-co')
   })
 })
 
@@ -160,9 +160,9 @@ describe('forum and education tools', () => {
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
     expect(queries[0].filters).toContain('eq:forums.is_active=true')
     expect(queries[0].filters.join()).not.toContain('approved')
-    expect(
-      (result as { result: { threads: Array<{ standardHref: string }> } }).result.threads[0].standardHref,
-    ).toBe('/forums/community/shipping-rules')
+    expect((result as { threads: Array<{ standardHref: string }> }).threads[0].standardHref).toBe(
+      '/forums/community/shipping-rules',
+    )
   })
 
   it('returns only existing records-section destinations', async () => {

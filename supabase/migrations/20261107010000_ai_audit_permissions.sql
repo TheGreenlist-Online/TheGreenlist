@@ -4,6 +4,7 @@
 ALTER TABLE public.ai_audit_logs
   DROP CONSTRAINT IF EXISTS ai_audit_logs_feature_check;
 
+-- Keep the retired feature key accepted for historical audit rows.
 ALTER TABLE public.ai_audit_logs
   ADD CONSTRAINT ai_audit_logs_feature_check CHECK (feature IN (
     'town-guide',
@@ -23,3 +24,4 @@ USING (
 );
 
 REVOKE UPDATE, DELETE, TRUNCATE ON public.ai_audit_logs FROM service_role;
+GRANT INSERT ON public.ai_audit_logs TO service_role;

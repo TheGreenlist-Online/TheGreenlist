@@ -55,6 +55,7 @@ reset role;
 do $$
 begin
  if has_table_privilege('anon','public.ai_audit_logs','INSERT') then raise exception 'Anonymous audit inserts remain allowed'; end if;
+ if has_table_privilege('authenticated','public.ai_audit_logs','INSERT') then raise exception 'Authenticated audit inserts remain allowed'; end if;
  if not has_table_privilege('service_role','public.ai_audit_logs','INSERT') then raise exception 'Trusted audit inserts are not allowed'; end if;
  if has_table_privilege('service_role','public.ai_audit_logs','UPDATE') then raise exception 'Trusted audit updates remain allowed'; end if;
  if has_table_privilege('service_role','public.ai_audit_logs','DELETE') then raise exception 'Trusted audit deletes remain allowed'; end if;

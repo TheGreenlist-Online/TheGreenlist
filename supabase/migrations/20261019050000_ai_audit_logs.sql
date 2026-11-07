@@ -24,7 +24,7 @@
 CREATE TABLE IF NOT EXISTS public.ai_audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  -- Null for anonymous visitors using public features such as the Town Guide.
+  -- Null for anonymous visitors using public features such as the Records Guide.
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
 
   feature TEXT NOT NULL CHECK (feature IN (
