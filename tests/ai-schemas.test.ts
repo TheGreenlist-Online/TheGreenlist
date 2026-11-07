@@ -1,34 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import {
   businessTransparencyOutputSchema,
-  areTownGuideLinksSafe,
+  areRecordsGuideLinksSafe,
   forumSummaryOutputSchema,
   moderationReviewOutputSchema,
   reportAssistantOutputSchema,
   reportAssistantRequestSchema,
   toResponseJsonSchema,
-  townGuideOutputSchema,
-  townGuideRequestSchema,
+  recordsGuideOutputSchema,
+  recordsGuideRequestSchema,
 } from '@/lib/ai/schemas'
 
-describe('townGuideRequestSchema', () => {
+describe('recordsGuideRequestSchema', () => {
   it('rejects a question that is too short to act on', () => {
-    expect(townGuideRequestSchema.safeParse({ message: 'hi' }).success).toBe(false)
+    expect(recordsGuideRequestSchema.safeParse({ message: 'hi' }).success).toBe(false)
   })
 
   it('rejects a message beyond the length cap', () => {
-    expect(townGuideRequestSchema.safeParse({ message: 'a'.repeat(2_001) }).success).toBe(false)
+    expect(recordsGuideRequestSchema.safeParse({ message: 'a'.repeat(2_001) }).success).toBe(false)
   })
 
   it('caps conversation history so the request cannot grow unbounded', () => {
     const turn = { role: 'user' as const, content: 'hello' }
     expect(
-      townGuideRequestSchema.safeParse({ message: 'Where do I report?', history: Array(7).fill(turn) }).success,
+      recordsGuideRequestSchema.safeParse({ message: 'Where do I report?', history: Array(7).fill(turn) }).success,
     ).toBe(false)
   })
 
   it('accepts a well-formed request', () => {
-    const parsed = townGuideRequestSchema.safeParse({
+    const parsed = recordsGuideRequestSchema.safeParse({
       message: '  How do I file a report?  ',
       currentPath: '/town',
       history: [{ role: 'user', content: 'hello' }],
@@ -95,22 +95,22 @@ describe('businessTransparencyOutputSchema', () => {
   })
 })
 
-describe('Town Guide links', () => {
+describe('Records Guide links', () => {
   it('accepts safe internal destinations and rejects external and protocol-relative URLs', () => {
     expect(
-      areTownGuideLinksSafe({
-        destinations: [{ standardHref: '/businesses/green-co', townHref: '/town/business-district' }],
+      areRecordsGuideLinksSafe({
+        destinations: [{ standardHref: '/businesses/green-co' }],
       }),
     ).toBe(true)
     for (const href of ['https://example.com', '//example.com', '/\\example.com', 'javascript:alert(1)']) {
-      expect(areTownGuideLinksSafe({ destinations: [{ standardHref: href, townHref: null }] })).toBe(false)
+      expect(areRecordsGuideLinksSafe({ destinations: [{ standardHref: href }] })).toBe(false)
     }
   })
 })
 
 describe('toResponseJsonSchema', () => {
   const schemas = [
-    ['town-guide', townGuideOutputSchema],
+    ['records-guide', recordsGuideOutputSchema],
     ['forum-summary', forumSummaryOutputSchema],
     ['report-assistant', reportAssistantOutputSchema],
     ['moderation-review', moderationReviewOutputSchema],
@@ -135,7 +135,7 @@ describe('toResponseJsonSchema', () => {
   })
 
   it('models optional output as nullable rather than absent', () => {
-    const json = toResponseJsonSchema(townGuideOutputSchema) as {
+    const json = toResponseJsonSchema(recordsGuideOutputSchema) as {
       required: string[]
       properties: Record<string, { type?: unknown; anyOf?: unknown }>
     }

@@ -9,7 +9,8 @@ import {
   searchPublicForumThreads,
   searchPublicReports,
 } from '@/lib/ai/tools/public-data'
-import { getTownLocationDetail } from '@/lib/ai/tools/platform'
+import { getRecordsDestination } from '@/lib/ai/tools/platform'
+import { getToolsForFeature } from '@/lib/ai/tools'
 
 /**
  * These tools were written against a guessed schema and every one of them was
@@ -35,6 +36,10 @@ function fakeSupabase(rows: Array<Record<string, unknown>> = []) {
         },
         eq(column: string, value: unknown) {
           query.filters.push(`eq:${column}=${String(value)}`)
+          return builder
+        },
+        in(column: string, values: readonly unknown[]) {
+          query.filters.push(`in:${column}=${JSON.stringify(values)}`)
           return builder
         },
         or(expression: string) {
@@ -73,10 +78,11 @@ describe('business tools', () => {
 
     expect(queries[0].table).toBe('business_profiles')
     expect(queries[0].columns).toBe('id, slug, name, state, city, verification_status')
+    expect(queries[0].filters).toContain('eq:is_active=true')
     expect(queries[0].filters).toContain(`ilike:name=%verdant%`)
-    expect((result as { businesses: Array<{ standardHref: string }> }).businesses[0].standardHref).toBe(
-      '/businesses/verdant-co',
-    )
+    expect(
+      (result as { result: { businesses: Array<{ standardHref: string }> } }).result.businesses[0].standardHref,
+    ).toBe('/businesses/verdant-co')
   })
 
   it('never selects a licence column, because none exists', async () => {
@@ -86,7 +92,8 @@ describe('business tools', () => {
     expect(queries[0].columns).not.toMatch(/licen/i)
     expect(queries[0].columns).not.toContain('business_name')
     expect(queries[0].columns).toContain('slug')
-    expect((result as { standardHref: string }).standardHref).toBe('/businesses/verdant-co')
+    expect(queries[0].filters).toContain('eq:is_active=true')
+    expect((result as { result: { standardHref: string } }).result.standardHref).toBe('/businesses/verdant-co')
   })
 })
 
@@ -100,7 +107,7 @@ describe('report tools', () => {
     expect(queries[0].columns).not.toContain('category')
     expect(queries[0].columns).not.toContain('description')
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
-    expect(queries[0].filters).toContain('eq:status=published')
+    expect(queries[0].filters).toContain('in:status=["published","corrected"]')
   })
 
   it('searches only the title and the curated public summary', async () => {
@@ -133,13 +140,13 @@ describe('report tools', () => {
     expect(queries[0].columns).toContain('location_city')
     expect(queries[0].columns).not.toContain('business_name')
     expect(queries[0].columns).not.toContain('description')
-    expect(queries[0].filters).toContain('eq:status=published')
+    expect(queries[0].filters).toContain('in:status=["published","corrected"]')
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
   })
 })
 
 describe('forum and education tools', () => {
-  it('searches forum_threads, not forum_posts, and only published public threads', async () => {
+  it('searches only published public threads from active forums and omits anonymous authors', async () => {
     const { principal, queries } = fakeSupabase([
       { id: A_UUID, slug: 'shipping-rules', title: 'Delivery', forums: { slug: 'community' } },
     ])
@@ -147,25 +154,23 @@ describe('forum and education tools', () => {
 
     expect(queries[0].table).toBe('forum_threads')
     expect(queries[0].columns).toContain('slug')
+    expect(queries[0].columns).toContain('forums!inner(slug, is_active)')
     expect(queries[0].filters).toContain('eq:status=published')
     expect(queries[0].filters).toContain('eq:visibility=public')
     expect(queries[0].filters).toContain('eq:is_anonymous=false')
+    expect(queries[0].filters).toContain('eq:forums.is_active=true')
     expect(queries[0].filters.join()).not.toContain('approved')
-    expect((result as { threads: Array<{ standardHref: string }> }).threads[0].standardHref).toBe(
-      '/forums/community/shipping-rules',
-    )
+    expect(
+      (result as { result: { threads: Array<{ standardHref: string }> } }).result.threads[0].standardHref,
+    ).toBe('/forums/community/shipping-rules')
   })
 
-  it('does not disclose details for a town location the caller cannot reach', async () => {
-    const { principal } = fakeSupabase()
-    const anonymous = { ...principal, isAuthenticated: false }
-    const resident = { ...principal, isAuthenticated: true }
+  it('returns only existing records-section destinations', async () => {
+    const { result } = await getRecordsDestination.execute({ principal: {} as AiPrincipal }, { topic: 'reports' })
+    const destinations = (result as { destinations: Array<{ standardHref: string }> }).destinations
 
-    const denied = await getTownLocationDetail.execute({ principal: anonymous }, { locationId: 'report-office' })
-    const allowed = await getTownLocationDetail.execute({ principal: resident }, { locationId: 'report-office' })
-
-    expect(denied.result).toMatchObject({ found: false })
-    expect(allowed.result).toMatchObject({ found: true, id: 'report-office' })
+    expect(destinations.some((destination) => destination.standardHref === '/reports')).toBe(true)
+    expect(destinations.every((destination) => !destination.standardHref.startsWith('/town'))).toBe(true)
   })
 
   it('surfaces only APPROVED education resources', async () => {
@@ -177,6 +182,10 @@ describe('forum and education tools', () => {
 })
 
 describe('every public tool', () => {
+  it('keeps report-assistant structurally unable to read records', () => {
+    expect(getToolsForFeature('report-assistant')).toEqual([])
+  })
+
   it('selects explicit columns and never a wildcard', async () => {
     const { principal, queries } = fakeSupabase([{ id: A_UUID, name: 'x', title: 'y' }])
 

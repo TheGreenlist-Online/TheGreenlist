@@ -48,7 +48,7 @@ afterEach(() => {
 
 describe('assertFeatureAllowed', () => {
   it('lets anonymous visitors use public transparency features', () => {
-    for (const feature of ['town-guide', 'forum-summary', 'business-transparency'] as const) {
+    for (const feature of ['records-guide', 'forum-summary', 'business-transparency'] as const) {
       expect(() => assertFeatureAllowed(feature, principal())).not.toThrow()
     }
   })
@@ -103,7 +103,7 @@ describe('feature rules', () => {
 
   it('gates moderation review by role', () => {
     expect(getFeatureRule('moderation-review').requiresModerator).toBe(true)
-    expect(getFeatureRule('town-guide').requiresModerator).toBeUndefined()
+    expect(getFeatureRule('records-guide').requiresModerator).toBeUndefined()
   })
 })
 

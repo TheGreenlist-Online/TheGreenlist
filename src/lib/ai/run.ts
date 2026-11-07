@@ -5,7 +5,7 @@ import { requireOpenAIClient } from './client'
 import { getAiConfig, type AiFeature } from './config'
 import { AiError, redact } from './errors'
 import { asUntrustedContent, getSystemPrompt } from './prompts'
-import { areTownGuideLinksSafe, toResponseJsonSchema } from './schemas'
+import { areRecordsGuideLinksSafe, toResponseJsonSchema } from './schemas'
 import type { AccessedRecord } from './audit'
 import type { AiPrincipal } from './permissions'
 import { findTool, isUnavailable, toResponsesTool, type AiTool } from './tools'
@@ -198,7 +198,7 @@ export async function runAiFeature<TOutput>(request: AiRunRequest<TOutput>): Pro
         })
       }
 
-      if (request.feature === 'town-guide' && !areTownGuideLinksSafe(validated.data)) {
+      if (request.feature === 'records-guide' && !areRecordsGuideLinksSafe(validated.data)) {
         throw new AiError('invalid_model_output', 'The assistant returned an unsafe destination.')
       }
 

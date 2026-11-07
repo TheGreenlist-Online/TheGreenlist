@@ -56,7 +56,7 @@ type FeatureRule = Readonly<{
 
 const FEATURE_RULES: Readonly<Record<AiFeature, FeatureRule>> = {
   // Public transparency navigation must work without an account.
-  'town-guide': { requiresAuth: false },
+  'records-guide': { requiresAuth: false },
   'forum-summary': { requiresAuth: false },
   'report-assistant': { requiresAuth: true },
   'moderation-review': { requiresAuth: true, requiresModerator: true },

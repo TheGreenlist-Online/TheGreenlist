@@ -32,8 +32,8 @@ The Green List remains a cannabis transparency, accountability, reporting, educa
 - [x] The evidence center and evidence upload routes have been added.
 - [x] Authenticated evidence upload handling has been repaired.
 - [x] All inspected public tables have RLS enabled.
-- [x] The unified district shell and Green List Town foundation are present.
-- [x] Standard and Town interfaces use the same platform and data model.
+- [x] The unified records-based shell is present.
+- [x] Public records and account permissions use the same platform and data model.
 
 ### Live data confirmed
 
@@ -55,7 +55,7 @@ Forums, forum threads, forum posts, business profiles, moderation queues, suppor
 - [ ] RLS policy behavior still requires role-by-role testing; enabling RLS alone is not proof that policies are correct.
 - [ ] Evidence uploads require full storage, database, visibility, download, replacement, and review testing.
 - [ ] Draft PRs #7 and #9 appear obsolete or conflicting and require review before closure.
-- [ ] Issue #12 remains the long-term Green List Town epic.
+- [x] The retired Green List Town interface is not part of the current product direction.
 - [ ] Placeholder content and incomplete destinations remain to be audited.
 
 # Priority 1 — Seamless GitHub, Vercel, and Supabase delivery
@@ -133,7 +133,7 @@ Audit every link in:
 - [ ] Homepage feature cards
 - [ ] Dashboard action cards
 - [ ] Footer
-- [ ] Green List Town districts
+- [ ] Complete the records-based public interface
 - [ ] Legal pages
 - [ ] Empty states
 - [ ] Calls to action

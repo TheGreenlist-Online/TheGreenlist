@@ -1,4 +1,4 @@
-# Repository Assessment — Green List Town / OpenAI Integration
+# Repository Assessment — Records Guide / OpenAI Integration
 
 Assessment date: 2026-07-28
 Branch: `feature/ai-service-town-guide`
@@ -165,32 +165,14 @@ Evidence uploads target a private `evidence` bucket (policies are commented out
 in the 20260703 migration, so the live bucket policy was applied out-of-band).
 No AI feature on this branch reads Storage.
 
-## 5. Current `/town` state
+## 5. Retired Town interface
 
-`/town` is a **single static page**, `src/app/town/page.tsx` (86 lines):
-
-- Renders a hero + a CSS-grid "map" of 8 district cards + a "Your Base Is
-  Coming" teaser.
-- Data comes from `src/config/districts.ts` — an 8-entry `as const` array with
-  `{ id, name, description, href, icon, position, availability, featured? }`.
-- No sub-routes exist (`/town/map`, `/town/forum`, … are all absent).
-- No AI, no auth-awareness, no per-location access model.
-
-`districts.ts` is close to, but not compatible with, the location shape the
-directive mandates (`townHref`/`standardHref`/`access`/`visibility` are all
-missing; `href` conflates the two interfaces). It is also `as const`, and
-`town/page.tsx` derives its icon map type from it, so widening it needs care.
-
-No Green List Town epic, issue tracker export, or design doc exists in `docs/`
-or the README.
-
-### Existing view switcher
-
-`src/components/SiteHeader.tsx` **already has** a Standard/Town toggle (desktop
-nav + mobile menu). It is a naive `pathname.startsWith('/town') ? '/' : '/town'`
-— it discards the current record context and query string entirely. This is the
-thing the directive's "switcher must preserve context" requirement is about; it
-needs a real route-mapping layer rather than a new component from scratch.
+The earlier site presentation included Town pages and a Standard/Town switcher.
+That interface has since been retired in favour of the records-based shell:
+`/town` redirects to `/`, and Town subpages, the Town Guide panel, and the
+interface switcher are intentionally absent. The AI guide is retained as a
+Records Guide on the current homepage; this assessment does not recommend
+reintroducing Town routes or navigation.
 
 ## 6. Build and CI configuration
 

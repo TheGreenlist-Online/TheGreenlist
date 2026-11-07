@@ -8,7 +8,7 @@
  */
 
 export const AI_FEATURES = [
-  'town-guide',
+  'records-guide',
   'forum-summary',
   'report-assistant',
   'moderation-review',

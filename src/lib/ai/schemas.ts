@@ -23,9 +23,9 @@ export type ConversationTurn = z.infer<typeof conversationTurnSchema>
 // Requests
 // ---------------------------------------------------------------------------
 
-export const townGuideRequestSchema = z.object({
+export const recordsGuideRequestSchema = z.object({
   message: z.string().trim().min(3, 'Ask a question of at least 3 characters.').max(MAX_MESSAGE_LENGTH),
-  /** Where the user currently is, so the guide can give relative directions. */
+  /** Current page, treated as untrusted context. */
   currentPath: z.string().trim().max(512).optional(),
   /** Prior turns, oldest first. Capped to keep the request small. */
   history: z.array(conversationTurnSchema).max(6).optional(),
@@ -65,19 +65,18 @@ export const businessTransparencyRequestSchema = z.object({
 // ---------------------------------------------------------------------------
 
 const sourceSchema = z.object({
-  recordType: z.string().describe('The kind of record cited, e.g. business_profile, report, policy, town_location.'),
+  recordType: z.string().describe('The kind of record cited, e.g. business_profile, report, policy, site_section.'),
   recordId: z.string().describe('Identifier of the cited record.'),
   label: z.string().describe('Human-readable label for the cited record.'),
 })
 
-export const townGuideOutputSchema = z.object({
+export const recordsGuideOutputSchema = z.object({
   message: z.string().describe('A concise, friendly answer for the resident. Plain text, no markdown headings.'),
   destinations: z
     .array(
       z.object({
         title: z.string(),
-        standardHref: z.string().describe('Safe internal path on the standard site.'),
-        townHref: z.string().nullable().describe('Safe equivalent town path, or null when the location has no town route.'),
+        standardHref: z.string().describe('Safe internal path to an existing records page.'),
         reason: z.string().describe('Why this destination answers the question.'),
       }),
     )
@@ -89,7 +88,7 @@ export const townGuideOutputSchema = z.object({
     .describe('A caution shown to the user, or null. Use for legal, medical, or allegation-vs-fact warnings.'),
 })
 
-export type TownGuideOutput = z.infer<typeof townGuideOutputSchema>
+export type RecordsGuideOutput = z.infer<typeof recordsGuideOutputSchema>
 
 export const forumSummaryOutputSchema = z.object({
   summary: z.string().describe('Neutral summary of the public discussion.'),
@@ -167,7 +166,7 @@ function isSafeInternalPath(value: unknown): value is string {
   }
 }
 
-export function areTownGuideLinksSafe(output: unknown): boolean {
+export function areRecordsGuideLinksSafe(output: unknown): boolean {
   if (typeof output !== 'object' || output === null || !('destinations' in output)) return false
   const destinations = (output as { destinations: unknown }).destinations
   if (!Array.isArray(destinations)) return false
@@ -177,10 +176,7 @@ export function areTownGuideLinksSafe(output: unknown): boolean {
       typeof destination === 'object' &&
       destination !== null &&
       'standardHref' in destination &&
-      isSafeInternalPath((destination as { standardHref: unknown }).standardHref) &&
-      'townHref' in destination &&
-      ((destination as { townHref: unknown }).townHref === null ||
-        isSafeInternalPath((destination as { townHref: unknown }).townHref)),
+      isSafeInternalPath((destination as { standardHref: unknown }).standardHref),
   )
 }
 

@@ -92,7 +92,7 @@ describe('getAiConfig', () => {
 
 describe('isAiFeature', () => {
   it('accepts known features and rejects everything else', () => {
-    expect(isAiFeature('town-guide')).toBe(true)
+    expect(isAiFeature('records-guide')).toBe(true)
     expect(isAiFeature('moderation-review')).toBe(true)
     expect(isAiFeature('delete-everything')).toBe(false)
     expect(isAiFeature(null)).toBe(false)

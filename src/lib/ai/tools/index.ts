@@ -25,20 +25,21 @@ function pick(names: readonly string[]): readonly AiTool[] {
 }
 
 const FEATURE_TOOLS: Readonly<Record<AiFeature, readonly AiTool[]>> = {
-  'town-guide': pick([
-    'getTownDestination',
-    'getTownLocationDetail',
+  'records-guide': pick([
+    'getRecordsDestination',
     'getPublicPlatformPolicy',
     'getVerificationExplanation',
     'searchPublicBusinesses',
+    'getPublicBusinessProfile',
     'searchPublicReports',
+    'getPublicReport',
     'searchPublicForumThreads',
     'searchEducationResources',
   ]),
   'forum-summary': pick(['getPublicPlatformPolicy', 'searchPublicReports']),
   // The report assistant works only from the user's own draft. Giving it data
   // tools would let a draft's contents pull in unrelated records.
-  'report-assistant': pick(['getPublicPlatformPolicy']),
+  'report-assistant': [],
   'moderation-review': pick(['getPublicPlatformPolicy']),
   'business-transparency': pick([
     'getPublicBusinessProfile',

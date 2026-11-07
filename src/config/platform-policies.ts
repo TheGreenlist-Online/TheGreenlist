@@ -1,7 +1,7 @@
 /**
  * Public, quotable statements of platform rules.
  *
- * This is the authoritative text the AI Town Guide is allowed to paraphrase
+ * This is the authoritative text the AI Records Guide is allowed to paraphrase
  * when a user asks "how does verification work?" or "can a business pay to
  * remove a report?". Keeping it in config rather than in a prompt string means
  * the same wording is used by the AI, the help pages, and future policy UI.

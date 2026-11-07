@@ -1,4 +1,4 @@
-# Implementation Plan — AI Services & Green List Town
+# Implementation Plan — AI Services & Records Guide
 
 Companion to [`docs/ASSESSMENT.md`](docs/ASSESSMENT.md) (what the repository looked like before this
 work) and [`docs/ai-services.md`](docs/ai-services.md) (how the AI layer works once merged).
@@ -10,16 +10,12 @@ before and after merging.
 
 ## Scope decision
 
-The directive covered five AI features, a town interface, an audit trail, a view switcher,
-documentation and tests. Rather than half-build all five endpoints, this change delivers **one
-complete vertical slice** — AI foundation, Town Guide end to end, audit trail, view switcher — and
-builds the remaining four endpoints on that same foundation without claiming they are verified
-against production data.
+The change delivers the shared AI foundation, a public-record guide integrated into the current
+records-based homepage, an audit trail, documentation, and tests. The retired Town pages, panel, and
+interface switcher are not part of the current product and are not restored here.
 
-Concretely: the Town Guide is the only feature exercised end to end from UI through to audit row.
-The other four routes are implemented, typechecked and access-controlled, and their database reads
-have since been corrected against the live column-level schema (see *Schema verification* below),
-but they have no UI yet and no request has been executed against production data.
+The Records Guide is the only feature with a user-facing UI. The other four routes are implemented,
+typechecked and access-controlled, but have no UI and have not been exercised against hosted data.
 
 ---
 
@@ -46,33 +42,25 @@ caps, output validation, rate limits and audit writes are enforced uniformly rat
 
 ### 2. API routes — `src/app/api/ai/`
 
-`town-guide`, `forum-summary`, `report-assistant`, `moderation-review`, `business-transparency`.
+`records-guide`, `forum-summary`, `report-assistant`, `moderation-review`, `business-transparency`.
 Each exposes `GET` (availability probe) and `POST`.
 
 ### 3. Configuration as data — `src/config/`
 
-- `town-locations.ts` — the single source of truth for town geography. Replaced three separate
-  hard-coded district arrays.
-- `platform-policies.ts` — six public policies the guide can cite verbatim rather than paraphrase.
+- `navigation.ts` — the guide's canonical source for records-section destinations.
+- `platform-policies.ts` — public policies the guide can cite rather than speculate about.
 
-### 4. Town interface
+### 4. Records Guide interface
 
-- `src/app/town/page.tsx` now renders from `TOWN_LOCATIONS` and mounts the guide.
-- `src/app/town/[locationId]/page.tsx` — new; statically generated from the config, so every
-  `townHref` resolves instead of 404ing.
-- `src/components/town/TownGuidePanel.tsx` — the guide UI.
-- `src/components/town/TownLocationIcon.tsx` — shared icon mapping.
+- `src/components/ai/RecordsGuide.tsx` — a public-record assistant using the shared site shell.
+- `src/app/page.tsx` — mounts the guide on the records-based homepage.
+- `/town` remains retired; its redirect is not a second interface.
 
-### 5. View switcher
+### 5. Audit migration
 
-- `src/lib/view-switch.ts` — resolves the counterpart path, preserving query string, hash and any
-  open record id.
-- `src/components/ViewSwitchLink.tsx` — replaces the previous `pathname.startsWith('/town') ? '/' :
-  '/town'` logic that was duplicated in the desktop and mobile navs and dropped all context.
-
-### 6. Audit migration
-
-`supabase/migrations/20261019050000_ai_audit_logs.sql` — one new table, purely additive.
+`20261019050000_ai_audit_logs.sql` defines the table; `20261107010000_ai_audit_permissions.sql`
+updates the feature constraint, canonical read authorization, and service-role append-only grants.
+No migration is applied by this task; prior environment state is not re-queried here.
 
 ---
 
@@ -92,9 +80,8 @@ because there is no code path by which it could, not because a check forbids it.
 
 **Graceful degradation over hard failure.** Repo migrations have drifted from the live database (see
 `docs/ASSESSMENT.md`). Tools return `unavailable()` — "no results, plus a note" — when a table or
-column is missing, rather than 500ing. The Town Guide is grounded primarily in static config, so it
-works correctly even where database reads degrade. This is kept even now that the reads are verified,
-because the repo's migrations still are not the source of truth.
+column is missing, rather than 500ing. The Records Guide is grounded in static navigation and policy
+configuration, so it remains useful where public database reads degrade.
 
 ---
 
@@ -126,20 +113,18 @@ item has no summary at all.
 property to appear in `required`. This is easy to get wrong when adding a feature; it is called out
 in `docs/ai-services.md` §7 and asserted in `tests/ai-schemas.test.ts`.
 
-**`themeSlug` on each town location.** The ribbon drives `district--*` custom properties in
-`globals.css`. Several locations intentionally share a theme, so the slug is data on the location
-rather than something derived from its id — this kept the stylesheet untouched while removing the
-duplicate config.
+**Records destinations come from shared navigation.** The guide cannot invent a page path, and the
+output schema independently rejects external or malformed destinations.
 
 ---
 
 ## Required before merge
 
-1. **Apply the migration through a Supabase development branch**, verify, then merge to production.
-   It has not been applied. Commands and verification queries are in `docs/ai-services.md` §4.
-   Until it is applied, AI endpoints still work — audit writes fail soft and log a warning.
+1. **Complete staging permission setup and hosted tests.** Staging has the tables, but application
+   permissions and hosted validation are incomplete. The proposed follow-up migration is not applied.
+   Do not apply migrations to production as part of this task.
 2. **Set `OPENAI_API_KEY`** in the Vercel project. Until then every AI route returns 503 and the
-   Town Guide renders nothing. This is the intended unconfigured state, not a failure.
+   Records Guide renders nothing. This is the intended unconfigured state, not a failure.
 3. **Exercise the four UI-less routes once against real data.** Their column selects are now
    verified, but no request has been run end to end. `moderation-review` in particular should be
    called against one real queue item of each `content_type` before a moderator relies on it.
@@ -157,11 +142,10 @@ duplicate config.
 
 ## Known limitations
 
-- **The migration is unapplied.** No Supabase credentials or MCP tooling were reachable from the
-  build environment, so the branch-create → apply → verify → merge workflow could not be executed.
-  The migration was written to be purely additive so that a maintainer can run it safely.
-- **Four of five routes have no UI and have never been run against real data.** Their schemas are
-  verified and their selects are correct, but only the Town Guide is exercised end to end.
+- **Hosted permissions and tests are incomplete.** Staging has tables, but this task does not apply
+  migrations or verify effective live grants. The SQL privilege regression is ready for staging.
+- **Four of five routes have no UI and have not been run against hosted data.** Their schemas and
+  query filters are covered by repository tests, but no real model/database request is exercised here.
 - **`moderation_queue_items.content_type` values are not enumerated anywhere in the codebase.**
   There is no human moderation UI to mirror (`src/app/admin/moderation/page.tsx` is a stub), so the
   route resolves `forum_thread` and `forum_post` explicitly and falls back to the joined report for
@@ -177,8 +161,8 @@ duplicate config.
 
 ## Next milestone
 
-**Enable the remaining four endpoints.** In order: apply the migration on a dev branch, run each
-route once against real data to confirm the corrected selects behave as expected, then build the
+**Enable the remaining four endpoints.** In order: finish staging permissions and hosted tests, run
+each route against eligible data to confirm the selects behave as expected, then build the
 moderator-facing UI for `moderation-review` — the feature with the most operational value and the
 strictest human-in-the-loop requirement. That UI is also where the real set of `content_type`
 values will become apparent, which is the one schema question still genuinely open.

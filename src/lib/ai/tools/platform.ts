@@ -4,15 +4,14 @@ import {
   getPlatformPolicy,
   searchPlatformPolicies,
 } from '@/config/platform-policies'
-import { getReachableTownLocations, getTownLocation } from '@/config/town-locations'
+import { PRIMARY_NAV } from '@/config/navigation'
 import type { AiTool } from './types'
 
 /**
  * Tools backed by static platform configuration rather than the database.
  *
  * These never touch Supabase, so they always work — including during a build,
- * in a preview environment with no database, and for anonymous visitors. They
- * are what lets the Town Guide stay useful when data tools degrade.
+ * in a preview environment with no database, and for anonymous visitors.
  */
 
 export const getPublicPlatformPolicy: AiTool<{ query: string }, unknown> = {
@@ -46,7 +45,7 @@ export const getVerificationExplanation: AiTool<Record<string, never>, unknown> 
   name: 'getVerificationExplanation',
   description:
     'Explain what each verification status means and what verification does and does not guarantee. ' +
-    'Use whenever a user asks whether a business is trustworthy, verified, or licensed.',
+    'Use whenever a user asks what a business verification status means.',
   inputSchema: z.object({}),
   async execute() {
     const policy = getPlatformPolicy('verification-status')
@@ -55,7 +54,7 @@ export const getVerificationExplanation: AiTool<Record<string, never>, unknown> 
         statuses: policy?.points ?? [],
         summary: policy?.summary ?? '',
         caution:
-          'Verification is a documentation check performed by humans. It is not an endorsement, a safety guarantee, or proof of legal compliance, and it can never be purchased.',
+          'The platform does not record licensing status. Verification is not an endorsement, a safety guarantee, or proof of legal compliance, and it can never be purchased.',
         standardHref: policy?.standardHref ?? '/legal',
       },
       records: [{ recordType: 'policy', recordId: 'verification-status' }],
@@ -63,10 +62,10 @@ export const getVerificationExplanation: AiTool<Record<string, never>, unknown> 
   },
 }
 
-export const getTownDestination: AiTool<{ topic: string }, unknown> = {
-  name: 'getTownDestination',
+export const getRecordsDestination: AiTool<{ topic: string }, unknown> = {
+  name: 'getRecordsDestination',
   description:
-    'Find where in Green List Town, and at which standard-site route, a topic lives. ' +
+    'Find an existing records-based site section for a topic. ' +
     'Always call this before recommending a destination so the links you return are real.',
   inputSchema: z.object({
     topic: z
@@ -74,21 +73,19 @@ export const getTownDestination: AiTool<{ topic: string }, unknown> = {
       .trim()
       .min(2)
       .max(200)
-      .describe('What the user wants to do, e.g. "file a report", "check a licence", "read the rules".'),
+      .describe('What the user wants to do, e.g. "find a report", "look up a business", "read the rules".'),
   }),
-  async execute({ principal }, input) {
-    const reachable = getReachableTownLocations(principal.isAuthenticated)
+  async execute(_context, input) {
     const terms = input.topic
       .toLowerCase()
       .split(/[^a-z0-9]+/)
       .filter((term) => term.length > 2)
 
-    const scored = reachable
-      .map((location) => {
-        const haystack =
-          `${location.name} ${location.district} ${location.description} ${location.tagline} ${location.guideNotes}`.toLowerCase()
+    const scored = PRIMARY_NAV
+      .map((section) => {
+        const haystack = `${section.label} ${section.purpose} ${section.href}`.toLowerCase()
         const score = terms.reduce((total, term) => (haystack.includes(term) ? total + 1 : total), 0)
-        return { location, score }
+        return { section, score }
       })
       .sort((a, b) => b.score - a.score)
 
@@ -97,56 +94,17 @@ export const getTownDestination: AiTool<{ topic: string }, unknown> = {
 
     return {
       result: {
-        destinations: results.map(({ location }) => ({
-          id: location.id,
-          title: location.name,
-          district: location.district,
-          standardHref: location.standardHref,
-          townHref: location.townHref,
-          description: location.description,
-          access: location.access,
-          guidance: location.guideNotes,
+        destinations: results.map(({ section }) => ({
+          title: section.label,
+          standardHref: section.href,
+          description: section.purpose,
         })),
-        note: principal.isAuthenticated
-          ? 'Role-restricted locations are excluded from these results.'
-          : 'This visitor is not signed in. Locations requiring an account are excluded; mention signing in if relevant.',
+        note: 'These are public section links. Protected records still require the appropriate account and role.',
       },
-      records: results.map(({ location }) => ({
-        recordType: 'town_location',
-        recordId: location.id,
+      records: results.map(({ section }) => ({
+        recordType: 'site_section',
+        recordId: section.href,
       })),
-    }
-  },
-}
-
-export const getTownLocationDetail: AiTool<{ locationId: string }, unknown> = {
-  name: 'getTownLocationDetail',
-  description: 'Fetch full details for one town location by its id.',
-  inputSchema: z.object({
-    locationId: z.string().trim().min(2).max(64).describe('The town location id, e.g. "report-office".'),
-  }),
-  async execute(_context, input) {
-    const location = getTownLocation(input.locationId)
-    const reachableLocations = getReachableTownLocations(_context.principal.isAuthenticated)
-
-    if (!location || !reachableLocations.some((reachable) => reachable.id === location.id)) {
-      return { result: { found: false, note: 'No accessible town location with that id.' } }
-    }
-
-    return {
-      result: {
-        found: true,
-        id: location.id,
-        name: location.name,
-        district: location.district,
-        description: location.description,
-        standardHref: location.standardHref,
-        townHref: location.townHref,
-        access: location.access,
-        visibility: location.visibility,
-        guidance: location.guideNotes,
-      },
-      records: [{ recordType: 'town_location', recordId: location.id }],
     }
   },
 }
@@ -154,6 +112,5 @@ export const getTownLocationDetail: AiTool<{ locationId: string }, unknown> = {
 export const PLATFORM_TOOLS = [
   getPublicPlatformPolicy,
   getVerificationExplanation,
-  getTownDestination,
-  getTownLocationDetail,
+  getRecordsDestination,
 ] as const

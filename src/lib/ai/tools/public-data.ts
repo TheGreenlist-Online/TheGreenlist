@@ -56,6 +56,7 @@ export const searchPublicBusinesses: AiTool<{ query: string }, unknown> = {
     const { data, error } = await principal.supabase
       .from('business_profiles')
       .select('id, slug, name, state, city, verification_status')
+      .eq('is_active', true)
       .ilike('name', toSearchPattern(input.query))
       .limit(SEARCH_LIMIT)
 
@@ -99,6 +100,7 @@ export const getPublicBusinessProfile: AiTool<{ businessId: string }, unknown> =
       .from('business_profiles')
       .select('id, slug, name, state, city, verification_status, created_at')
       .eq('id', input.businessId)
+      .eq('is_active', true)
       .maybeSingle()
 
     if (error) {
@@ -150,7 +152,7 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
     const { data, error } = await principal.supabase
       .from('reports')
       .select('id, title, report_type, status, verification_status, business_id, created_at')
-      .eq('status', 'published')
+      .in('status', ['published', 'corrected'])
       .eq('is_anonymous', false)
       .or(`title.ilike.${pattern},public_summary.ilike.${pattern}`)
       .order('created_at', { ascending: false })
@@ -174,7 +176,7 @@ export const searchPublicReports: AiTool<{ query: string }, unknown> = {
           standardHref: `/reports/${report.id}`,
         })),
         note:
-          'A report is an allegation unless its status is "verified". Always state the status and never imply guilt.',
+          'Publication or correction status does not establish that an allegation is verified. State the recorded statuses and never imply guilt.',
       },
       records: reports.map((report) => ({ recordType: 'report', recordId: String(report.id) })),
     }
@@ -194,7 +196,7 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
         'id, title, report_type, status, verification_status, business_id, public_summary, location_state, location_city, created_at, updated_at',
       )
       .eq('id', input.reportId)
-      .eq('status', 'published')
+      .in('status', ['published', 'corrected'])
       .eq('is_anonymous', false)
       .maybeSingle()
 
@@ -237,7 +239,8 @@ export const getPublicReport: AiTool<{ reportId: string }, unknown> = {
 
 /**
  * Threads live in `forum_threads`; `forum_posts` holds their replies. Only
- * thread titles are searched, never reply bodies.
+ * thread titles are searched, never reply bodies. Inactive forums, unpublished
+ * threads and threads authored anonymously are not surfaced.
  *
  * `is_anonymous` on a thread describes its *authorship*, not its visibility —
  * an anonymous thread is still public. Excluding them here is a deliberate
@@ -253,10 +256,11 @@ export const searchPublicForumThreads: AiTool<{ query: string }, unknown> = {
   async execute({ principal }, input) {
     const { data, error } = await principal.supabase
       .from('forum_threads')
-      .select('id, slug, title, forum_id, created_at, forums(slug)')
+      .select('id, slug, title, forum_id, created_at, forums!inner(slug, is_active)')
       .eq('status', 'published')
       .eq('visibility', 'public')
       .eq('is_anonymous', false)
+      .eq('forums.is_active', true)
       .ilike('title', toSearchPattern(input.query))
       .order('created_at', { ascending: false })
       .limit(SEARCH_LIMIT)
@@ -293,9 +297,7 @@ export const searchEducationResources: AiTool<{ query: string }, unknown> = {
     'Search the Education Library for published educational resources. Use for policy context, consumer safety, and general cannabis education questions.',
   inputSchema: searchQuerySchema,
   async execute({ principal }, input) {
-    // Only APPROVED resources exist as far as the assistant is concerned.
-    // The status CHECK also allows DRAFT, PENDING_REVIEW, REJECTED and
-    // ARCHIVED, none of which have cleared editorial review.
+    // Only APPROVED resources have cleared editorial review.
     const { data, error } = await principal.supabase
       .from('education_resources')
       .select('id, title')

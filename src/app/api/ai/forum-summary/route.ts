@@ -26,10 +26,12 @@ export const POST = createAiRoute({
     // to read a thread the user could not open themselves.
     const { data: thread, error: threadError } = await principal.supabase
       .from('forum_threads')
-      .select('id, slug, title, body, status, is_anonymous, created_at, forums(slug)')
+      .select('id, slug, title, body, status, created_at, forums!inner(slug, is_active)')
       .eq('id', request.threadId)
       .eq('status', 'published')
       .eq('visibility', 'public')
+      .eq('is_anonymous', false)
+      .eq('forums.is_active', true)
       .maybeSingle()
 
     if (threadError) {

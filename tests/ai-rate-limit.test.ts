@@ -18,7 +18,7 @@ function principal(overrides: Partial<AiPrincipal> = {}): AiPrincipal {
 }
 
 function requestFrom(headers: Record<string, string> = {}) {
-  return new Request('https://greenlist.online/api/ai/town-guide', { headers })
+  return new Request('https://greenlist.online/api/ai/records-guide', { headers })
 }
 
 beforeEach(() => {
@@ -59,29 +59,29 @@ describe('enforceRateLimit', () => {
     const caller = principal({ user: { id: 'user-1' } as User, isAuthenticated: true, dailyAllowance: 3 })
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const decision = await enforceRateLimit('town-guide', caller, requestFrom())
+      const decision = await enforceRateLimit('records-guide', caller, requestFrom())
       expect(decision.limit).toBe(3)
     }
 
-    await expect(enforceRateLimit('town-guide', caller, requestFrom())).rejects.toThrow(/allowance for today/)
+    await expect(enforceRateLimit('records-guide', caller, requestFrom())).rejects.toThrow(/allowance for today/)
   })
 
   it('trips the burst limit before the daily allowance for a rapid flood', async () => {
     const caller = principal({ user: { id: 'flooder' } as User, isAuthenticated: true, dailyAllowance: 1_000 })
 
     for (let attempt = 0; attempt < 8; attempt += 1) {
-      await enforceRateLimit('town-guide', caller, requestFrom())
+      await enforceRateLimit('records-guide', caller, requestFrom())
     }
 
-    await expect(enforceRateLimit('town-guide', caller, requestFrom())).rejects.toThrow(/short period/)
+    await expect(enforceRateLimit('records-guide', caller, requestFrom())).rejects.toThrow(/short period/)
   })
 
   it('raises a rate_limited AiError carrying retry guidance', async () => {
     const caller = principal({ user: { id: 'user-2' } as User, isAuthenticated: true, dailyAllowance: 1 })
-    await enforceRateLimit('town-guide', caller, requestFrom())
+    await enforceRateLimit('records-guide', caller, requestFrom())
 
     try {
-      await enforceRateLimit('town-guide', caller, requestFrom())
+      await enforceRateLimit('records-guide', caller, requestFrom())
       expect.unreachable('should have thrown')
     } catch (error) {
       expect(error).toBeInstanceOf(AiError)
@@ -93,7 +93,7 @@ describe('enforceRateLimit', () => {
   it('counts the daily allowance across features, not per feature', async () => {
     const caller = principal({ user: { id: 'user-3' } as User, isAuthenticated: true, dailyAllowance: 2 })
 
-    await enforceRateLimit('town-guide', caller, requestFrom())
+    await enforceRateLimit('records-guide', caller, requestFrom())
     await enforceRateLimit('forum-summary', caller, requestFrom())
 
     await expect(enforceRateLimit('business-transparency', caller, requestFrom())).rejects.toThrow(AiError)
@@ -103,7 +103,7 @@ describe('enforceRateLimit', () => {
     const first = principal({ user: { id: 'a' } as User, isAuthenticated: true, dailyAllowance: 1 })
     const second = principal({ user: { id: 'b' } as User, isAuthenticated: true, dailyAllowance: 1 })
 
-    await enforceRateLimit('town-guide', first, requestFrom())
-    await expect(enforceRateLimit('town-guide', second, requestFrom())).resolves.toBeTruthy()
+    await enforceRateLimit('records-guide', first, requestFrom())
+    await expect(enforceRateLimit('records-guide', second, requestFrom())).resolves.toBeTruthy()
   })
 })

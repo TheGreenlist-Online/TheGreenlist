@@ -23,6 +23,7 @@ export const POST = createAiRoute({
       .from('business_profiles')
       .select('id, owner_id, name, state, city, verification_status, sponsorship_status, is_claimed, created_at')
       .eq('id', request.businessId)
+      .eq('is_active', true)
       .maybeSingle()
 
     if (error) {
@@ -41,7 +42,7 @@ export const POST = createAiRoute({
       .from('reports')
       .select('id, title, report_type, status, verification_status, created_at')
       .eq('business_id', business.id)
-      .eq('status', 'published')
+      .in('status', ['published', 'corrected'])
       .eq('is_anonymous', false)
       .order('created_at', { ascending: false })
       .limit(MAX_REPORTS)

@@ -51,7 +51,7 @@ cannot use. `POST` performs the request.
 
 | Endpoint | Access | Reads | Returns |
 | --- | --- | --- | --- |
-| `town-guide` | public | Static town/policy config, public businesses, public reports | Navigation answer + destinations + sources |
+| `records-guide` | public | Public navigation and policy config, active businesses, published/corrected reports, eligible discussions | Records answer + internal destinations + sources |
 | `forum-summary` | public | One published public `forum_threads` row and its `forum_posts` replies, through the caller's session | Summary with facts/allegations/disagreements kept separate |
 | `report-assistant` | authenticated | **Nothing.** Draft comes from the request body only | Chronology, gaps, sensitive-info flags |
 | `moderation-review` | moderator / admin / owner | One moderation queue item, joined to the report or forum record it points at | A recommendation, never an action |
@@ -88,10 +88,11 @@ Four independent layers. Any one of them failing does not by itself expose a rec
 1. **RLS.** Every tool queries through the caller's session-bound Supabase client
    (`resolveAiPrincipal()` → `getCurrentPrincipal()`). The database refuses rows the caller cannot
    see. The service-role key is never used in any AI path.
-2. **Second-layer filters in the tool.** Public report tools additionally filter
-   `is_anonymous = false`; forum tools filter `status = 'published'` and `visibility = 'public'`;
-   the Education Library tool filters `status = 'APPROVED'` so drafts and rejected material can
-   never be surfaced. This holds even if an RLS policy is later loosened.
+2. **Second-layer filters in the tool.** Business tools filter `is_active = true`; report tools filter
+   for public statuses (`published` or `corrected`) and `is_anonymous = false`; discussion tools
+   require a published public thread in an active forum and exclude anonymous threads. The Education
+   Library tool filters `status = 'APPROVED'` so drafts and rejected material can never be surfaced.
+   This holds even if an RLS policy is later loosened.
 3. **Explicit column selects.** No tool uses `select('*')`. Reporter identity columns and evidence
    file references are never in a select list, so they cannot reach the model even accidentally.
    `reports.description` — the reporter's raw, possibly unreviewed narrative — is deliberately
@@ -99,15 +100,17 @@ Four independent layers. Any one of them failing does not by itself expose a rec
    Free-text search values are quoted before they enter a PostgREST `or(...)` filter so crafted
    input cannot append a condition on a column the select omits.
 4. **Per-feature tool allow-lists.** `getToolsForFeature()` in `tools/index.ts` decides what exists.
-   The town guide has no tool that can read a moderation queue; `report-assistant` has no tools at
+   The records guide has no tool that can read a moderation queue; `report-assistant` has no tools at
    all and accepts no record id, so it is structurally incapable of reaching another user's report.
 
 ### Prompt injection
 
 Anything originating from a user or the database is wrapped by `asUntrustedContent(label, content)`
-and delivered as a separate input item. The wrapper strips `<untrusted-content>` delimiters from the
-payload so retrieved text cannot forge a closing tag and escape the block. The system prompt states
-that content inside such a block is data and never instruction. See `tests/ai-prompts.test.ts`.
+and delivered as a separate input item. The wrapper strips delimiter-like tags from content and
+escapes markup, quotes, and control characters in labels before placing them in the source attribute.
+This also applies to model-controlled tool names, including unknown tools. The system prompt states
+that content inside such a block is data and never instruction. See `tests/ai-prompts.test.ts` and
+`tests/ai-run.test.ts`.
 
 Model-supplied tool arguments are re-validated against the tool's Zod schema server-side regardless
 of what the model produced, and a rejected call returns an error payload to the model rather than
@@ -131,32 +134,41 @@ would have meant widening a deliberately hardened policy. The two coexist: a mod
 *because of* an AI recommendation still writes its own `audit_logs` row referencing
 `ai_audit_logs.request_id`. Full rationale is in the migration header.
 
-RLS on the new table: residents read their own rows; admins and the platform owner read all.
-Only trusted server code using the service-role credential may insert audit rows; browser credentials
-for `anon` and `authenticated` have no `INSERT` privilege or policy. There is no `UPDATE` or `DELETE`
-policy, so the trail is append-only.
+RLS on the table: residents read their own rows; callers with the canonical `audit.read` permission
+read all rows. Only trusted server code using the service-role credential may insert audit rows;
+browser credentials for `anon` and `authenticated` have no `INSERT` privilege or policy. The pending
+permissions migration also revokes `UPDATE`, `DELETE`, and `TRUNCATE` from `service_role`; the corresponding SQL
+regression checks effective table privileges rather than relying only on the absence of RLS policies.
 
 ### Applying the migration
 
-`supabase/migrations/20261019050000_ai_audit_logs.sql` is **purely additive** — it creates
-one table with its indexes and policies and alters nothing that already exists.
+`supabase/migrations/20261019050000_ai_audit_logs.sql` creates the audit table, indexes, and base
+policies. `supabase/migrations/20261107010000_ai_audit_permissions.sql` is a follow-up for staging
+instances where the table already exists: it adds the records-guide feature value, uses the canonical
+audit permission helper, and removes service-role row mutation privileges.
 
-It has **not** been applied to production. Apply it through a Supabase development branch:
+Staging now contains the tables, but application permissions and hosted tests are not complete.
+Do not treat table presence as proof of effective permissions. The follow-up migration has not been
+applied to staging or production. This task does not apply migrations or change live grants; production
+state is not re-queried here.
 
-```bash
-# 1. create a dev branch, 2. apply there, 3. verify, 4. only then merge to production
-supabase branches create ai-audit --project-ref idtnlninotxwqpznbwur
-supabase db push --db-url "<dev-branch-url>"
-```
+No migration commands were run for this change. Before any future staging application,
+confirm the existing staging project, migration history, effective grants, and approval
+for the target. Do not infer readiness from the tables' presence.
 
 Verify on the branch before merging:
 
 ```sql
 -- policies exist and the table is protected
-select policyname, cmd, roles from pg_policies where tablename = 'ai_audit_logs';
+select policyname, cmd, roles, qual from pg_policies where tablename = 'ai_audit_logs';
 select relrowsecurity from pg_class where relname = 'ai_audit_logs';
 
--- append-only: no UPDATE or DELETE policy should be returned above
+-- Verify effective service-role privileges after the follow-up migration.
+select
+  has_table_privilege('service_role', 'public.ai_audit_logs', 'INSERT') as can_insert,
+  has_table_privilege('service_role', 'public.ai_audit_logs', 'UPDATE') as can_update,
+  has_table_privilege('service_role', 'public.ai_audit_logs', 'DELETE') as can_delete,
+  has_table_privilege('service_role', 'public.ai_audit_logs', 'TRUNCATE') as can_truncate;
 ```
 
 Then run the Supabase advisors on the branch and confirm no new findings before merging.
@@ -167,7 +179,7 @@ Then run the Supabase advisors on the branch and confirm no new findings before 
 
 | Variable | Required | Default | Notes |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | no | — | Server-only. Absent ⇒ every AI route 503s and the Town Guide hides itself. |
+| `OPENAI_API_KEY` | no | — | Server-only. Absent ⇒ every AI route 503s and the Records Guide hides itself. |
 | `OPENAI_MODEL` | no | `gpt-4o-mini` | Used by all features. |
 | `OPENAI_MODERATION_MODEL` | no | `omni-moderation-latest` | Classification model. |
 | `OPENAI_AI_FEATURES_ENABLED` | no | `true` | Master kill switch. `false` disables AI even with a key. |
