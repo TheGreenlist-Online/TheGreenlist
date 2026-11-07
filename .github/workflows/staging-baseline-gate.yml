@@ -9,8 +9,8 @@ concurrency:
   group: staging-baseline-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  baseline:
-    name: R1 schema / staging readiness
+  catalog:
+    name: R1 live catalog verification
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -93,8 +93,6 @@ jobs:
           psql "$STAGING_DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 \
             -f supabase/bootstrap/staging/catalog-fingerprint.sql > catalog-actual.json
           python3 scripts/check-catalog-fingerprint.py catalog-actual.json | tee catalog-result.json
-          echo "::error title=BLOCKED_HOSTED_ACCEPTANCE::Catalog check completed; real Auth/JWT/Storage HTTP and recovery acceptance remain unimplemented"
-          exit 1
       - name: Upload non-secret inventory
         if: always()
         uses: actions/upload-artifact@v4
@@ -104,3 +102,23 @@ jobs:
             baseline-gate.json
             catalog-result.json
           if-no-files-found: ignore
+
+  baseline:
+    name: R1 schema / staging readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: catalog
+    if: ${{ always() }}
+    steps:
+      - name: Require catalog, hosted acceptance, and recovery
+        env:
+          CATALOG_RESULT: ${{ needs.catalog.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$CATALOG_RESULT" != "success" ]; then
+            echo "::error title=BLOCKED_CATALOG::Live catalog verification did not succeed. See the catalog job."
+            exit 1
+          fi
+          echo "::error title=BLOCKED_HOSTED_ACCEPTANCE::Live catalog verification passed. Hosted Auth/JWT, Storage HTTP isolation, and isolated recovery acceptance remain unimplemented."
+          exit 1
