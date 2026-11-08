@@ -47,44 +47,7 @@ jobs:
             echo "::error title=BLOCKED R1::STAGING_DATABASE_URL secret is missing; live schema cannot be verified"
             exit 1
           fi
-          python3 - <<'PY'
-          import os, re, sys
-          from urllib.parse import urlsplit, parse_qsl, unquote
-          
-          def approved_url(raw):
-              try:
-                  # Reject parser normalization and ambiguous encodings before parsing.
-                  if not raw or re.search(r"[\s\x00-\x1f\x7f]", raw):
-                      return False
-                  if re.search(r"%(?![0-9a-fA-F]{2})", raw):
-                      return False
-                  u = urlsplit(raw)
-                  if u.scheme not in ("postgres", "postgresql"):
-                      return False
-                  if u.hostname != "db.otmaxtjstvbfckpgbwdi.supabase.co":
-                      return False
-                  if u.port not in (None, 5432) or u.path != "/postgres":
-                      return False
-                  if not u.username or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", u.username):
-                      return False
-                  if not u.password or u.fragment or "#" in raw:
-                      return False
-                  # A closed allowlist also rejects host, hostaddr, service, options,
-                  # encoded override names, duplicates and future libpq parameters.
-                  if parse_qsl(u.query, keep_blank_values=True, strict_parsing=True) not in (
-                      [], [("sslmode", "require")], [("sslmode", "verify-full")]
-                  ):
-                      return False
-                  if any(ord(c) < 32 or ord(c) == 127 for c in unquote(u.password)):
-                      return False
-                  return True
-              except (ValueError, UnicodeError):
-                  return False
-          
-          if not approved_url(os.environ.get("STAGING_DATABASE_URL", "")):
-              print("::error title=BLOCKED R1::Invalid or non-approved staging connection URL")
-              sys.exit(1)
-          PY
+          python3 scripts/staging-url-guard.py
           # Clear inherited libpq routing, service and TLS overrides.
           for name in ${!PG@}; do unset "$name"; done
           export PGSSLMODE=require PGCONNECT_TIMEOUT=10

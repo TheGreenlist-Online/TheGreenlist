@@ -49,8 +49,11 @@ The reviewed generated candidate is 171445 bytes, SHA-256
 It is generated with `scripts/build-staging-completion.py`. The bare generated
 statement commits if successful. A rollback-only hosted compatibility probe must
 instead raise its unique sentinel inside the outer DO after every assertion, and
-then independently confirm that the closed fingerprint remains unchanged. That
-hosted probe still requires explicit authorization and has not executed.
+then independently confirm that the closed fingerprint remains unchanged. The later
+hosted compatibility probe has an unverified outcome. A follow-up read confirmed
+the closed foundation remained, but did not establish whether the probe executed
+and rolled back or never started. Do not count this as a pass or retry it blindly.
+This uncertainty is separate from the successful original foundation rollback.
 
 ## Remaining connection and release work
 
@@ -79,3 +82,11 @@ are not implemented. Complete and run those checks with approved synthetic input
 review the hardened schema, then require all exact-head checks before merging.
 The user's merge request permits its ordinary application deployment side effect;
 production database changes remain outside this staging work.
+
+## Credential-free connection preparation
+
+The workflow now calls a separately tested URL guard. Session-pooler behavior is
+prepared using synthetic `.invalid` endpoints, but the approved hosted pooler
+configuration remains empty. No real pooler, validator role or credential is
+enabled by this change. See the [validator access and negative-test plan](staging-validator-access-plan.md)
+for the remaining review and secure provisioning steps.

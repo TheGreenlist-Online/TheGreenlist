@@ -2,11 +2,27 @@
 
 Status: BLOCKED. This document is an audit plan, not authorization to restore or merge.
 
-## Verified on 2026-10-28
-- Staging `otmaxtjstvbfckpgbwdi`: zero public application tables and zero recorded migrations (read-only Supabase connector).
-- Production `idtnlninotxwqpznbwur`: 28 public and 2 private application tables; all 30 have RLS enabled (read-only catalog query).
-- Production organization memberships and verification requests exist and have authenticated policies; existence is not evidence PR #29 matches live definitions.
-- PR #60 remains a draft, intentionally fails closed, and contains no schema bootstrap.
+## Current state verified on 2026-11-08 (read-only)
+
+- Staging `otmaxtjstvbfckpgbwdi` is ACTIVE_HEALTHY on PostgreSQL 17.11.
+- The closed foundation has 28 public and two private tables. Its recorded
+  migration is `20261106211724 closed_staging_foundation`.
+- Application routines, public policies and Storage buckets are still absent.
+  A hardened completion candidate is prepared locally, not installed in staging.
+- No dedicated validator login exists. The latest live-catalog workflow attempt
+  at source commit `cda02ba9562a3a5bf2f2663351f424df3967d314` stopped before connecting
+  because `STAGING_DATABASE_URL` was missing.
+- The original foundation rollback passed. The later security-schema rollback
+  probe is unverified: unchanged state does not prove it ran and rolled back.
+- PR #60 remains draft and intentionally fails closed after the catalog stage
+  until hosted Auth/JWT, Storage HTTP and recovery acceptance are implemented.
+- No production inspection or write is part of this status refresh. The earlier
+  production capture remains historical evidence, not a fresh release certificate.
+
+See [closed foundation](closed-staging-foundation.md),
+[completion candidate](staging-completion-candidate.md) and
+[validator access plan](staging-validator-access-plan.md). The validator plan and
+synthetic pooler tests create no credentials, grants or approved hosted endpoints.
 
 ## Required source of truth
 1. Pin production schema snapshot timestamp, repository SHA, extension versions and schema ownership. Capture schema-only definitions without copying rows, Auth users, credentials, COA evidence or Storage objects.

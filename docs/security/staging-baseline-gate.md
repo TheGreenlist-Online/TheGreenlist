@@ -2,7 +2,27 @@
 
 ## Scope and current status
 
-PR #60 adds checks, not a schema baseline or an intake release. It remains draft and intentionally fails closed. Do not mark it required or treat a preview deployment as acceptance evidence.
+PR #60 now includes the recovered baseline, closed foundation and locally tested
+completion candidate as well as checks. It remains draft and intentionally fails
+closed. Do not mark it required or treat a preview deployment as acceptance evidence.
+
+Read-only verification on **2026-11-08** found healthy staging with 28 public and
+two private tables, one foundation migration, zero application routines, zero
+public policies and zero Storage buckets. No dedicated validator login exists.
+The latest live catalog job at source commit `cda02ba9562a3a5bf2f2663351f424df3967d314`
+failed before connecting because its database URL secret was missing. Adding a
+secret alone cannot complete the schema or the hosted acceptance tests.
+
+The original foundation rollback passed. The later security-schema rollback
+probe is **unverified**, not a pass: unchanged staging does not show whether the
+probe ran and rolled back or never started. See the
+[current acceptance matrix](staging-bootstrap-acceptance-matrix.md) and
+[validator access plan](staging-validator-access-plan.md).
+
+## Historical inventory (2026-10-26)
+
+The following empty-staging inventory predates the November 6 foundation load.
+It is retained as capture history, not current setup instructions.
 
 Read-only inspection on 2026-10-26 (America/Los_Angeles), using the existing Supabase connector, confirmed:
 
@@ -24,16 +44,34 @@ Production currently contains `organization_memberships` and `organization_verif
 
 The original hostname-only check allowed libpq query options such as `hostaddr` to redirect a connection to another server.
 
-The workflow now accepts only postgres/postgresql URLs with the exact approved staging hostname, port 5432 (or default), database postgres, an explicit simple username and password, and no fragment or raw whitespace/control characters. The only query option allowed is one sslmode=require or sslmode=verify-full. All other parameters, including host, hostaddr, service, servicefile, options, encoded overrides and duplicates, are rejected.
+The workflow now calls `scripts/staging-url-guard.py`. It accepts direct staging
+URLs only, with exact hostname spelling, port 5432 (or default), database postgres,
+an explicit simple username and password, and no fragment or whitespace/control
+characters. Reserved password characters must be percent-encoded. The only query
+strings allowed are `sslmode=require` or `sslmode=verify-full`; routing overrides,
+encoded names, duplicates and other options are rejected.
 
-Before invoking psql, the shell removes inherited PG-prefixed environment variables and explicitly sets PGSSLMODE=require and PGCONNECT_TIMEOUT=10. This closes inherited PGHOSTADDR/PGSERVICE routing paths. A URL may request the stricter verify-full mode. This guard intentionally does not accept shared pooler hosts or arbitrary connection tuning; supporting them requires a separately reviewed isolation design.
+Before invoking psql, the shell removes inherited PG-prefixed environment variables
+and explicitly sets PGSSLMODE=require and PGCONNECT_TIMEOUT=10. The guard tests
+both the actual entrypoint and the shell sanitation without database credentials.
 
-Credential-free regression tests run before the live-secret check:
-`python3 -m unittest discover -s tests -p 'test_staging_url_guard.py'`.
+Session-pooler parsing is prepared with synthetic `.invalid` endpoints, but
+`APPROVED_SESSION_POOLER` remains `None`. All pooler URLs are still rejected by
+the workflow. A future reviewed change must pin the exact Connect-dialog host,
+port 5432, and a dedicated role with the staging project suffix, then verify real
+connectivity and effective privileges. Neither an environment variable nor the
+connection URL can authorize a new host. See the [access plan](staging-validator-access-plan.md).
 
-Do not add STAGING_DATABASE_URL yet. After review of the guard and confirmation that the runner can reach the approved direct host, provision a dedicated least-privileged, read-only staging connection through secure secret management. The gate connection is separate from any privileged application server key and from restore access. Never use a production connection or service-role API key for this check.
+Do not add an administrator, production or service-role credential to make the
+check run. Securely provision and test the dedicated staging-only identity first.
+The URL guard checks routing; it does not certify that a database login is safe.
 
-## Baseline work needed
+## Historical baseline investigation
+
+The following investigation predates the recovered baseline and closed-foundation
+implementation now in this PR. Preserve it as rationale; follow the current
+completion candidate rather than exporting, restoring or replaying it blindly.
+
 
 The 19 repository SQL migrations are incremental. The first creates indexes on already-existing application tables; they cannot recreate an empty project. The production migration ledger also uses deployment-time versions that differ from some repository filenames. Do not run an indiscriminate db push or manufacture migration-history rows.
 
@@ -90,7 +128,7 @@ Keep COA_INTAKE_ENABLED=false until representative staging demonstrates:
 
 Current phase one accepts private originals only. Extraction, human review tooling, source authentication and public result publication remain separate implementation and acceptance work; enabling intake does not enable them.
 
-## Validation in this session
+## Historical validation in the original investigation
 
 - Four Python URL-guard regression tests passed, including routing overrides and inherited libpq environment sanitation.
 - The two targeted COA API/intake test files passed.
