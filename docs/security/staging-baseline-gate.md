@@ -1,0 +1,138 @@
+# Staging baseline gate and COA reopening requirements
+
+## Scope and current status
+
+PR #60 now includes the recovered baseline, closed foundation and locally tested
+completion candidate as well as checks. It remains draft and intentionally fails
+closed. Do not mark it required or treat a preview deployment as acceptance evidence.
+
+Read-only verification on **2026-11-09** found healthy staging with 28 public and
+two private tables, one foundation migration, zero application routines, zero
+public policies and zero Storage buckets. No dedicated validator login exists.
+The latest live catalog job at source commit `0a841f4cc0837e23e6fff5e81d8ef3fb07dc9697`
+failed before connecting because its database URL secret was missing. Adding a
+secret alone cannot complete the schema or the hosted acceptance tests.
+
+The original foundation rollback passed. The later security-schema rollback
+probe is **unverified**, not a pass: unchanged staging does not show whether the
+probe ran and rolled back or never started. See the
+[current acceptance matrix](staging-bootstrap-acceptance-matrix.md) and
+[validator access plan](staging-validator-access-plan.md).
+
+## Historical inventory (2026-10-26)
+
+The following empty-staging inventory predates the November 6 foundation load.
+It is retained as capture history, not current setup instructions.
+
+Read-only inspection on 2026-10-26 (America/Los_Angeles), using the existing Supabase connector, confirmed:
+
+| Item | Staging `otmaxtjstvbfckpgbwdi` | Production `idtnlninotxwqpznbwur` |
+| --- | --- | --- |
+| Application tables in public | 0 | 28 |
+| Application tables in private | 0 | 2 |
+| Recorded migrations | 0 | Existing history; versions differ from repository names |
+| Storage buckets | 0 | evidence, business-documents, education-materials, coa-sources |
+| Auth users | 0 | Not inventoried; no user data copied |
+| Core permission helpers | 0 | current_platform_role, has_permission, protect_profile_authority |
+| Public tables without RLS | No tables to evaluate | 0 |
+
+Staging project status is ACTIVE_HEALTHY on PostgreSQL 17. Its Security Advisor returned no notices, which does not establish readiness on an empty database. No database credentials were added, no schema/data was changed, and intake was not enabled.
+
+Production currently contains `organization_memberships` and `organization_verification_requests`, contrary to the October 19 release notes. PR #29 is still open. Table existence does not establish that its current reviewed definitions were deployed. Reconcile their functions, constraints, grants, policies and audit behavior before choosing the restore baseline or replaying its migration.
+
+## Connection guard repair
+
+The original hostname-only check allowed libpq query options such as `hostaddr` to redirect a connection to another server.
+
+The workflow now calls `scripts/staging-url-guard.py`. It accepts direct staging
+URLs only, with exact hostname spelling, port 5432 (or default), database postgres,
+an explicit simple username and password, and no fragment or whitespace/control
+characters. Reserved password characters must be percent-encoded. The only query
+strings allowed are `sslmode=require` or `sslmode=verify-full`; routing overrides,
+encoded names, duplicates and other options are rejected.
+
+Before invoking psql, the shell removes inherited PG-prefixed environment variables
+and explicitly sets PGSSLMODE=require and PGCONNECT_TIMEOUT=10. The guard tests
+both the actual entrypoint and the shell sanitation without database credentials.
+
+Session-pooler parsing is tested without network access against synthetic endpoints
+and the operator-reported `aws-0-us-east-2.pooler.supabase.com:5432` candidate. Its
+project binding has not been independently verified and its proposed dedicated
+role has not been provisioned. `APPROVED_SESSION_POOLER` remains `None`; all pooler
+URLs are still rejected by the workflow. A future reviewed change must pin the exact Connect-dialog host,
+port 5432, and a dedicated role with the staging project suffix, then verify real
+connectivity and effective privileges. Neither an environment variable nor the
+connection URL can authorize a new host. See the [access plan](staging-validator-access-plan.md).
+
+Do not add an administrator, production or service-role credential to make the
+check run. Securely provision and test the dedicated staging-only identity first.
+The URL guard checks routing; it does not certify that a database login is safe.
+
+## Historical baseline investigation
+
+The following investigation predates the recovered baseline and closed-foundation
+implementation now in this PR. Preserve it as rationale; follow the current
+completion candidate rather than exporting, restoring or replaying it blindly.
+
+
+The 19 repository SQL migrations are incremental. The first creates indexes on already-existing application tables; they cannot recreate an empty project. The production migration ledger also uses deployment-time versions that differ from some repository filenames. Do not run an indiscriminate db push or manufacture migration-history rows.
+
+1. Freeze a source catalog snapshot and record the intended main/PR commit and capture time. Reconcile the organization-table drift before declaring that snapshot the accepted baseline.
+2. Produce a schema-only application export, including public/private schemas, enums, domains, sequences, constraints, generated columns, indexes, views, functions, triggers, owners, grants, default privileges, RLS and policies. Review custom roles/extensions and remove environment-specific external integrations from the staging restore plan.
+3. Capture custom Auth/Storage dependencies separately. Production has an AFTER INSERT auth.users trigger, on_auth_user_created_create_profile, calling handle_new_user_profile(). Storage policies and private bucket configuration must be restored; schema-only export alone does not create bucket rows or copy project Auth settings.
+4. Validate the complete restore artifact in isolation, restore it to staging, and reconcile migration history against actual definitions. Apply only missing, reviewed changes in dependency order.
+5. Compare definitions and effective privileges with the selected source. Matching table counts, migration names or RLS flags is insufficient.
+6. Run real Auth/JWT and Storage HTTP acceptance, recovery tests and advisors. Keep the workflow's final BLOCKED exit until each missing gate has executable evidence.
+
+A complete reviewed schema-only export is still needed. This session's catalog reads are an inventory, not that export. Shell networking could not reach its configured proxy, and no direct DB/export credentials or complete source dump are available here. Existing connector access supports the read-only inventory without adding secrets; no partial substitute schema was installed.
+
+Supabase's [backup/restore guidance](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) documents separate migration-history handling and custom auth/storage restoration. Its full data-copy examples are not the staging plan: retain production identities, submissions and originals in production.
+
+## Data required for testing
+
+A production data copy is unnecessary. Use small, clearly synthetic fixtures and authorized test PDFs.
+
+| Dataset | Minimum for private COA intake | Broader reopening coverage |
+| --- | --- | --- |
+| Reference configuration | Production-equivalent roles and permission mappings: currently 6 role_catalog rows and 42 role_permissions rows | Validate exact values against src/lib/roles.ts; counts alone are not parity |
+| Identities | Two independently authenticated staging accounts, plus unauthenticated requests; include an anonymous-sign-in account to verify rejection | Add actors for each effective role/permission and relevant organization affiliation, including moderator without business.review and unrelated authorized reviewer |
+| COA documents | An authorized original PDF, a second distinct PDF, and synthetic malformed/wrong-MIME/oversized variants | Different lab layouts, scans and phone photos are for later extraction-format acceptance |
+| Intake records | Create through the real API: submitted, pending, failed, replay/conflict, quota-boundary cases | Never insert fictional analytical values as authenticated laboratory results |
+| Other application records | Not needed to invent business/product identities for neutral COA submission | Synthetic businesses, membership/request conflicts, forum/report/document cases with owner/unrelated/reviewer access |
+| Storage | Private coa-sources bucket, application/pdf only, 3 MiB maximum; synthetic objects created by test flow | Restore the other three private bucket definitions and test their distinct policies for broader reopening |
+
+COA metadata already has an implementation: owner, generated submission ID/path, SHA-256, byte size, receipt time, optional raw product/batch descriptions and separate intake/extraction/review/authenticity/publication states. Unknown descriptions remain null. A laboratory directory, product catalog, canonical batches and parsed test results are not prerequisites for private intake.
+
+Generate additional fixture attempts for concurrency and the five-per-24-hour / fifty-lifetime reservation limits. Avoid consuming ordinary tester quotas with repeated manual setup. Cleanup must verify exact paths and avoid deleting any object referenced by a submitted receipt.
+
+## Information and configuration still needed
+
+Most table and field requirements are recoverable from code and the source database. The remaining inputs are concrete:
+
+- **Accepted baseline:** source snapshot and release commit, plus resolution of the organization-table drift. Private COA intake can be validated independently of shipping PR #29.
+- **Staging application target:** exact preview/custom hostname and matching staging Supabase public configuration. Inspect deployed bindings; runtime variable readiness here does not prove the preview points at staging.
+- **Auth setup:** controlled test identities, callback allowlist, confirmation/recovery/email behavior and applicable password settings. Use real staging sessions, not fabricated JWTs or privileged SQL as user-access proof.
+- **Server access, later:** securely configure the staging-only server key required by COA Storage operations after isolation review. No credentials should be pasted into chat or committed. This is distinct from the later read-only Actions URL.
+- **Test material:** permission to use the original test PDFs privately; synthetic invalid variants can be generated. No bulk production COA data is needed.
+- **Operations:** named responsibility for removal/export requests, retention, failed-upload/orphan reconciliation, monitoring, request/body/time/rate limits and release signoff.
+
+## Acceptance before intake opens
+
+Keep COA_INTAKE_ENABLED=false until representative staging demonstrates:
+
+1. Sign-in/confirmation/recovery and return to /coa/submit work with the actual preview origin.
+2. Owner uploads one PDF, receives an immutable private receipt and downloads byte-identical content with matching SHA-256.
+3. Another account, anonymous requests, anonymous-sign-in sessions and forged reviewer claims cannot read the receipt or source. Direct table mutations, Storage upload/list/get/update/delete/sign and bucket-public changes are denied.
+4. Invalid/oversized/chunked uploads, foreign/missing Origin, expired sessions, duplicates and changed-payload replay fail correctly.
+5. Parallel quota enforcement, Storage failure, interrupted finalization, lost-response recovery and exact-path cleanup preserve valid receipts and originals.
+6. Mobile/keyboard/error-focus flows work; private responses are not indexed or cached; ingress limits and operational handling are established.
+7. Catalog parity, actual grants/RLS/Storage policies and advisors are reviewed. Run authorization checks with real user sessions; use service access only for the server behavior that intentionally requires it.
+
+Current phase one accepts private originals only. Extraction, human review tooling, source authentication and public result publication remain separate implementation and acceptance work; enabling intake does not enable them.
+
+## Historical validation in the original investigation
+
+- Four Python URL-guard regression tests passed, including routing overrides and inherited libpq environment sanitation.
+- The two targeted COA API/intake test files passed.
+- The broader npm test run passed seven test files and could not load three database test files because @electric-sql/pglite is absent from the provided node_modules. No full-suite pass is claimed.
+- No live upload, baseline restore, real-user authorization test or recovery acceptance was performed. The live workflow still cannot pass: the connection secret is absent and full semantic/role/recovery gates remain unimplemented.

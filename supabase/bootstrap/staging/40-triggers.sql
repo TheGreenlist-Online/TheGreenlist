@@ -1,0 +1,25 @@
+-- Recovered source snapshot; local review/testing only. No user records.
+CREATE TRIGGER on_auth_user_created_create_profile AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user_profile();
+CREATE TRIGGER audit_business_document_review AFTER INSERT OR UPDATE ON business_documents FOR EACH ROW EXECUTE FUNCTION private.audit_business_document_review();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON business_documents FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('20');
+CREATE TRIGGER guard_business_document_review BEFORE INSERT OR UPDATE ON business_documents FOR EACH ROW EXECUTE FUNCTION private.guard_business_document_review();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON business_profiles FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('10');
+CREATE TRIGGER trg_business_profiles_notify_claim AFTER UPDATE OF verification_status ON business_profiles FOR EACH ROW EXECUTE FUNCTION notify_business_claim_decision();
+CREATE TRIGGER trg_business_profiles_protect_review_fields BEFORE UPDATE ON business_profiles FOR EACH ROW EXECUTE FUNCTION protect_business_review_fields();
+CREATE TRIGGER trg_seed_organization_owner_membership AFTER INSERT ON business_profiles FOR EACH ROW EXECUTE FUNCTION seed_organization_owner_membership();
+CREATE TRIGGER guard_coa_intake BEFORE INSERT OR UPDATE ON coa_reports FOR EACH ROW EXECUTE FUNCTION private.guard_coa_intake();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON education_resources FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('20');
+CREATE TRIGGER client_write_quota BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('120');
+CREATE TRIGGER guard_forum_review_fields BEFORE INSERT OR UPDATE ON forum_posts FOR EACH ROW EXECUTE FUNCTION private.guard_forum_review_fields();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON forum_threads FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('20');
+CREATE TRIGGER guard_forum_review_fields BEFORE INSERT OR UPDATE ON forum_threads FOR EACH ROW EXECUTE FUNCTION private.guard_forum_review_fields();
+CREATE TRIGGER trg_guard_organization_membership_update BEFORE UPDATE ON organization_memberships FOR EACH ROW EXECUTE FUNCTION guard_organization_membership_update();
+CREATE TRIGGER trg_audit_organization_verification_review AFTER UPDATE ON organization_verification_requests FOR EACH ROW EXECUTE FUNCTION audit_organization_verification_review();
+CREATE TRIGGER trg_touch_organization_verification_request BEFORE UPDATE ON organization_verification_requests FOR EACH ROW EXECUTE FUNCTION touch_organization_verification_request();
+CREATE TRIGGER protect_profile_authority BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION private.protect_profile_authority();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON reports FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('10');
+CREATE TRIGGER protect_report_review_fields BEFORE INSERT OR UPDATE ON reports FOR EACH ROW EXECUTE FUNCTION private.protect_report_review_fields();
+CREATE TRIGGER trg_reports_notify_status_change AFTER UPDATE OF status, verification_status ON reports FOR EACH ROW EXECUTE FUNCTION notify_report_status_change();
+CREATE TRIGGER client_write_quota BEFORE INSERT ON support_tickets FOR EACH ROW EXECUTE FUNCTION private.enforce_client_write_quota('10');
+create event trigger "ensure_rls" on ddl_command_end when tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO') execute function public.rls_auto_enable();
+alter event trigger "ensure_rls" owner to "postgres";

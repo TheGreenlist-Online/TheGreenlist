@@ -1,0 +1,45 @@
+name: Disposable schema baseline replay
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: disposable_only
+          POSTGRES_DB: migration_scratch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d migration_scratch"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: disposable_only
+      PGDATABASE: migration_scratch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate baseline provenance
+        run: python3 scripts/check-staging-bootstrap.py --local
+      - name: Restore captured baseline with failure and rollback controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p migration-results
+          python3 scripts/test-staging-replay.py --local-service | tee migration-results/replay.log
+      - name: Upload sanitized replay checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: disposable-migration-replay
+          path: migration-results/
+          if-no-files-found: ignore
