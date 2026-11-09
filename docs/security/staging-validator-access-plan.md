@@ -1,6 +1,6 @@
 # Staging validator access and negative-test plan
 
-Status: **design only; no validator identity or hosted permissions provisioned**.
+Status: **candidate and disposable tests only; no validator identity or hosted permissions provisioned**.
 This plan does not establish hosted acceptance or authorize an access change.
 Target: staging `otmaxtjstvbfckpgbwdi`. Production is excluded.
 
@@ -8,22 +8,39 @@ Target: staging `otmaxtjstvbfckpgbwdi`. Production is excluded.
 
 `scripts/staging-url-guard.py` is the workflow's single routing validator. Direct
 connections remain restricted to `db.otmaxtjstvbfckpgbwdi.supabase.co`, database
-`postgres`, and port 5432 or its default. Session-pooler logic is exercised only
-with `.invalid` endpoints and synthetic credentials. `APPROVED_SESSION_POOLER`
-remains `None`: the workflow still rejects every pooler URL.
+`postgres`, and port 5432 or its default. Session-pooler logic is exercised with
+synthetic credentials and no network calls. `APPROVED_SESSION_POOLER` remains
+`None`: the workflow still rejects every pooler URL.
+
+On **2026-11-09**, the operator supplied `aws-0-us-east-2.pooler.supabase.com` and
+session port `5432`. `CANDIDATE_SESSION_POOLER` pins that exact pair with the
+proposed, unprovisioned role `greenlist_staging_validator`. Tests require the exact
+username `greenlist_staging_validator.otmaxtjstvbfckpgbwdi` and reject production
+or unrelated project suffixes, other roles, a different pooler cluster, suffix
+spoofing, transaction port 6543 and routing overrides. The candidate is never a
+fallback when the approved configuration is absent.
+
+This is **operator-supplied, not independently project-verified**. The authenticated
+Supabase project connector confirms staging's identity and us-east-2 region, but
+returns only its direct database host. The available dashboard session redirects
+to sign-in. Region compatibility and DNS ownership cannot establish which shared
+pooler cluster serves this project. No login or credential access was attempted.
 
 Before enabling a pooler endpoint:
 
-1. Obtain its exact hostname and session port from the staging project's Connect
-   dialog. Do not infer the hostname from the region or allow a provider suffix.
+1. Independently confirm the reported exact hostname and session port against
+   the staging project's Connect dialog or authenticated project-specific provider
+   metadata. Do not infer the hostname from the region or allow a provider suffix.
 2. Review and provision a dedicated validator identity through the approved secure
    process. Do not use `postgres`, managed Supabase roles, application roles,
    service-role API keys, or production credentials.
 3. Pin the exact hostname and dedicated role in a reviewed code change. The pooler
    username must be exactly `<validator-role>.otmaxtjstvbfckpgbwdi`, port 5432 and
    database `postgres`. A shared hostname alone does not identify a project.
-4. Exercise the real connection and grants in isolated staging; synthetic URL
-   tests prove parser behavior, not connectivity or authority.
+4. Exercise the real connection and grants in isolated staging. Verify both
+   `session_user` and `current_user` equal the approved dedicated role, with no
+   bypass or ownership capabilities. Synthetic URL tests prove parser behavior,
+   not connectivity, project identity or authority.
 5. Only then store its URI directly in the repository's Actions secret
    `STAGING_DATABASE_URL`. Never put the URI in chat, code, artifacts or logs.
 
@@ -106,6 +123,50 @@ rollback for safety. After approval, the hosted verification should use catalog
 privilege assertions and deliberately bounded synthetic fixtures, with independently
 verified cleanup. Stop on an unexpected success, retain sanitized evidence, and
 require a fresh review before granting more access.
+
+## Disposable test findings (2026-11-09)
+
+`tests/staging-validator-isolation.test.mjs` creates a passwordless NOLOGIN fixture
+role only inside local PGlite. Against the locally restored, hardened candidate,
+its effective role cannot read application/Auth/Storage data, execute application
+routines, write data, create application-schema objects or take ownership. Forged
+JWT settings and turning the read-only session setting off do not grant access.
+These tests do not provision a hosted login or implement its allowed fingerprint
+interface, and PGlite role switching is not proof of actual pooled login behavior.
+
+`supabase/tests/staging-validator-identity.sql` is a read-only, unwired authority
+preflight. It requires the exact session and effective role, database `postgres`,
+no elevated role flags, memberships, owned objects, database CREATE or CREATE in
+non-system schemas. It is not a complete data/routine-privilege audit. The local
+suite tests rejection of administrator sessions, mismatched effective roles and
+the wrong database. Further authority checks use a clearly labelled simulation
+adapted to PGlite's `template1` database, not an authenticated hosted connection.
+The database-CREATE-grant negative test is explicitly **skipped**: PGlite reports
+`XX000: tuple concurrently deleted` when changing that database ACL. Real
+PostgreSQL verification of this case, actual login/role-switch behavior and the
+allowed fingerprint interface remains required before provisioning is accepted.
+
+A deliberate future-function fixture exposes an unresolved boundary: newly created
+functions can receive PUBLIC EXECUTE by default, which every role inherits. A
+role-specific REVOKE does not cancel PUBLIC access. The test detects this regression
+without changing defaults. A reviewed migration/default-privilege design and
+hosted extension/effective-privilege audit are required before representing the
+prospective login as safely restricted. Do not treat the passing regression test
+as evidence that the underlying default has been repaired.
+
+A read-only hosted catalog check on 2026-11-09 found no currently PUBLIC-executable
+SECURITY DEFINER routines in the inspected application schemas. That observation
+does not establish safe future-function defaults or complete extension isolation.
+
+## Server identity limits
+
+A read-only check through the staging-specific Supabase connector returned database
+`postgres`, cluster name `main` and no configured `app.settings.project_ref` on
+2026-11-09. Those values are not a unique project identity. Checking a future
+connection's database and login roles is necessary but cannot replace the exact
+project-qualified pooler username and independent provider endpoint verification.
+Do not accept a caller-set custom GUC as trusted project identity or install a new
+persistent identity marker without its own reviewed change.
 
 The current security-schema rollback probe remains unverified. An unchanged hosted
 fingerprint cannot distinguish a completed rollback from a test that never started.

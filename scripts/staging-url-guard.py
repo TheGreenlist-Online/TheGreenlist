@@ -1,8 +1,8 @@
 """Validate staging routing without connecting or printing connection details.
 
-Session-pooler support is prepared for isolated tests only. Enabling a hosted
-endpoint requires a reviewed exact hostname and dedicated validator role below;
-neither a URL nor an environment variable can supply that approval.
+Session-pooler support is prepared for credential-free tests only. The reported
+endpoint is a disabled candidate until its project binding and dedicated role are
+verified; neither a URL nor an environment variable can supply that approval.
 """
 from dataclasses import dataclass
 import os
@@ -20,6 +20,17 @@ ROLE_PATTERN = r"[A-Za-z_][A-Za-z0-9_]*"
 class SessionPooler:
     hostname: str
     role: str
+    port: int = 5432
+
+
+# Supplied by the operator on 2026-11-09; not independently verified against the
+# project's Connect dialog. The role name is proposed, not a provisioned login.
+# Never use this candidate automatically if APPROVED_SESSION_POOLER is absent.
+CANDIDATE_SESSION_POOLER = SessionPooler(
+    hostname="aws-0-us-east-2.pooler.supabase.com",
+    role="greenlist_staging_validator",
+    port=5432,
+)
 
 
 # Intentionally disabled. Do not derive a pooler host from the project's region,
@@ -68,6 +79,8 @@ def approved_url(raw: str, *, session_pooler: SessionPooler | None = None) -> bo
         # dedicated role and project suffix together identify the pooler tenant.
         if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)+", session_pooler.hostname):
             return False
+        if type(session_pooler.port) is not int or session_pooler.port != 5432:
+            return False
         if not re.fullmatch(ROLE_PATTERN, session_pooler.role):
             return False
         if session_pooler.role.lower() in (
@@ -77,7 +90,7 @@ def approved_url(raw: str, *, session_pooler: SessionPooler | None = None) -> bo
             return False
         return (
             u.hostname == session_pooler.hostname
-            and endpoint == session_pooler.hostname + ":5432"
+            and endpoint == f"{session_pooler.hostname}:{session_pooler.port}"
             and u.username == session_pooler.role + "." + STAGING_PROJECT_REF
         )
     except (ValueError, UnicodeError, TypeError):

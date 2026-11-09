@@ -2,7 +2,7 @@
 
 Status: BLOCKED. This document is an audit plan, not authorization to restore or merge.
 
-## Current state verified on 2026-11-08 (read-only)
+## Current state verified on 2026-11-09 (read-only)
 
 - Staging `otmaxtjstvbfckpgbwdi` is ACTIVE_HEALTHY on PostgreSQL 17.11.
 - The closed foundation has 28 public and two private tables. Its recorded
@@ -10,7 +10,7 @@ Status: BLOCKED. This document is an audit plan, not authorization to restore or
 - Application routines, public policies and Storage buckets are still absent.
   A hardened completion candidate is prepared locally, not installed in staging.
 - No dedicated validator login exists. The latest live-catalog workflow attempt
-  at source commit `cda02ba9562a3a5bf2f2663351f424df3967d314` stopped before connecting
+  at source commit `0a841f4cc0837e23e6fff5e81d8ef3fb07dc9697` stopped before connecting
   because `STAGING_DATABASE_URL` was missing.
 - The original foundation rollback passed. The later security-schema rollback
   probe is unverified: unchanged state does not prove it ran and rolled back.
@@ -22,7 +22,10 @@ Status: BLOCKED. This document is an audit plan, not authorization to restore or
 See [closed foundation](closed-staging-foundation.md),
 [completion candidate](staging-completion-candidate.md) and
 [validator access plan](staging-validator-access-plan.md). The validator plan and
-synthetic pooler tests create no credentials, grants or approved hosted endpoints.
+credential-free pooler tests create no credentials, grants or approved hosted endpoints.
+The operator-reported session endpoint is pinned as a disabled candidate pending
+independent provider verification. Disposable validator tests also identify a
+future PUBLIC EXECUTE/default-privilege boundary that still needs review.
 
 ## Required source of truth
 1. Pin production schema snapshot timestamp, repository SHA, extension versions and schema ownership. Capture schema-only definitions without copying rows, Auth users, credentials, COA evidence or Storage objects.

@@ -34,7 +34,8 @@ class StagingUrlGuardTest(unittest.TestCase):
             env={**os.environ, "STAGING_DATABASE_URL": url, **(extra_env or {})},
             capture_output=True, text=True,
         )
-        for private_part in ("synthetic", "staging_validator", HOST, POOLER.hostname):
+        for private_part in ("synthetic", "staging_validator", HOST, POOLER.hostname,
+                             guard.CANDIDATE_SESSION_POOLER.hostname):
             self.assertNotIn(private_part, result.stdout + result.stderr)
         return result
 
@@ -112,6 +113,38 @@ class StagingUrlGuardTest(unittest.TestCase):
         ):
             with self.subTest(url=url):
                 self.assertFalse(guard.approved_url(url, session_pooler=POOLER))
+
+    def test_reported_endpoint_candidate_is_exact_and_remains_disabled(self):
+        candidate = guard.CANDIDATE_SESSION_POOLER
+        self.assertEqual(candidate.hostname, "aws-0-us-east-2.pooler.supabase.com")
+        self.assertEqual(candidate.port, 5432)
+        self.assertEqual(candidate.role, "greenlist_staging_validator")
+        url = (f"postgresql://{candidate.role}.otmaxtjstvbfckpgbwdi:synthetic@"
+               f"{candidate.hostname}:{candidate.port}/postgres?sslmode=require")
+        # Parser-only injection, never a network operation or runtime activation.
+        self.assertTrue(guard.approved_url(url, session_pooler=candidate))
+        self.assertFalse(guard.approved_url(url))
+        self.assertEqual(self.cli(url).returncode, 1)
+        for changed in (
+            url.replace("otmaxtjstvbfckpgbwdi", "idtnlninotxwqpznbwur"),
+            url.replace("greenlist_staging_validator", "postgres"),
+            url.replace("greenlist_staging_validator", "another_validator"),
+            url.replace(".otmaxtjstvbfckpgbwdi", ""),
+            url.replace("aws-0-us-east-2", "aws-1-us-east-2"),
+            url.replace(candidate.hostname, candidate.hostname + ".evil.example"),
+            url.replace(":5432", ":6543"),
+            url + "&hostaddr=203.0.113.1",
+        ):
+            with self.subTest(url=changed):
+                self.assertFalse(guard.approved_url(changed, session_pooler=candidate))
+
+    def test_session_pooler_cannot_be_reconfigured_to_transaction_port(self):
+        for port in (6543, 5433, "5432", True, None):
+            with self.subTest(port=port):
+                endpoint = guard.SessionPooler(POOLER.hostname, POOLER.role, port)
+                self.assertFalse(guard.approved_url(POOL_BASE, session_pooler=endpoint))
+                self.assertFalse(guard.approved_url(
+                    POOL_BASE.replace(":5432", f":{port}"), session_pooler=endpoint))
 
     def test_pooler_configuration_rejects_privileged_or_ambiguous_roles(self):
         for role in ("postgres", "anon", "authenticated", "service_role", "authenticator",

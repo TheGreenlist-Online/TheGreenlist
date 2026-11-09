@@ -86,7 +86,8 @@ production database changes remain outside this staging work.
 ## Credential-free connection preparation
 
 The workflow now calls a separately tested URL guard. Session-pooler behavior is
-prepared using synthetic `.invalid` endpoints, but the approved hosted pooler
-configuration remains empty. No real pooler, validator role or credential is
+prepared using credential-free tests, including the operator-reported endpoint
+candidate, but the approved hosted pooler configuration remains empty. Its project
+binding and proposed dedicated role still require verification. No real pooler, validator role or credential is
 enabled by this change. See the [validator access and negative-test plan](staging-validator-access-plan.md)
 for the remaining review and secure provisioning steps.
