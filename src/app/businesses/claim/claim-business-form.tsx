@@ -1,11 +1,12 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Field, FormActions, Notice, Select, Textarea } from '@/components/record'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { track } from '@vercel/analytics'
 
 const BUSINESS_TYPES = [
   { value: 'dispensary', label: 'Dispensary' },
@@ -16,6 +17,7 @@ const BUSINESS_TYPES = [
 ]
 
 export function ClaimBusinessForm() {
+  const trackedStart = useRef(false)
   const [name, setName] = useState('')
   const [businessType, setBusinessType] = useState(BUSINESS_TYPES[0].value)
   const [description, setDescription] = useState('')
@@ -72,6 +74,7 @@ export function ClaimBusinessForm() {
       return
     }
 
+    track('organization_claim_attempted')
     setSubmitting(true)
     try {
       const response = await fetch('/api/businesses', {
@@ -93,14 +96,17 @@ export function ClaimBusinessForm() {
         throw new Error(payload?.error || 'The business profile could not be created.')
       }
 
+      track('organization_claim_submitted')
       setSuccess({ slug: payload.slug })
       setName('')
       setDescription('')
       setWebsiteUrl('')
       setState('')
       setCity('')
-      await clearDraft()
+      // A draft cleanup failure must not turn a successful claim into a failure.
+      await clearDraft().catch(() => undefined)
     } catch (submissionError) {
+      track('organization_claim_failed')
       setError(submissionError instanceof Error ? submissionError.message : 'The business profile could not be created.')
     } finally {
       setSubmitting(false)
@@ -108,7 +114,12 @@ export function ClaimBusinessForm() {
   }
 
   return (
-    <form className="gl-panel" onSubmit={handleSubmit}>
+    <form className="gl-panel" onSubmit={handleSubmit} onChange={() => {
+      if (!trackedStart.current) {
+        trackedStart.current = true
+        track('organization_claim_started')
+      }
+    }}>
       <div className="gl-panel__head">
         <h2>Business record details</h2>
         <span className="gl-meta">
