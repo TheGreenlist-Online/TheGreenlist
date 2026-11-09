@@ -23,6 +23,6 @@ Supabase project: `idtnlninotxwqpznbwur`. Read-only inspection found 28 public t
 
 ## Completed legacy-table grant cleanup
 
-Validated effective table privileges for `public.audit_logs`, `public.automation_jobs` and `public.business_documents` are now absent for `anon` and `authenticated`; privileged access for `service_role` and `postgres` remains. This completes the defense-in-depth grant cleanup flagged during the October 30, 2026 review.
+Broad table grants on `public.audit_logs`, `public.automation_jobs` and `public.business_documents` are removed for `anon` and `authenticated`; privileged access for `service_role` and `postgres` remains. Existing user-session application routes still require authenticated SELECT on `audit_logs`, SELECT for both roles on `business_documents`, and authenticated INSERT/UPDATE on `business_documents`, subject to existing RLS and review guards.
 
-Migration `20261024060000_revoke_legacy_data_api_grants.sql` records and enforces this already-validated state without changing privileged-role grants or RLS policies. This grant validation does not establish application regression coverage or clear the separate staging gate above.
+Migration `20261024060000_revoke_legacy_data_api_grants.sql` enforces these narrowly scoped grants without changing privileged-role grants or RLS policies. The previously validated blanket revocation does not establish application regression coverage or clear the separate staging gate above.

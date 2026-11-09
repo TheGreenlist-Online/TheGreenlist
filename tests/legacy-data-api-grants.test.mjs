@@ -38,6 +38,10 @@ test('legacy grant cleanup is repeat-safe and preserves privileged and unrelated
         for (const role of roles) {
           for (const privilege of privileges) {
             const expected = table === 'unrelated_records' || role === 'service_role' || role === 'postgres'
+              || (table === 'audit_logs' && role === 'authenticated' && privilege === 'SELECT')
+              || (table === 'business_documents' && (
+                privilege === 'SELECT' || (role === 'authenticated' && ['INSERT', 'UPDATE'].includes(privilege))
+              ))
             assert.equal(await hasPrivilege(role, table, privilege), expected, `run ${run + 1}: ${table}, ${role}, ${privilege}`)
           }
         }
