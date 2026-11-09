@@ -13,7 +13,7 @@
     "dns:setup-clerk": "npx ts-node scripts/porkbun-dns.ts setup-clerk",
     "dns:setup-all": "npx ts-node scripts/porkbun-dns.ts setup-all",
     "check:roles": "node scripts/check-role-sync.mjs",
-    "test:onboarding": "node --test tests/organization-schema.test.mjs tests/analytics-privacy.test.mjs",
+    "test:onboarding": "node --test tests/organization-schema.test.mjs tests/organization-review-findings.test.mjs tests/analytics-privacy.test.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

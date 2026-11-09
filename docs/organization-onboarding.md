@@ -1,5 +1,32 @@
 # Organization onboarding
 
+## Review hardening — November 9, 2026
+
+The three findings on `09ccaa3` were reproduced in isolated PostgreSQL tests:
+unbounded verification submissions, reviewer Auth deletion rejected by the review
+trigger, and unsolicited memberships disqualifying an independent reviewer.
+
+- Verification submissions now use the shared per-actor INSERT quota of ten per
+  UTC hour. Its trigger is in a later migration, after the quota helper exists.
+  Changing organizations or withdrawing requests does not reset the bucket.
+- Reviewer Auth deletion may only clear `reviewed_by` through the nested FK
+  action after that Auth row is gone. It preserves all other fields and does not
+  record another review. Direct attribution edits remain forbidden.
+- Non-owner memberships start as invitations without `accepted_at`. Only the
+  invited user can activate the row, by updating `status` to `active` without
+  changing its other details. The database stamps acceptance. Managers cannot
+  forge acceptance. Only confirmed memberships count as a review conflict;
+  suspension does not erase confirmed affiliation. Seeded owners remain active.
+
+These are repository changes, not a remote migration or release approval. The
+representative staging gate below still applies, including real Auth deletion,
+permission helpers, audit sinks, RLS, grants and Storage. Invitation UI remains
+separate work.
+
+Local validation: 46 tests passed, typecheck and production build passed, and
+lint reported zero errors with four existing warnings. The build used no live
+Supabase configuration and does not establish runtime connectivity.
+
 ## Merge-readiness review — October 18, 2026
 
 **Hold merge and remote migration promotion.** Review of `f37f112a310fa12df27e1160eb67123368cc8f7e`
@@ -40,7 +67,7 @@ A database trigger backfills an active `owner` membership for existing records a
 
 ## Start the rollout
 
-1. Apply the migration to a Supabase development branch. Confirm owner memberships were created for existing profiles and that an organization owner can add an `admin` member but cannot alter or remove the owner row.
+1. Apply the migrations to a representative Supabase development branch. Confirm owner memberships were created for existing profiles, an owner can invite an `admin`, and only that invited person can activate their membership. Confirm managers cannot alter or remove the owner row.
 2. Add the member-invite UI/API. It must accept an organization ID only after checking `can_manage_organization_members`, never trust an organization ID sent by the client alone.
 3. Add a verification submission UI that records legal name and regulator reference, while documents go to protected storage. Reviewers move the request through `submitted`, `in_review`, `needs_information`, `approved`, or `rejected`.
 4. Run the claim flow with a test account. Confirm the claimed business automatically has an owner membership, the verification request is private, and reviewer changes are audit logged by the application.

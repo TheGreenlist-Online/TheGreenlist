@@ -43,6 +43,8 @@ test('organization RLS and verification guards', async () => {
     assert.equal((await db.query('select * from organization_verification_requests')).rows.length, 0)
     await assert.rejects(db.exec(`insert into organization_memberships (organization_id, user_id, role) values ('${org}', '${stranger}', 'admin')`))
     await asUser(admin)
+    await db.exec(`update organization_memberships set status = 'active' where user_id = '${admin}'`)
+    await assert.rejects(db.exec(`update organization_memberships set role = 'owner' where user_id = '${admin}'`), /Owner memberships/)
     await assert.rejects(db.exec(`update organization_memberships set user_id = '${stranger}' where user_id = '${admin}'`))
     await db.exec(`delete from organization_memberships where user_id = '${owner}'`)
     assert.equal((await db.query(`select * from organization_memberships where user_id = '${owner}'`)).rows.length, 1)

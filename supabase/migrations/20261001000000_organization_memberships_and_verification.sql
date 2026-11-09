@@ -7,7 +7,7 @@ create table if not exists public.organization_memberships (
   organization_id uuid not null references public.business_profiles(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   role text not null check (role in ('owner', 'admin', 'editor', 'viewer')),
-  status text not null default 'active' check (status in ('invited', 'active', 'suspended')),
+  status text not null default 'invited' check (status in ('invited', 'active', 'suspended')),
   invited_by uuid references auth.users(id) on delete set null,
   invited_at timestamptz,
   accepted_at timestamptz,
@@ -79,22 +79,55 @@ create policy organization_memberships_delete on public.organization_memberships
 for delete to authenticated using (
   public.can_manage_organization_members(organization_id) and role <> 'owner'
 );
+-- Only the invited person can confirm affiliation. The trigger below limits
+-- this path to acceptance, without allowing changes to the assigned role.
+create policy organization_memberships_accept on public.organization_memberships
+for update to authenticated using (
+  user_id = (select auth.uid()) and status = 'invited' and accepted_at is null
+) with check (
+  user_id = (select auth.uid()) and role <> 'owner'
+  and status = 'active' and accepted_at is not null
+);
 
-create or replace function public.guard_organization_membership_update()
+create or replace function public.guard_organization_membership_write()
 returns trigger language plpgsql set search_path = '' as $$
 begin
+  if tg_op = 'INSERT' then
+    -- Owner membership is seeded by the business-profile trigger. RLS forbids
+    -- authenticated callers from inserting owner rows themselves.
+    if new.role <> 'owner' and (new.status <> 'invited' or new.accepted_at is not null) then
+      raise exception 'New members must accept their own invitation.';
+    end if;
+    return new;
+  end if;
   if new.id is distinct from old.id
      or new.organization_id is distinct from old.organization_id
      or new.user_id is distinct from old.user_id then
     raise exception 'Membership identity is immutable; remove and re-invite instead.';
   end if;
+  -- Permissive RLS policies combine USING and WITH CHECK independently. Keep
+  -- owner-role promotion forbidden even when acceptance and manager policies mix.
+  if new.role is distinct from old.role and (new.role = 'owner' or old.role = 'owner') then
+    raise exception 'Owner memberships are managed only by the database.';
+  end if;
+  if old.user_id = auth.uid() and old.status = 'invited'
+     and old.accepted_at is null and new.status = 'active' then
+    if (to_jsonb(new) - array['status','updated_at']) is distinct from
+       (to_jsonb(old) - array['status','updated_at']) then
+      raise exception 'Accepting an invitation cannot change membership details.';
+    end if;
+    new.accepted_at := now();
+  elsif new.accepted_at is distinct from old.accepted_at
+     or (new.status = 'active' and old.accepted_at is null) then
+    raise exception 'Only the invited person can confirm affiliation.';
+  end if;
   new.updated_at := now();
   return new;
 end;
 $$;
-revoke all on function public.guard_organization_membership_update() from public;
-create trigger trg_guard_organization_membership_update before update on public.organization_memberships
-for each row execute function public.guard_organization_membership_update();
+revoke all on function public.guard_organization_membership_write() from public;
+create trigger trg_guard_organization_membership_write before insert or update on public.organization_memberships
+for each row execute function public.guard_organization_membership_write();
 
 create table if not exists public.organization_verification_requests (
   id uuid primary key default gen_random_uuid(),
@@ -135,6 +168,14 @@ for update to authenticated using (coalesce(public.has_permission('business.revi
 create or replace function public.touch_organization_verification_request()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
+  -- ON DELETE SET NULL executes as a nested FK trigger after the Auth row is
+  -- gone. Permit only that attribution cleanup, preserving all other values.
+  -- Neither a caller role nor a caller-supplied setting grants this exception.
+  if pg_trigger_depth() > 1 and old.reviewed_by is not null and new.reviewed_by is null
+     and (to_jsonb(new) - 'reviewed_by') = (to_jsonb(old) - 'reviewed_by')
+     and not exists(select 1 from auth.users where id = old.reviewed_by) then
+    return new;
+  end if;
   if new.id is distinct from old.id
      or new.organization_id is distinct from old.organization_id
      or new.submitted_by is distinct from old.submitted_by
@@ -159,7 +200,8 @@ begin
        or exists(select 1 from public.business_profiles b
                  where b.id = old.organization_id and b.owner_id = auth.uid())
        or exists(select 1 from public.organization_memberships m
-                 where m.organization_id = old.organization_id and m.user_id = auth.uid()) then
+                 where m.organization_id = old.organization_id and m.user_id = auth.uid()
+                   and m.accepted_at is not null) then
       raise exception 'Reviewers cannot review affiliated organizations.';
     end if;
     if (to_jsonb(new) - array['status','review_note','updated_at']) is distinct from
@@ -201,6 +243,14 @@ create or replace function public.audit_organization_verification_review()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if new.status = 'withdrawn' then return new; end if;
+  -- The FK cleanup above is not another human review decision.
+  -- AFTER events may run after the nested FK trigger has returned; the BEFORE
+  -- guard has already verified its origin and exact row delta.
+  if old.reviewed_by is not null and new.reviewed_by is null
+     and (to_jsonb(new) - 'reviewed_by') = (to_jsonb(old) - 'reviewed_by')
+     and not exists(select 1 from auth.users where id = old.reviewed_by) then
+    return new;
+  end if;
   insert into public.audit_logs(actor_id, action, entity_type, entity_id, metadata)
   values(auth.uid(), 'organization_verification.review', 'organization_verification_requests', new.id,
     jsonb_build_object('before_status', old.status, 'after_status', new.status));
